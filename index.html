@@ -21,6 +21,9 @@
   .brand{ text-align:center; margin-bottom:18px; }
   .brand .b1{ font-size:26px; font-weight:800; color:var(--verde); }
   .brand .b2{ font-size:13px; color:var(--suave); }
+  .owl-img{ width:84px; height:84px; object-fit:contain; display:block; margin:0 auto 4px; }
+  .owl-badge{ width:36px; height:36px; border-radius:50%; background:#fff; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; vertical-align:middle; margin-right:9px; }
+  .owl-badge img{ width:34px; height:34px; object-fit:contain; }
   label{ display:block; font-size:13px; font-weight:600; margin:14px 0 6px; }
   input{ width:100%; padding:13px 14px; border:1.5px solid #dce3df; border-radius:11px; font-size:16px; outline:none; }
   input:focus{ border-color:var(--verde2); }
@@ -67,7 +70,7 @@
   <!-- ===================== LOGIN ===================== -->
   <div id="tela-login" class="center hide">
     <div class="card">
-      <div class="brand"><div class="b1">🦉 AlertaAí</div><div class="b2">Sua agenda e contas, em um só lugar</div></div>
+      <div class="brand"><img src="coruja.png" class="owl-img" alt="AlertaAí"><div class="b1">AlertaAí</div><div class="b2">Sua agenda e contas, em um só lugar</div></div>
       <label>E-mail</label>
       <input id="lg-email" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username">
       <label>Senha</label>
@@ -81,7 +84,7 @@
   <!-- ===================== CRIAR ACESSO ===================== -->
   <div id="tela-acesso" class="center hide">
     <div class="card">
-      <div class="brand"><div class="b1">🦉 AlertaAí</div><div class="b2" id="ac-ola">Criar seu acesso pelo computador</div></div>
+      <div class="brand"><img src="coruja.png" class="owl-img" alt="AlertaAí"><div class="b1">AlertaAí</div><div class="b2" id="ac-ola">Criar seu acesso pelo computador</div></div>
 
       <div id="ac-passo-email">
         <label>Seu melhor e-mail</label>
@@ -113,7 +116,7 @@
   <!-- ===================== APP ===================== -->
   <div id="tela-app" class="hide">
     <header>
-      <div class="logo">🦉 AlertaAí <small id="ap-nome">—</small></div>
+      <div class="logo"><span class="owl-badge"><img src="coruja.png" alt=""></span>AlertaAí <small id="ap-nome">—</small></div>
       <button id="ap-sair">Sair</button>
     </header>
 
