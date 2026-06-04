@@ -2,309 +2,525 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6b3a">
 <title>AlertaAí</title>
+<link rel="icon" href="coruja.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --verde:#0b6b3a; --verde2:#16a34a; --azul:#2563eb; --vermelho:#e11d48; --bg:#eef1f4; --card:#fff; --texto:#1c2b22; --suave:#6b7a72; }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  body{ margin:0; font-family:'Segoe UI',system-ui,Arial,sans-serif; background:var(--bg); color:var(--texto); }
-  .hide{ display:none !important; }
-  .wrap{ max-width:560px; margin:0 auto; min-height:100vh; }
-  /* topo */
-  header{ background:var(--verde); color:#fff; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; }
-  header .logo{ font-size:19px; font-weight:800; letter-spacing:.2px; }
-  header .logo small{ display:block; font-size:11px; font-weight:500; opacity:.85; }
-  header button{ background:rgba(255,255,255,.16); color:#fff; border:0; border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; cursor:pointer; }
-  /* cartões / telas centrais */
-  .center{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:22px; }
-  .card{ background:var(--card); border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.07); padding:26px 22px; width:100%; max-width:400px; }
-  .brand{ text-align:center; margin-bottom:18px; }
-  .brand .b1{ font-size:26px; font-weight:800; color:var(--verde); }
-  .brand .b2{ font-size:13px; color:var(--suave); }
-  .owl-img{ width:84px; height:84px; object-fit:contain; display:block; margin:0 auto 4px; }
-  .owl-badge{ width:36px; height:36px; border-radius:50%; background:#fff; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; vertical-align:middle; margin-right:9px; }
-  .owl-badge img{ width:34px; height:34px; object-fit:contain; }
-  label{ display:block; font-size:13px; font-weight:600; margin:14px 0 6px; }
-  input{ width:100%; padding:13px 14px; border:1.5px solid #dce3df; border-radius:11px; font-size:16px; outline:none; }
-  input:focus{ border-color:var(--verde2); }
-  .btn{ width:100%; margin-top:18px; background:var(--verde); color:#fff; border:0; border-radius:11px; padding:14px; font-size:16px; font-weight:700; cursor:pointer; }
-  .btn:disabled{ opacity:.55; }
-  .btn.alt{ background:#eef7f1; color:var(--verde); margin-top:10px; }
-  .msg{ margin-top:14px; font-size:13.5px; padding:11px 13px; border-radius:10px; display:none; }
-  .msg.err{ background:#fdecef; color:#b00930; display:block; }
-  .msg.ok{ background:#e9f8ef; color:#0b6b3a; display:block; }
-  .small{ font-size:12.5px; color:var(--suave); text-align:center; margin-top:16px; line-height:1.5; }
-  /* calendário */
-  .cal{ background:var(--card); margin:14px; border-radius:16px; box-shadow:0 3px 16px rgba(0,0,0,.05); padding:14px 12px 18px; }
-  .cal-head{ display:flex; align-items:center; justify-content:space-between; padding:4px 6px 12px; }
-  .cal-head .mes{ font-size:17px; font-weight:800; text-transform:capitalize; }
-  .cal-head button{ background:#eef7f1; color:var(--verde); border:0; width:38px; height:38px; border-radius:10px; font-size:20px; cursor:pointer; }
-  .grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
-  .dow{ text-align:center; font-size:11px; font-weight:700; color:var(--suave); padding:4px 0; }
-  .day{ aspect-ratio:1/1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:14px; cursor:pointer; position:relative; border:1.5px solid transparent; }
-  .day.out{ color:#c4cdc7; cursor:default; }
-  .day.hoje{ border-color:var(--verde2); font-weight:800; }
-  .day.sel{ background:var(--verde); color:#fff; }
-  .dots{ display:flex; gap:3px; margin-top:3px; height:7px; }
-  .dot{ width:6px; height:6px; border-radius:50%; }
-  .dot.c{ background:var(--azul); } .dot.p{ background:var(--vermelho); }
-  .day.sel .dot.c{ background:#bcd2ff; } .day.sel .dot.p{ background:#ffc2d2; }
-  .legend{ display:flex; gap:16px; justify-content:center; margin-top:14px; font-size:12.5px; color:var(--suave); }
-  .legend span{ display:inline-flex; align-items:center; gap:6px; }
-  /* listas */
-  .sec{ margin:18px 14px 8px; font-size:13px; font-weight:800; color:var(--suave); text-transform:uppercase; letter-spacing:.4px; }
-  .item{ background:var(--card); margin:8px 14px; border-radius:13px; padding:13px 15px; box-shadow:0 2px 10px rgba(0,0,0,.04); display:flex; gap:12px; align-items:flex-start; border-left:4px solid var(--azul); }
-  .item.p{ border-left-color:var(--vermelho); }
-  .item .ic{ font-size:18px; }
-  .item .t{ font-weight:700; font-size:15px; }
-  .item .sub{ font-size:13px; color:var(--suave); margin-top:3px; }
-  .item .val{ margin-left:auto; font-weight:800; color:var(--vermelho); white-space:nowrap; }
-  .vazio{ text-align:center; color:var(--suave); font-size:14px; padding:26px 14px; }
-  .foot{ text-align:center; font-size:11.5px; color:#aab4ae; padding:22px 14px 30px; }
-  .step-dots{ text-align:center; margin:2px 0 4px; font-size:12px; color:var(--suave); }
+:root{
+  --bg:#f3f1ea; --card:#fff; --ink:#15231b; --muted:#717f78; --soft:#9aa39c;
+  --green:#0b6b3a; --green-d:#084e29; --green-l:#e7f3ec; --green-line:#cfe6d8;
+  --blue:#2563eb; --blue-l:#e8effe; --rose:#e11d48; --rose-l:#fdeaef; --amber:#e0922a;
+  --line:#e7e2d6; --radius:18px; --shadow:0 6px 22px rgba(20,40,28,.07); --shadow-sm:0 2px 8px rgba(20,40,28,.05);
+  --fdisp:'Bricolage Grotesque',system-ui,sans-serif; --fbody:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:var(--fbody);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;
+  background-image:radial-gradient(circle at 12% 8%,rgba(11,107,58,.05),transparent 38%),radial-gradient(circle at 92% 0%,rgba(224,146,42,.06),transparent 34%);}
+h1,h2,h3,.disp{font-family:var(--fdisp);letter-spacing:-.01em}
+.hide{display:none!important}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px;color:var(--ink)}
+a{color:var(--green)}
+
+/* ---------- AUTH SCREENS ---------- */
+.auth-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px}
+.auth-card{width:100%;max-width:400px;background:var(--card);border-radius:24px;box-shadow:var(--shadow);
+  padding:30px 26px;animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+.auth-brand{text-align:center;margin-bottom:20px}
+.auth-brand img{width:88px;height:88px;object-fit:contain;display:block;margin:0 auto 6px;filter:drop-shadow(0 4px 10px rgba(20,40,28,.12))}
+.auth-brand .nm{font-family:var(--fdisp);font-weight:800;font-size:29px;color:var(--green);line-height:1}
+.auth-brand .tg{font-size:13px;color:var(--muted);margin-top:3px}
+label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:var(--ink)}
+.fld{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:13px;background:#fcfbf7;transition:.15s}
+.fld:focus{outline:0;border-color:var(--green);background:#fff;box-shadow:0 0 0 4px var(--green-l)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:13px;
+  background:var(--green);color:#fff;font-weight:700;font-size:16px;transition:.15s;box-shadow:0 4px 14px rgba(11,107,58,.22)}
+.btn:hover{background:var(--green-d);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.55;transform:none}
+.btn.sec{background:var(--green-l);color:var(--green);box-shadow:none;margin-top:10px}
+.btn.sec:hover{background:#dcefe3}
+.mt18{margin-top:18px}
+.hint{font-size:12.5px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.55}
+.msg{margin-top:14px;font-size:13.5px;padding:11px 13px;border-radius:11px;display:none}
+.msg.err{background:var(--rose-l);color:#b00930;display:block}
+.msg.ok{background:var(--green-l);color:var(--green-d);display:block}
+.step-tip{text-align:center;font-size:13px;color:var(--muted);margin:0 0 6px}
+
+/* ---------- APP SHELL ---------- */
+#screen-main{max-width:680px;margin:0 auto;min-height:100dvh;padding-bottom:96px}
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,var(--green),var(--green-d));color:#fff;
+  padding:14px 18px;display:flex;align-items:center;gap:11px;box-shadow:0 4px 18px rgba(8,78,41,.18)}
+.topbar .ow{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+.topbar .ow img{width:34px;height:34px;object-fit:contain}
+.topbar .ttl{font-family:var(--fdisp);font-weight:800;font-size:18px;line-height:1}
+.topbar .sub{font-size:11.5px;opacity:.85;margin-top:1px}
+.topbar .sp{flex:1}
+.iconbtn{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:18px;transition:.15s}
+.iconbtn:hover{background:rgba(255,255,255,.28)}
+.nav{position:sticky;top:66px;z-index:20;display:flex;gap:6px;padding:12px 14px;background:linear-gradient(var(--bg) 70%,transparent);overflow-x:auto}
+.nav button{flex:none;padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;color:var(--muted);background:var(--card);border:1.5px solid var(--line);transition:.15s;white-space:nowrap}
+.nav button.on{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 4px 12px rgba(11,107,58,.2)}
+.view{padding:6px 14px 20px;animation:fade .35s ease both}
+.greet{font-family:var(--fdisp);font-weight:800;font-size:24px;margin:10px 2px 2px}
+.greet small{display:block;font-family:var(--fbody);font-weight:500;font-size:13px;color:var(--muted);margin-top:3px;text-transform:capitalize}
+
+/* cards / stat */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.stat{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;overflow:hidden}
+.stat .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.stat.b .ic{background:var(--blue-l);color:var(--blue)} .stat.r .ic{background:var(--rose-l);color:var(--rose)}
+.stat .n{font-family:var(--fdisp);font-weight:800;font-size:25px;line-height:1}
+.stat .l{font-size:12.5px;color:var(--muted);margin-top:3px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px}
+.sec-h .t{font-family:var(--fdisp);font-weight:700;font-size:16px}
+.sec-h .lk{font-size:13px;color:var(--green);font-weight:600;cursor:pointer}
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:30px 16px;background:var(--card);border-radius:var(--radius);border:1px dashed var(--line)}
+.empty .e{font-size:30px;display:block;margin-bottom:8px}
+
+/* item rows */
+.item{display:flex;align-items:flex-start;gap:12px;background:var(--card);border-radius:15px;padding:13px 15px;margin-bottom:9px;
+  box-shadow:var(--shadow-sm);border:1px solid var(--line);border-left:4px solid var(--blue);transition:.15s;animation:rise .4s both;cursor:pointer}
+.item:hover{transform:translateX(2px);box-shadow:var(--shadow)}
+.item.r{border-left-color:var(--rose)}
+.item.done{opacity:.6}
+.item .di{font-size:19px;margin-top:1px}
+.item .bd{flex:1;min-width:0}
+.item .tt{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis}
+.item .ss{font-size:12.5px;color:var(--muted);margin-top:2px}
+.item .vv{font-family:var(--fdisp);font-weight:700;color:var(--rose);white-space:nowrap;align-self:center}
+.item .vv.pago{color:var(--green)}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--green-l);color:var(--green-d);margin-left:6px}
+
+/* calendar */
+.cal{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:14px 12px 16px;margin-top:14px}
+.cal-h{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 12px}
+.cal-h .m{font-family:var(--fdisp);font-weight:700;font-size:17px;text-transform:capitalize}
+.cal-h button{width:38px;height:38px;border-radius:11px;background:var(--green-l);color:var(--green);font-size:20px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cal-h button:hover{background:#d6efdd}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.dow{text-align:center;font-size:11px;font-weight:700;color:var(--soft);padding:3px 0}
+.day{aspect-ratio:1;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:.12s;position:relative}
+.day:hover{background:var(--green-l)}
+.day.out{color:#c9d1cb;pointer-events:none}
+.day.today{border-color:var(--green);font-weight:800;color:var(--green)}
+.day.sel{background:var(--green);color:#fff!important}
+.dots{display:flex;gap:3px;height:6px;margin-top:3px}
+.dt{width:5px;height:5px;border-radius:50%}.dt.b{background:var(--blue)}.dt.r{background:var(--rose)}
+.day.sel .dt.b{background:#bcd2ff}.day.sel .dt.r{background:#ffc2d2}
+.legend{display:flex;gap:18px;justify-content:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+
+/* manage rows (fornecedor/categoria) */
+.mng{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:13px;padding:11px 14px;margin-bottom:8px;border:1px solid var(--line)}
+.mng .nm{flex:1;font-weight:600}
+.mng .rm{color:var(--rose);font-size:18px;padding:4px 6px;border-radius:8px}
+.mng .rm:hover{background:var(--rose-l)}
+.support{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:16px;margin-top:18px;font-size:13.5px;color:var(--muted)}
+.support b{color:var(--ink)}
+
+/* FAB */
+.fab{position:fixed;right:max(18px,calc(50% - 340px + 18px));bottom:22px;z-index:40;width:58px;height:58px;border-radius:19px;
+  background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 26px rgba(11,107,58,.4);transition:.18s}
+.fab:hover{transform:translateY(-2px) rotate(90deg)}
+.fab.x{transform:rotate(45deg)}
+
+/* sheet menu */
+.sheet-menu{position:fixed;right:max(18px,calc(50% - 340px + 18px));bottom:90px;z-index:40;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
+.sheet-menu button{display:flex;align-items:center;gap:9px;background:var(--card);padding:11px 16px;border-radius:14px;font-weight:600;box-shadow:var(--shadow);border:1px solid var(--line);animation:rise .25s both}
+.sheet-menu button .e{font-size:17px}
+
+/* MODAL */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(20,35,27,.42);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s both}
+@media(min-width:560px){.ov{align-items:center}}
+.modal{width:100%;max-width:480px;background:var(--card);border-radius:24px 24px 0 0;max-height:92dvh;overflow:auto;animation:sheet .32s cubic-bezier(.2,.8,.3,1) both}
+@media(min-width:560px){.modal{border-radius:24px}}
+.modal-h{position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--line);z-index:2}
+.modal-h .t{font-family:var(--fdisp);font-weight:800;font-size:19px}
+.modal-h .cl{width:34px;height:34px;border-radius:10px;background:var(--bg);font-size:18px;display:flex;align-items:center;justify-content:center}
+.modal-b{padding:16px 20px 22px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+textarea.fld{resize:vertical;min-height:64px}
+.checkrow{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;font-weight:600}
+.checkrow input{width:20px;height:20px;accent-color:var(--green)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:80;background:var(--ink);color:#fff;
+  padding:12px 20px;border-radius:13px;font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.3s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:#b00930}
+
+.spin{width:34px;height:34px;border:3px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:rot .8s linear infinite;margin:40px auto}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sheet{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.stg>*{animation:rise .45s both}
+.stg>*:nth-child(2){animation-delay:.05s}.stg>*:nth-child(3){animation-delay:.1s}
+.stg>*:nth-child(4){animation-delay:.15s}.stg>*:nth-child(5){animation-delay:.2s}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ===================== LOGIN ===================== -->
-  <div id="tela-login" class="center hide">
-    <div class="card">
-      <div class="brand"><img src="coruja.png" class="owl-img" alt="AlertaAí"><div class="b1">AlertaAí</div><div class="b2">Sua agenda e contas, em um só lugar</div></div>
-      <label>E-mail</label>
-      <input id="lg-email" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username">
-      <label>Senha</label>
-      <input id="lg-senha" type="password" placeholder="••••••••" autocomplete="current-password">
-      <button class="btn" id="lg-btn">Entrar</button>
-      <div id="lg-msg" class="msg"></div>
-      <div class="small">Ainda não tem acesso? Abra o WhatsApp do AlertaAí e digite <b>acesso</b> que eu te envio o link. 😉</div>
-    </div>
+<!-- LOGIN -->
+<div id="screen-login" class="auth-wrap hide">
+  <div class="auth-card">
+    <div class="auth-brand"><img src="coruja.png" alt="AlertaAí"><div class="nm">AlertaAí</div><div class="tg">Sua agenda e contas, em um só lugar</div></div>
+    <label class="lb">E-mail</label>
+    <input id="lg-email" class="fld" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username">
+    <label class="lb">Senha</label>
+    <input id="lg-senha" class="fld" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn mt18" id="lg-btn">Entrar</button>
+    <div id="lg-msg" class="msg"></div>
+    <div class="hint">Ainda não tem acesso? Abra o WhatsApp do AlertaAí e digite <b>acesso</b> que eu te envio o link. 🦉</div>
   </div>
-
-  <!-- ===================== CRIAR ACESSO ===================== -->
-  <div id="tela-acesso" class="center hide">
-    <div class="card">
-      <div class="brand"><img src="coruja.png" class="owl-img" alt="AlertaAí"><div class="b1">AlertaAí</div><div class="b2" id="ac-ola">Criar seu acesso pelo computador</div></div>
-
-      <div id="ac-passo-email">
-        <label>Seu melhor e-mail</label>
-        <input id="ac-email" type="email" inputmode="email" placeholder="voce@email.com">
-        <button class="btn" id="ac-btn-email">Enviar código</button>
-      </div>
-
-      <div id="ac-passo-codigo" class="hide">
-        <div class="step-dots">Enviei um código de 6 dígitos pro seu e-mail 📧</div>
-        <label>Código de verificação</label>
-        <input id="ac-codigo" inputmode="numeric" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:22px">
-        <button class="btn" id="ac-btn-codigo">Confirmar código</button>
-        <button class="btn alt" id="ac-btn-reenviar">Reenviar código</button>
-      </div>
-
-      <div id="ac-passo-senha" class="hide">
-        <div class="step-dots">E-mail confirmado! ✅ Agora crie sua senha</div>
-        <label>Crie uma senha (mín. 6 caracteres)</label>
-        <input id="ac-senha" type="password" placeholder="••••••••">
-        <label>Repita a senha</label>
-        <input id="ac-senha2" type="password" placeholder="••••••••">
-        <button class="btn" id="ac-btn-senha">Finalizar e entrar</button>
-      </div>
-
-      <div id="ac-msg" class="msg"></div>
-    </div>
-  </div>
-
-  <!-- ===================== APP ===================== -->
-  <div id="tela-app" class="hide">
-    <header>
-      <div class="logo"><span class="owl-badge"><img src="coruja.png" alt=""></span>AlertaAí <small id="ap-nome">—</small></div>
-      <button id="ap-sair">Sair</button>
-    </header>
-
-    <div class="cal">
-      <div class="cal-head">
-        <button id="cal-prev">‹</button>
-        <div class="mes" id="cal-mes">—</div>
-        <button id="cal-next">›</button>
-      </div>
-      <div class="grid" id="cal-dow"></div>
-      <div class="grid" id="cal-grid"></div>
-      <div class="legend">
-        <span><i class="dot c" style="width:9px;height:9px;display:inline-block;border-radius:50%;background:var(--azul)"></i> Compromissos</span>
-        <span><i class="dot p" style="width:9px;height:9px;display:inline-block;border-radius:50%;background:var(--vermelho)"></i> Contas a pagar</span>
-      </div>
-    </div>
-
-    <div id="ap-detalhe"></div>
-
-    <div class="foot">AlertaAí · um produto Digital Press</div>
-  </div>
-
 </div>
+
+<!-- CRIAR ACESSO -->
+<div id="screen-acesso" class="auth-wrap hide">
+  <div class="auth-card">
+    <div class="auth-brand"><img src="coruja.png" alt="AlertaAí"><div class="nm">AlertaAí</div><div id="ac-ola" class="tg">Criar seu acesso pelo computador</div></div>
+    <div id="ac-p-email">
+      <label class="lb">Seu melhor e-mail</label>
+      <input id="ac-email" class="fld" type="email" inputmode="email" placeholder="voce@email.com">
+      <button class="btn mt18" id="ac-b-email">Enviar código</button>
+    </div>
+    <div id="ac-p-codigo" class="hide">
+      <p class="step-tip">Enviei um código de 6 dígitos pro seu e-mail 📧</p>
+      <label class="lb">Código de verificação</label>
+      <input id="ac-codigo" class="fld" inputmode="numeric" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:9px;font-size:22px;font-weight:700">
+      <button class="btn mt18" id="ac-b-codigo">Confirmar código</button>
+      <button class="btn sec" id="ac-b-re">Reenviar código</button>
+    </div>
+    <div id="ac-p-senha" class="hide">
+      <p class="step-tip">E-mail confirmado! ✅ Agora crie sua senha</p>
+      <label class="lb">Crie uma senha (mín. 6 caracteres)</label>
+      <input id="ac-senha" class="fld" type="password" placeholder="••••••••">
+      <label class="lb">Repita a senha</label>
+      <input id="ac-senha2" class="fld" type="password" placeholder="••••••••">
+      <button class="btn mt18" id="ac-b-senha">Finalizar e entrar</button>
+    </div>
+    <div id="ac-msg" class="msg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screen-main" class="hide">
+  <div class="topbar">
+    <div class="ow"><img src="coruja.png" alt=""></div>
+    <div><div class="ttl">AlertaAí</div><div class="sub" id="hd-nome">—</div></div>
+    <div class="sp"></div>
+    <button class="iconbtn" id="bt-sair" title="Sair">⏻</button>
+  </div>
+  <div class="nav" id="nav"></div>
+  <div class="view" id="view"><div class="spin"></div></div>
+  <button class="fab" id="fab">+</button>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast"></div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const SUPA_URL='https://pjrolsaelcvnslbyxnfx.supabase.co';
+const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
+const FN=SUPA_URL+'/functions/v1/web-auth';
+const supa=createClient(SUPA_URL,ANON,{auth:{persistSession:true,autoRefreshToken:true}});
 
-const SUPA_URL = 'https://pjrolsaelcvnslbyxnfx.supabase.co';
-const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
-const FN = SUPA_URL + '/functions/v1/web-auth';
-const supa = createClient(SUPA_URL, ANON, { auth: { persistSession: true, autoRefreshToken: true } });
+const $=id=>document.getElementById(id);
+const el=(h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const money=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const dBRc=d=>d?d.slice(8,10)+'/'+d.slice(5,7):'';
+const hojeBRT=()=>new Date(Date.now()-3*3600e3).toISOString().slice(0,10);
+const brtUtc=(data,hora)=>new Date(Date.parse(`${data}T${(hora||'00:00')}:00Z`)+3*3600e3).toISOString();
+function show(s){['screen-login','screen-acesso','screen-main'].forEach(x=>$(x).classList.toggle('hide',x!==s));}
+function setMsg(id,t,k){const e=$(id);if(e){e.className='msg '+(k||'');e.textContent=t||'';}}
+function toast(t,bad){const e=$('toast');e.textContent=t;e.className='show'+(bad?' bad':'');setTimeout(()=>e.className='',2600);}
 
-const $ = (id) => document.getElementById(id);
-const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const fmtMoeda = (v) => 'R$ ' + (Number(v||0)).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-const show = (tela) => { ['tela-login','tela-acesso','tela-app'].forEach(t => $(t).classList.toggle('hide', t!==tela)); };
-const setMsg = (id, txt, tipo) => { const e=$(id); e.className='msg '+(tipo||''); e.textContent=txt||''; };
+const S={uid:null,nome:'',email:'',ano:0,mes:0,comp:[],contas:[],forn:[],cat:[],porDia:{},tab:'inicio',selDia:null};
 
-// ---------- roteamento inicial ----------
-function getToken(){
-  const h = location.hash || '';
-  const m = h.match(/token=([A-Za-z0-9_\-]+)/); if (m) return m[1];
-  const m2 = (location.search||'').match(/token=([A-Za-z0-9_\-]+)/); return m2 ? m2[1] : '';
-}
+/* ---------- ROUTING ---------- */
+function getToken(){const m=(location.hash||location.search||'').match(/token=([A-Za-z0-9_\-]+)/);return m?m[1]:'';}
 async function init(){
-  const token = getToken();
-  if (token){ return iniciarAcesso(token); }
-  const { data:{ session } } = await supa.auth.getSession();
-  if (session){ return abrirApp(); }
-  show('tela-login');
+  const tk=getToken();
+  if(tk)return iniciarAcesso(tk);
+  const {data:{session}}=await supa.auth.getSession();
+  if(session)return abrirApp();
+  show('screen-login');
 }
 
-// ---------- LOGIN ----------
-$('lg-btn').onclick = async () => {
-  const email = $('lg-email').value.trim().toLowerCase();
-  const senha = $('lg-senha').value;
-  if (!email || !senha){ return setMsg('lg-msg','Preencha e-mail e senha.','err'); }
-  $('lg-btn').disabled = true; setMsg('lg-msg','Entrando...','ok');
-  const { error } = await supa.auth.signInWithPassword({ email, password: senha });
-  $('lg-btn').disabled = false;
-  if (error){ return setMsg('lg-msg','E-mail ou senha incorretos.','err'); }
+/* ---------- LOGIN ---------- */
+$('lg-btn').onclick=async()=>{
+  const email=$('lg-email').value.trim().toLowerCase(),senha=$('lg-senha').value;
+  if(!email||!senha)return setMsg('lg-msg','Preencha e-mail e senha.','err');
+  $('lg-btn').disabled=true;setMsg('lg-msg','Entrando...','ok');
+  const {error}=await supa.auth.signInWithPassword({email,password:senha});
+  $('lg-btn').disabled=false;
+  if(error)return setMsg('lg-msg','E-mail ou senha incorretos.','err');
   abrirApp();
 };
+$('bt-sair').onclick=async()=>{await supa.auth.signOut();location.reload();};
 
-// ---------- CRIAR ACESSO ----------
-let acToken = '', acEmail = '';
-async function api(action, payload){
-  const r = await fetch(FN+'?action='+action, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey':ANON }, body: JSON.stringify(payload) });
-  return r.json().catch(()=>({ok:false,error:'falha de rede'}));
-}
-async function iniciarAcesso(token){
-  acToken = token; show('tela-acesso');
-  const r = await api('info', { token });
-  if (!r.ok){ $('ac-passo-email').classList.add('hide'); return setMsg('ac-msg', r.error || 'Link inválido.', 'err'); }
-  $('ac-ola').textContent = (r.nome ? 'Olá, '+r.nome.split(' ')[0]+'! ' : '') + 'Crie seu acesso pelo computador';
-}
-$('ac-btn-email').onclick = async () => {
-  const email = $('ac-email').value.trim().toLowerCase();
-  if (!email){ return setMsg('ac-msg','Digite seu e-mail.','err'); }
-  $('ac-btn-email').disabled = true; setMsg('ac-msg','Enviando código...','ok');
-  const r = await api('enviar_codigo', { token: acToken, email });
-  $('ac-btn-email').disabled = false;
-  if (!r.ok){ return setMsg('ac-msg', r.error || 'Não consegui enviar.', 'err'); }
-  acEmail = email; setMsg('ac-msg','','');
-  $('ac-passo-email').classList.add('hide'); $('ac-passo-codigo').classList.remove('hide');
-};
-$('ac-btn-reenviar').onclick = async () => {
-  setMsg('ac-msg','Reenviando...','ok');
-  const r = await api('enviar_codigo', { token: acToken, email: acEmail });
-  setMsg('ac-msg', r.ok ? 'Código reenviado! 📧' : (r.error||'Falhou'), r.ok ? 'ok' : 'err');
-};
-$('ac-btn-codigo').onclick = async () => {
-  const codigo = $('ac-codigo').value.trim();
-  if (codigo.length !== 6){ return setMsg('ac-msg','Digite os 6 dígitos.','err'); }
-  $('ac-btn-codigo').disabled = true; setMsg('ac-msg','Conferindo...','ok');
-  const r = await api('verificar_codigo', { token: acToken, codigo });
-  $('ac-btn-codigo').disabled = false;
-  if (!r.ok){ return setMsg('ac-msg', r.error || 'Código não confere.', 'err'); }
-  setMsg('ac-msg','','');
-  $('ac-passo-codigo').classList.add('hide'); $('ac-passo-senha').classList.remove('hide');
-};
-$('ac-btn-senha').onclick = async () => {
-  const senha = $('ac-senha').value, senha2 = $('ac-senha2').value, codigo = $('ac-codigo').value.trim();
-  if (senha.length < 6){ return setMsg('ac-msg','A senha precisa de ao menos 6 caracteres.','err'); }
-  if (senha !== senha2){ return setMsg('ac-msg','As senhas não conferem.','err'); }
-  $('ac-btn-senha').disabled = true; setMsg('ac-msg','Criando seu acesso...','ok');
-  const r = await api('definir_acesso', { token: acToken, codigo, senha });
-  if (!r.ok){ $('ac-btn-senha').disabled = false; return setMsg('ac-msg', r.error || 'Não consegui finalizar.', 'err'); }
-  // entra automaticamente
-  const { error } = await supa.auth.signInWithPassword({ email: acEmail, password: senha });
-  $('ac-btn-senha').disabled = false;
-  if (error){ show('tela-login'); return setMsg('lg-msg','Acesso criado! Faça login. 🎉','ok'); }
-  history.replaceState(null,'',location.pathname);
-  abrirApp();
-};
+/* ---------- CRIAR ACESSO ---------- */
+let acTk='',acEmail='';
+async function api(action,p){const r=await fetch(FN+'?action='+action,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON},body:JSON.stringify(p)});return r.json().catch(()=>({ok:false,error:'falha de rede'}));}
+async function iniciarAcesso(tk){acTk=tk;show('screen-acesso');const r=await api('info',{token:tk});if(!r.ok){$('ac-p-email').classList.add('hide');return setMsg('ac-msg',r.error||'Link inválido.','err');}$('ac-ola').textContent=(r.nome?'Olá, '+r.nome.split(' ')[0]+'! ':'')+'Crie seu acesso ao computador';}
+$('ac-b-email').onclick=async()=>{const email=$('ac-email').value.trim().toLowerCase();if(!email)return setMsg('ac-msg','Digite seu e-mail.','err');$('ac-b-email').disabled=true;setMsg('ac-msg','Enviando código...','ok');const r=await api('enviar_codigo',{token:acTk,email});$('ac-b-email').disabled=false;if(!r.ok)return setMsg('ac-msg',r.error||'Não consegui enviar.','err');acEmail=email;setMsg('ac-msg','');$('ac-p-email').classList.add('hide');$('ac-p-codigo').classList.remove('hide');};
+$('ac-b-re').onclick=async()=>{setMsg('ac-msg','Reenviando...','ok');const r=await api('enviar_codigo',{token:acTk,email:acEmail});setMsg('ac-msg',r.ok?'Código reenviado! 📧':(r.error||'Falhou'),r.ok?'ok':'err');};
+$('ac-b-codigo').onclick=async()=>{const c=$('ac-codigo').value.trim();if(c.length!==6)return setMsg('ac-msg','Digite os 6 dígitos.','err');$('ac-b-codigo').disabled=true;setMsg('ac-msg','Conferindo...','ok');const r=await api('verificar_codigo',{token:acTk,codigo:c});$('ac-b-codigo').disabled=false;if(!r.ok)return setMsg('ac-msg',r.error||'Código não confere.','err');setMsg('ac-msg','');$('ac-p-codigo').classList.add('hide');$('ac-p-senha').classList.remove('hide');};
+$('ac-b-senha').onclick=async()=>{const s=$('ac-senha').value,s2=$('ac-senha2').value,c=$('ac-codigo').value.trim();if(s.length<6)return setMsg('ac-msg','A senha precisa de ao menos 6 caracteres.','err');if(s!==s2)return setMsg('ac-msg','As senhas não conferem.','err');$('ac-b-senha').disabled=true;setMsg('ac-msg','Criando seu acesso...','ok');const r=await api('definir_acesso',{token:acTk,codigo:c,senha:s});if(!r.ok){$('ac-b-senha').disabled=false;return setMsg('ac-msg',r.error||'Não consegui finalizar.','err');}const {error}=await supa.auth.signInWithPassword({email:acEmail,password:s});$('ac-b-senha').disabled=false;if(error){show('screen-login');return setMsg('lg-msg','Acesso criado! Faça login. 🎉','ok');}history.replaceState(null,'',location.pathname);abrirApp();};
 
-// ---------- APP / CALENDÁRIO ----------
-let vAno, vMes, porDia = {};
+/* ---------- APP ---------- */
 async function abrirApp(){
-  show('tela-app');
-  const { data:{ user } } = await supa.auth.getUser();
-  let nome = user?.email || '';
-  const { data: u } = await supa.from('usuarios').select('nome').limit(1);
-  if (u && u[0]?.nome) nome = u[0].nome.split(' ')[0];
-  $('ap-nome').textContent = nome;
-  $('cal-dow').innerHTML = DOW.map(d=>`<div class="dow">${d}</div>`).join('');
-  const hoje = new Date(Date.now() - 3*3600*1000); // BRT
-  vAno = hoje.getUTCFullYear(); vMes = hoje.getUTCMonth();
-  await carregarMes();
+  show('screen-main');
+  const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
+  const {data:u}=await supa.from('usuarios').select('id,nome,email').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';}
+  $('hd-nome').textContent=S.nome?S.nome.split(' ')[0]:S.email;
+  renderNav();
+  await carregar();
+  irPara('inicio');
 }
-async function carregarMes(){
-  const ini = `${vAno}-${String(vMes+1).padStart(2,'0')}-01`;
-  const fim = `${vAno}-${String(vMes+1).padStart(2,'0')}-${String(new Date(Date.UTC(vAno,vMes+1,0)).getUTCDate()).padStart(2,'0')}`;
-  porDia = {};
-  const { data: comps } = await supa.from('compromissos').select('id,titulo,data,horario,local').eq('cancelado',false).gte('data',ini).lte('data',fim);
-  const { data: cts } = await supa.from('contas').select('id,descricao,valor,data_vencimento,status').gte('data_vencimento',ini).lte('data_vencimento',fim);
-  (comps||[]).forEach(c => { const d=(c.data||'').slice(8,10); (porDia[d]=porDia[d]||{c:[],p:[]}).c.push(c); });
-  (cts||[]).forEach(c => { const d=(c.data_vencimento||'').slice(8,10); (porDia[d]=porDia[d]||{c:[],p:[]}).p.push(c); });
-  renderCal();
-  $('ap-detalhe').innerHTML = listaProximos();
+function renderNav(){
+  const tabs=[['inicio','Início'],['agenda','Agenda'],['contas','Contas'],['mais','Mais']];
+  $('nav').innerHTML='';
+  tabs.forEach(([k,l])=>{const b=el(`<button data-k="${k}">${l}</button>`);b.onclick=()=>irPara(k);$('nav').appendChild(b);});
 }
-function renderCal(){
-  $('cal-mes').textContent = `${MESES[vMes]} ${vAno}`;
-  const primeiro = new Date(Date.UTC(vAno,vMes,1)).getUTCDay();
-  const dias = new Date(Date.UTC(vAno,vMes+1,0)).getUTCDate();
-  const hoje = new Date(Date.now()-3*3600*1000);
-  const ehHoje = (d)=> hoje.getUTCFullYear()===vAno && hoje.getUTCMonth()===vMes && hoje.getUTCDate()===d;
-  let html = '';
-  for (let i=0;i<primeiro;i++) html += `<div class="day out"></div>`;
-  for (let d=1; d<=dias; d++){
-    const k = String(d).padStart(2,'0'); const ev = porDia[k];
-    let dots=''; if (ev){ if (ev.c.length) dots+='<i class="dot c"></i>'; if (ev.p.length) dots+='<i class="dot p"></i>'; }
-    html += `<div class="day${ehHoje(d)?' hoje':''}" data-d="${k}">${d}<div class="dots">${dots}</div></div>`;
-  }
-  $('cal-grid').innerHTML = html;
-  $('cal-grid').querySelectorAll('.day[data-d]').forEach(el => el.onclick = ()=> selDia(el.dataset.d, el));
-}
-function selDia(k, el){
-  $('cal-grid').querySelectorAll('.day').forEach(e=>e.classList.remove('sel'));
-  el.classList.add('sel');
-  const ev = porDia[k];
-  if (!ev || (!ev.c.length && !ev.p.length)){ $('ap-detalhe').innerHTML = `<div class="sec">${parseInt(k)} de ${MESES[vMes]}</div><div class="vazio">Nada agendado nesse dia. 🌿</div>`; return; }
-  let h = `<div class="sec">${parseInt(k)} de ${MESES[vMes]}</div>`;
-  h += ev.c.map(c => itemComp(c)).join('') + ev.p.map(c => itemConta(c)).join('');
-  $('ap-detalhe').innerHTML = h;
-}
-function itemComp(c){
-  return `<div class="item"><div class="ic">📅</div><div><div class="t">${esc(c.titulo)}</div><div class="sub">${c.horario?('🕐 '+c.horario):''}${c.local?('   📍 '+esc(c.local)):''}</div></div></div>`;
-}
-function itemConta(c){
-  return `<div class="item p"><div class="ic">💸</div><div><div class="t">${esc(c.descricao)}</div><div class="sub">Vence ${ (c.data_vencimento||'').slice(8,10)}/${(c.data_vencimento||'').slice(5,7)}${c.status==='pago'?' · pago ✅':''}</div></div><div class="val">${fmtMoeda(c.valor)}</div></div>`;
-}
-function listaProximos(){
-  const dias = Object.keys(porDia).sort();
-  if (!dias.length) return `<div class="sec">Este mês</div><div class="vazio">Nenhum compromisso ou conta neste mês. Toque num dia pra ver. 🗓️</div>`;
-  let comp=[], cont=[];
-  dias.forEach(k => { (porDia[k].c||[]).forEach(x=>comp.push(x)); (porDia[k].p||[]).forEach(x=>cont.push(x)); });
-  let h='';
-  if (comp.length){ h += `<div class="sec">📅 Compromissos do mês</div>` + comp.map(itemComp).join(''); }
-  if (cont.length){ h += `<div class="sec">💸 Contas do mês</div>` + cont.map(itemConta).join(''); }
-  return h;
-}
-function esc(s){ return String(s||'').replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function irPara(k){S.tab=k;[...$('nav').children].forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  if(k==='inicio')viewInicio();else if(k==='agenda')viewAgenda();else if(k==='contas')viewContas();else viewMais();
+  window.scrollTo({top:0,behavior:'smooth'});}
 
-$('cal-prev').onclick = ()=>{ vMes--; if(vMes<0){vMes=11;vAno--;} carregarMes(); };
-$('cal-next').onclick = ()=>{ vMes++; if(vMes>11){vMes=0;vAno++;} carregarMes(); };
-$('ap-sair').onclick = async ()=>{ await supa.auth.signOut(); show('tela-login'); };
+async function carregar(){
+  const ini=`${S.ano}-${String(S.mes+1).padStart(2,'0')}-01`;
+  const fim=`${S.ano}-${String(S.mes+1).padStart(2,'0')}-${String(new Date(Date.UTC(S.ano,S.mes+1,0)).getUTCDate()).padStart(2,'0')}`;
+  const [c1,c2,c3,c4]=await Promise.all([
+    supa.from('compromissos').select('*').eq('cancelado',false).gte('data',ini).lte('data',fim).order('data').order('horario'),
+    supa.from('contas').select('*').gte('data_vencimento',ini).lte('data_vencimento',fim).order('data_vencimento'),
+    supa.from('fornecedores').select('*').order('nome'),
+    supa.from('categorias').select('*').order('nome'),
+  ]);
+  S.comp=c1.data||[];S.contas=c2.data||[];S.forn=c3.data||[];S.cat=c4.data||[];
+  S.porDia={};
+  S.comp.forEach(c=>{const d=(c.data||'').slice(8,10);(S.porDia[d]=S.porDia[d]||{b:[],r:[]}).b.push(c);});
+  S.contas.forEach(c=>{const d=(c.data_vencimento||'').slice(8,10);(S.porDia[d]=S.porDia[d]||{b:[],r:[]}).r.push(c);});
+}
+
+/* ----- VIEW: INÍCIO ----- */
+function viewInicio(){
+  const hoje=hojeBRT();
+  const proxComp=[...S.comp].filter(c=>c.data>=hoje).slice(0,4);
+  const contasAbertas=S.contas.filter(c=>c.status!=='pago');
+  const totalAbertas=contasAbertas.reduce((s,c)=>s+Number(c.valor||0),0);
+  const d=new Date(Date.now()-3*3600e3);
+  const dataLonga=`${DOW[d.getUTCDay()]}, ${d.getUTCDate()} de ${MES[S.mes]}`;
+  let h=`<div class="stg">
+    <div class="greet">Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋<small>${dataLonga}</small></div>
+    <div class="stat-row">
+      <div class="stat b"><div class="ic">📅</div><div class="n">${S.comp.filter(c=>c.data>=hoje).length}</div><div class="l">compromissos à frente</div></div>
+      <div class="stat r"><div class="ic">💸</div><div class="n" style="font-size:20px">${money(totalAbertas)}</div><div class="l">${contasAbertas.length} conta(s) a pagar</div></div>
+    </div>
+    <div class="sec-h"><div class="t">Próximos compromissos</div><div class="lk" data-go="agenda">Ver agenda →</div></div>`;
+  h+= proxComp.length? proxComp.map(itemComp).join('') : emptyBox('🌿','Nada à frente neste mês. Que tal marcar algo?');
+  h+=`<div class="sec-h"><div class="t">Contas a vencer</div><div class="lk" data-go="contas">Ver todas →</div></div>`;
+  h+= contasAbertas.length? contasAbertas.slice(0,4).map(itemConta).join('') : emptyBox('✅','Nenhuma conta em aberto este mês.');
+  h+=`</div>`;
+  const v=$('view');v.innerHTML=h;
+  v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
+  bindItems(v);
+}
+function emptyBox(e,t){return `<div class="empty"><span class="e">${e}</span>${esc(t)}</div>`;}
+
+/* ----- VIEW: AGENDA ----- */
+function viewAgenda(){
+  let h=`<div class="cal">
+    <div class="cal-h"><button id="pmes">‹</button><div class="m">${MES[S.mes]} ${S.ano}</div><button id="nmes">›</button></div>
+    <div class="grid">${DOW.map(x=>`<div class="dow">${x}</div>`).join('')}</div>
+    <div class="grid" id="cal-grid"></div>
+    <div class="legend"><span><i style="background:var(--blue)"></i>Compromissos</span><span><i style="background:var(--rose)"></i>Contas</span></div>
+  </div>
+  <div class="sec-h"><div class="t" id="ag-t">${S.selDia?'Dia '+parseInt(S.selDia):'Compromissos do mês'}</div><div class="lk" data-add="comp">+ Novo</div></div>
+  <div id="ag-list"></div>`;
+  const v=$('view');v.innerHTML=h;
+  $('pmes').onclick=()=>mudaMes(-1);$('nmes').onclick=()=>mudaMes(1);
+  v.querySelector('[data-add]').onclick=()=>modalComp();
+  renderCalendar();renderAgList();
+}
+function mudaMes(d){S.mes+=d;if(S.mes<0){S.mes=11;S.ano--}if(S.mes>11){S.mes=0;S.ano++}S.selDia=null;carregar().then(()=>viewAgenda());}
+function renderCalendar(){
+  const first=new Date(Date.UTC(S.ano,S.mes,1)).getUTCDay(),ndays=new Date(Date.UTC(S.ano,S.mes+1,0)).getUTCDate();
+  const t=new Date(Date.now()-3*3600e3),isT=d=>t.getUTCFullYear()===S.ano&&t.getUTCMonth()===S.mes&&t.getUTCDate()===d;
+  let g='';for(let i=0;i<first;i++)g+='<div class="day out"></div>';
+  for(let d=1;d<=ndays;d++){const k=String(d).padStart(2,'0'),ev=S.porDia[k];let dots='';if(ev){if(ev.b.length)dots+='<i class="dt b"></i>';if(ev.r.length)dots+='<i class="dt r"></i>';}
+    g+=`<div class="day${isT(d)?' today':''}${S.selDia===k?' sel':''}" data-d="${k}">${d}<div class="dots">${dots}</div></div>`;}
+  $('cal-grid').innerHTML=g;
+  $('cal-grid').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{S.selDia=S.selDia===e.dataset.d?null:e.dataset.d;renderCalendar();renderAgList();
+    $('ag-t').textContent=S.selDia?'Dia '+parseInt(S.selDia):'Compromissos do mês';});
+}
+function renderAgList(){
+  let arr;if(S.selDia){const ev=S.porDia[S.selDia]||{b:[],r:[]};arr=[...ev.b.map(c=>itemComp(c)),...ev.r.map(c=>itemConta(c))];}
+  else arr=S.comp.map(c=>itemComp(c));
+  const box=$('ag-list');box.innerHTML=arr.length?arr.join(''):emptyBox('🗓️',S.selDia?'Nada nesse dia.':'Nenhum compromisso este mês.');
+  bindItems(box);
+}
+
+/* ----- VIEW: CONTAS ----- */
+function viewContas(){
+  const abertas=S.contas.filter(c=>c.status!=='pago'),pagas=S.contas.filter(c=>c.status==='pago');
+  const tot=abertas.reduce((s,c)=>s+Number(c.valor||0),0);
+  let h=`<div class="stg">
+    <div class="greet" style="font-size:20px">Contas de ${MES[S.mes]}<small>${money(tot)} em aberto • ${abertas.length} conta(s)</small></div>
+    <div class="sec-h"><div class="t">A pagar</div><div class="lk" data-add="conta">+ Nova conta</div></div>`;
+  h+=abertas.length?abertas.map(itemConta).join(''):emptyBox('✅','Tudo pago este mês! 🎉');
+  if(pagas.length){h+=`<div class="sec-h"><div class="t">Pagas</div></div>`+pagas.map(itemConta).join('');}
+  h+=`</div>`;
+  const v=$('view');v.innerHTML=h;
+  v.querySelector('[data-add]').onclick=()=>modalConta();
+  bindItems(v);
+}
+
+/* ----- VIEW: MAIS (cadastros + suporte) ----- */
+function viewMais(){
+  let h=`<div class="stg">
+    <div class="sec-h"><div class="t">Fornecedores</div><div class="lk" data-add="forn">+ Adicionar</div></div>
+    <div id="forn-list"></div>
+    <div class="sec-h"><div class="t">Categorias</div><div class="lk" data-add="cat">+ Adicionar</div></div>
+    <div id="cat-list"></div>
+    <div class="support">🛟 <b>Suporte AlertaAí</b><br>Dúvidas, sugestões ou problemas? Escreva pra <b>digitalpressbr@gmail.com</b> — a gente responde rapidinho.</div>
+    <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">AlertaAí · um produto Digital Press 🦉</div>
+  </div>`;
+  const v=$('view');v.innerHTML=h;
+  v.querySelector('[data-add="forn"]').onclick=()=>modalSimples('forn');
+  v.querySelector('[data-add="cat"]').onclick=()=>modalSimples('cat');
+  renderMng();
+}
+function renderMng(){
+  const fl=$('forn-list'),cl=$('cat-list');
+  fl.innerHTML=S.forn.length?S.forn.map(f=>mngRow(f,'forn')).join(''):emptyBox('🏢','Nenhum fornecedor ainda.');
+  cl.innerHTML=S.cat.length?S.cat.map(c=>mngRow(c,'cat')).join(''):emptyBox('🏷️','Nenhuma categoria ainda.');
+  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removerCad(b.dataset.tipo,b.dataset.rm));
+}
+function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="rm" data-rm="${o.id}" data-tipo="${tipo}">🗑️</button></div>`;}
+
+/* ----- ITEM TEMPLATES ----- */
+function itemComp(c){const hora=c.horario&&c.horario!=='00:00'?'🕐 '+c.horario:'';const loc=c.local?'  📍 '+esc(c.local):'';
+  return `<div class="item" data-comp="${c.id}"><span class="di">📅</span><div class="bd"><div class="tt">${esc(c.titulo)}</div><div class="ss">${dBRc(c.data)}${hora?' · '+hora:''}${loc}</div></div></div>`;}
+function itemConta(c){const pago=c.status==='pago';return `<div class="item r${pago?' done':''}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip">pago</span>':''}</div><div class="ss">Vence ${dBRc(c.data_vencimento)}${c.observacao?' · '+esc(c.observacao):''}</div></div><div class="vv${pago?' pago':''}">${money(c.valor)}</div></div>`;}
+function bindItems(root){
+  root.querySelectorAll('[data-comp]').forEach(e=>e.onclick=()=>{const c=S.comp.find(x=>x.id===e.dataset.comp);if(c)modalComp(c);});
+  root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{const c=S.contas.find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
+}
+
+/* ---------- FAB ---------- */
+let sheetOpen=false;
+$('fab').onclick=()=>{sheetOpen?closeSheet():openSheet();};
+function openSheet(){sheetOpen=true;$('fab').classList.add('x');const m=el(`<div class="sheet-menu" id="sheet">
+  <button data-a="comp"><span class="e">📅</span> Novo compromisso</button>
+  <button data-a="conta"><span class="e">💸</span> Nova conta</button></div>`);
+  document.body.appendChild(m);m.querySelector('[data-a="comp"]').onclick=()=>{closeSheet();modalComp();};m.querySelector('[data-a="conta"]').onclick=()=>{closeSheet();modalConta();};}
+function closeSheet(){sheetOpen=false;$('fab').classList.remove('x');const s=$('sheet');if(s)s.remove();}
+
+/* ---------- MODALS ---------- */
+function openModal(title,bodyHtml){
+  closeSheet();
+  const ov=el(`<div class="ov"><div class="modal"><div class="modal-h"><div class="t">${esc(title)}</div><button class="cl">✕</button></div><div class="modal-b">${bodyHtml}</div></div></div>`);
+  ov.querySelector('.cl').onclick=()=>ov.remove();
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  $('modal-root').innerHTML='';$('modal-root').appendChild(ov);
+  return ov;
+}
+function fldSelect(id,label,opts,val){return `<label class="lb">${label}</label><select id="${id}" class="fld"><option value="">— nenhum —</option>${opts.map(o=>`<option value="${esc(o.id)}"${o.id===val?' selected':''}>${esc(o.nome)}</option>`).join('')}</select>`;}
+
+function modalComp(c){
+  const ed=!!c;c=c||{};
+  const ov=openModal(ed?'Editar compromisso':'Novo compromisso',`
+    <label class="lb">Título *</label><input id="f-tit" class="fld" placeholder="Ex: Reunião com o contador" value="${esc(c.titulo||'')}">
+    <div class="row2"><div><label class="lb">Data *</label><input id="f-data" class="fld" type="date" value="${c.data||hojeBRT()}"></div>
+    <div><label class="lb">Horário</label><input id="f-hora" class="fld" type="time" value="${c.horario&&c.horario!=='00:00'?c.horario:''}"></div></div>
+    <label class="lb">Local</label><input id="f-local" class="fld" placeholder="Opcional" value="${esc(c.local||'')}">
+    <label class="lb">Observação</label><textarea id="f-desc" class="fld" placeholder="Opcional">${esc(c.descricao||'')}</textarea>
+    <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar compromisso'}</button>
+    ${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Cancelar este compromisso</button>':''}
+    <div id="f-msg" class="msg"></div>`);
+  ov.querySelector('#f-save').onclick=()=>salvarComp(ed?c.id:null,ov);
+  if(ed)ov.querySelector('#f-del').onclick=()=>cancelarComp(c.id,ov);
+}
+async function salvarComp(id,ov){
+  const titulo=$('f-tit').value.trim(),data=$('f-data').value,hora=$('f-hora').value||null;
+  if(!titulo)return setMsg('f-msg','Dá um título pro compromisso.','err');
+  if(!data)return setMsg('f-msg','Escolhe a data.','err');
+  $('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');
+  const reg={user_id:S.uid,titulo,data,horario:hora,local:$('f-local').value.trim()||null,descricao:$('f-desc').value.trim()||null};
+  let cid=id;
+  if(id){await supa.from('compromissos').update(reg).eq('id',id);await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');}
+  else{const {data:n,error}=await supa.from('compromissos').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}
+  await criarLembreteComp(cid,titulo,data,hora);
+  ov.remove();toast(id?'Compromisso atualizado ✅':'Compromisso criado ✅');await carregar();irPara(S.tab);
+}
+async function criarLembreteComp(cid,titulo,data,hora){
+  const now=Date.now();let rt,label;
+  if(hora&&hora!=='00:00'){rt=Date.parse(brtUtc(data,hora))-10*60000;label='10 minutos antes';}
+  else{rt=Date.parse(brtUtc(data,'08:00'));label='no dia';}
+  if(rt>now-30000)await supa.from('reminders').insert({user_id:S.uid,compromisso_id:cid,label,reminder_time:new Date(rt).toISOString(),titulo,status:'pending'});
+}
+async function cancelarComp(id,ov){
+  if(!confirm('Cancelar este compromisso?'))return;
+  await supa.from('compromissos').update({cancelado:true}).eq('id',id);
+  await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');
+  ov.remove();toast('Compromisso cancelado');await carregar();irPara(S.tab);
+}
+
+function modalConta(c){
+  const ed=!!c;c=c||{};
+  const ov=openModal(ed?'Editar conta':'Nova conta',`
+    <label class="lb">Descrição *</label><input id="f-desc" class="fld" placeholder="Ex: Conta de energia" value="${esc(c.descricao||'')}">
+    <div class="row2"><div><label class="lb">Valor (R$) *</label><input id="f-valor" class="fld" inputmode="decimal" placeholder="0,00" value="${c.valor!=null?String(c.valor).replace('.',','):''}"></div>
+    <div><label class="lb">Vencimento *</label><input id="f-venc" class="fld" type="date" value="${c.data_vencimento||hojeBRT()}"></div></div>
+    ${fldSelect('f-forn','Fornecedor',S.forn,c.fornecedor_id)}
+    ${fldSelect('f-cat','Categoria',S.cat,c.categoria_id)}
+    <label class="lb">Observação</label><input id="f-obs" class="fld" placeholder="Opcional" value="${esc(c.observacao||'')}">
+    <label class="checkrow"><input type="checkbox" id="f-rec" ${c.recorrente?'checked':''}> Conta recorrente (todo mês)</label>
+    <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button>
+    ${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago">✔ Marcar como paga</button>':''}
+    ${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}
+    <div id="f-msg" class="msg"></div>`);
+  ov.querySelector('#f-save').onclick=()=>salvarConta(ed?c.id:null,ov);
+  if(ed&&c.status!=='pago')ov.querySelector('#f-pago').onclick=()=>marcarPago(c.id,ov);
+  if(ed)ov.querySelector('#f-del').onclick=()=>excluirConta(c.id,ov);
+}
+async function salvarConta(id,ov){
+  const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;
+  const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;
+  if(!descricao)return setMsg('f-msg','Dá uma descrição pra conta.','err');
+  if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');
+  $('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');
+  const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:$('f-forn').value||null,categoria_id:$('f-cat').value||null,observacao:$('f-obs').value.trim()||null,recorrente:$('f-rec').checked};
+  let cid=id;
+  if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}
+  else{reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}
+  await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});
+  ov.remove();toast(id?'Conta atualizada ✅':'Conta criada ✅');await carregar();irPara(S.tab);
+}
+async function marcarPago(id,ov){await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');ov.remove();toast('Conta marcada como paga ✅');await carregar();irPara(S.tab);}
+async function excluirConta(id,ov){if(!confirm('Excluir esta conta?'))return;await supa.from('contas').delete().eq('id',id);ov.remove();toast('Conta excluída');await carregar();irPara(S.tab);}
+
+function modalSimples(tipo){
+  const tit=tipo==='forn'?'Novo fornecedor':'Nova categoria';
+  const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}">
+    <button class="btn mt18" id="f-save">Adicionar</button><div id="f-msg" class="msg"></div>`);
+  ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;
+    const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast('Adicionado ✅');await carregar();viewMais();};
+  setTimeout(()=>$('f-nome').focus(),100);
+}
+async function removerCad(tipo,id){if(!confirm('Remover?'))return;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).delete().eq('id',id);toast('Removido');await carregar();renderMng();}
 
 init();
 </script>
