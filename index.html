@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>AlertaAí</title>
+<style>
+  :root{ --verde:#0b6b3a; --verde2:#16a34a; --azul:#2563eb; --vermelho:#e11d48; --bg:#eef1f4; --card:#fff; --texto:#1c2b22; --suave:#6b7a72; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{ margin:0; font-family:'Segoe UI',system-ui,Arial,sans-serif; background:var(--bg); color:var(--texto); }
+  .hide{ display:none !important; }
+  .wrap{ max-width:560px; margin:0 auto; min-height:100vh; }
+  /* topo */
+  header{ background:var(--verde); color:#fff; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; }
+  header .logo{ font-size:19px; font-weight:800; letter-spacing:.2px; }
+  header .logo small{ display:block; font-size:11px; font-weight:500; opacity:.85; }
+  header button{ background:rgba(255,255,255,.16); color:#fff; border:0; border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; cursor:pointer; }
+  /* cartões / telas centrais */
+  .center{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:22px; }
+  .card{ background:var(--card); border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.07); padding:26px 22px; width:100%; max-width:400px; }
+  .brand{ text-align:center; margin-bottom:18px; }
+  .brand .b1{ font-size:26px; font-weight:800; color:var(--verde); }
+  .brand .b2{ font-size:13px; color:var(--suave); }
+  label{ display:block; font-size:13px; font-weight:600; margin:14px 0 6px; }
+  input{ width:100%; padding:13px 14px; border:1.5px solid #dce3df; border-radius:11px; font-size:16px; outline:none; }
+  input:focus{ border-color:var(--verde2); }
+  .btn{ width:100%; margin-top:18px; background:var(--verde); color:#fff; border:0; border-radius:11px; padding:14px; font-size:16px; font-weight:700; cursor:pointer; }
+  .btn:disabled{ opacity:.55; }
+  .btn.alt{ background:#eef7f1; color:var(--verde); margin-top:10px; }
+  .msg{ margin-top:14px; font-size:13.5px; padding:11px 13px; border-radius:10px; display:none; }
+  .msg.err{ background:#fdecef; color:#b00930; display:block; }
+  .msg.ok{ background:#e9f8ef; color:#0b6b3a; display:block; }
+  .small{ font-size:12.5px; color:var(--suave); text-align:center; margin-top:16px; line-height:1.5; }
+  /* calendário */
+  .cal{ background:var(--card); margin:14px; border-radius:16px; box-shadow:0 3px 16px rgba(0,0,0,.05); padding:14px 12px 18px; }
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; padding:4px 6px 12px; }
+  .cal-head .mes{ font-size:17px; font-weight:800; text-transform:capitalize; }
+  .cal-head button{ background:#eef7f1; color:var(--verde); border:0; width:38px; height:38px; border-radius:10px; font-size:20px; cursor:pointer; }
+  .grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .dow{ text-align:center; font-size:11px; font-weight:700; color:var(--suave); padding:4px 0; }
+  .day{ aspect-ratio:1/1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:14px; cursor:pointer; position:relative; border:1.5px solid transparent; }
+  .day.out{ color:#c4cdc7; cursor:default; }
+  .day.hoje{ border-color:var(--verde2); font-weight:800; }
+  .day.sel{ background:var(--verde); color:#fff; }
+  .dots{ display:flex; gap:3px; margin-top:3px; height:7px; }
+  .dot{ width:6px; height:6px; border-radius:50%; }
+  .dot.c{ background:var(--azul); } .dot.p{ background:var(--vermelho); }
+  .day.sel .dot.c{ background:#bcd2ff; } .day.sel .dot.p{ background:#ffc2d2; }
+  .legend{ display:flex; gap:16px; justify-content:center; margin-top:14px; font-size:12.5px; color:var(--suave); }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  /* listas */
+  .sec{ margin:18px 14px 8px; font-size:13px; font-weight:800; color:var(--suave); text-transform:uppercase; letter-spacing:.4px; }
+  .item{ background:var(--card); margin:8px 14px; border-radius:13px; padding:13px 15px; box-shadow:0 2px 10px rgba(0,0,0,.04); display:flex; gap:12px; align-items:flex-start; border-left:4px solid var(--azul); }
+  .item.p{ border-left-color:var(--vermelho); }
+  .item .ic{ font-size:18px; }
+  .item .t{ font-weight:700; font-size:15px; }
+  .item .sub{ font-size:13px; color:var(--suave); margin-top:3px; }
+  .item .val{ margin-left:auto; font-weight:800; color:var(--vermelho); white-space:nowrap; }
+  .vazio{ text-align:center; color:var(--suave); font-size:14px; padding:26px 14px; }
+  .foot{ text-align:center; font-size:11.5px; color:#aab4ae; padding:22px 14px 30px; }
+  .step-dots{ text-align:center; margin:2px 0 4px; font-size:12px; color:var(--suave); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== LOGIN ===================== -->
+  <div id="tela-login" class="center hide">
+    <div class="card">
+      <div class="brand"><div class="b1">🦉 AlertaAí</div><div class="b2">Sua agenda e contas, em um só lugar</div></div>
+      <label>E-mail</label>
+      <input id="lg-email" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username">
+      <label>Senha</label>
+      <input id="lg-senha" type="password" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn" id="lg-btn">Entrar</button>
+      <div id="lg-msg" class="msg"></div>
+      <div class="small">Ainda não tem acesso? Abra o WhatsApp do AlertaAí e digite <b>acesso</b> que eu te envio o link. 😉</div>
+    </div>
+  </div>
+
+  <!-- ===================== CRIAR ACESSO ===================== -->
+  <div id="tela-acesso" class="center hide">
+    <div class="card">
+      <div class="brand"><div class="b1">🦉 AlertaAí</div><div class="b2" id="ac-ola">Criar seu acesso pelo computador</div></div>
+
+      <div id="ac-passo-email">
+        <label>Seu melhor e-mail</label>
+        <input id="ac-email" type="email" inputmode="email" placeholder="voce@email.com">
+        <button class="btn" id="ac-btn-email">Enviar código</button>
+      </div>
+
+      <div id="ac-passo-codigo" class="hide">
+        <div class="step-dots">Enviei um código de 6 dígitos pro seu e-mail 📧</div>
+        <label>Código de verificação</label>
+        <input id="ac-codigo" inputmode="numeric" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:22px">
+        <button class="btn" id="ac-btn-codigo">Confirmar código</button>
+        <button class="btn alt" id="ac-btn-reenviar">Reenviar código</button>
+      </div>
+
+      <div id="ac-passo-senha" class="hide">
+        <div class="step-dots">E-mail confirmado! ✅ Agora crie sua senha</div>
+        <label>Crie uma senha (mín. 6 caracteres)</label>
+        <input id="ac-senha" type="password" placeholder="••••••••">
+        <label>Repita a senha</label>
+        <input id="ac-senha2" type="password" placeholder="••••••••">
+        <button class="btn" id="ac-btn-senha">Finalizar e entrar</button>
+      </div>
+
+      <div id="ac-msg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div id="tela-app" class="hide">
+    <header>
+      <div class="logo">🦉 AlertaAí <small id="ap-nome">—</small></div>
+      <button id="ap-sair">Sair</button>
+    </header>
+
+    <div class="cal">
+      <div class="cal-head">
+        <button id="cal-prev">‹</button>
+        <div class="mes" id="cal-mes">—</div>
+        <button id="cal-next">›</button>
+      </div>
+      <div class="grid" id="cal-dow"></div>
+      <div class="grid" id="cal-grid"></div>
+      <div class="legend">
+        <span><i class="dot c" style="width:9px;height:9px;display:inline-block;border-radius:50%;background:var(--azul)"></i> Compromissos</span>
+        <span><i class="dot p" style="width:9px;height:9px;display:inline-block;border-radius:50%;background:var(--vermelho)"></i> Contas a pagar</span>
+      </div>
+    </div>
+
+    <div id="ap-detalhe"></div>
+
+    <div class="foot">AlertaAí · um produto Digital Press</div>
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPA_URL = 'https://pjrolsaelcvnslbyxnfx.supabase.co';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
+const FN = SUPA_URL + '/functions/v1/web-auth';
+const supa = createClient(SUPA_URL, ANON, { auth: { persistSession: true, autoRefreshToken: true } });
+
+const $ = (id) => document.getElementById(id);
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const fmtMoeda = (v) => 'R$ ' + (Number(v||0)).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const show = (tela) => { ['tela-login','tela-acesso','tela-app'].forEach(t => $(t).classList.toggle('hide', t!==tela)); };
+const setMsg = (id, txt, tipo) => { const e=$(id); e.className='msg '+(tipo||''); e.textContent=txt||''; };
+
+// ---------- roteamento inicial ----------
+function getToken(){
+  const h = location.hash || '';
+  const m = h.match(/token=([A-Za-z0-9_\-]+)/); if (m) return m[1];
+  const m2 = (location.search||'').match(/token=([A-Za-z0-9_\-]+)/); return m2 ? m2[1] : '';
+}
+async function init(){
+  const token = getToken();
+  if (token){ return iniciarAcesso(token); }
+  const { data:{ session } } = await supa.auth.getSession();
+  if (session){ return abrirApp(); }
+  show('tela-login');
+}
+
+// ---------- LOGIN ----------
+$('lg-btn').onclick = async () => {
+  const email = $('lg-email').value.trim().toLowerCase();
+  const senha = $('lg-senha').value;
+  if (!email || !senha){ return setMsg('lg-msg','Preencha e-mail e senha.','err'); }
+  $('lg-btn').disabled = true; setMsg('lg-msg','Entrando...','ok');
+  const { error } = await supa.auth.signInWithPassword({ email, password: senha });
+  $('lg-btn').disabled = false;
+  if (error){ return setMsg('lg-msg','E-mail ou senha incorretos.','err'); }
+  abrirApp();
+};
+
+// ---------- CRIAR ACESSO ----------
+let acToken = '', acEmail = '';
+async function api(action, payload){
+  const r = await fetch(FN+'?action='+action, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey':ANON }, body: JSON.stringify(payload) });
+  return r.json().catch(()=>({ok:false,error:'falha de rede'}));
+}
+async function iniciarAcesso(token){
+  acToken = token; show('tela-acesso');
+  const r = await api('info', { token });
+  if (!r.ok){ $('ac-passo-email').classList.add('hide'); return setMsg('ac-msg', r.error || 'Link inválido.', 'err'); }
+  $('ac-ola').textContent = (r.nome ? 'Olá, '+r.nome.split(' ')[0]+'! ' : '') + 'Crie seu acesso pelo computador';
+}
+$('ac-btn-email').onclick = async () => {
+  const email = $('ac-email').value.trim().toLowerCase();
+  if (!email){ return setMsg('ac-msg','Digite seu e-mail.','err'); }
+  $('ac-btn-email').disabled = true; setMsg('ac-msg','Enviando código...','ok');
+  const r = await api('enviar_codigo', { token: acToken, email });
+  $('ac-btn-email').disabled = false;
+  if (!r.ok){ return setMsg('ac-msg', r.error || 'Não consegui enviar.', 'err'); }
+  acEmail = email; setMsg('ac-msg','','');
+  $('ac-passo-email').classList.add('hide'); $('ac-passo-codigo').classList.remove('hide');
+};
+$('ac-btn-reenviar').onclick = async () => {
+  setMsg('ac-msg','Reenviando...','ok');
+  const r = await api('enviar_codigo', { token: acToken, email: acEmail });
+  setMsg('ac-msg', r.ok ? 'Código reenviado! 📧' : (r.error||'Falhou'), r.ok ? 'ok' : 'err');
+};
+$('ac-btn-codigo').onclick = async () => {
+  const codigo = $('ac-codigo').value.trim();
+  if (codigo.length !== 6){ return setMsg('ac-msg','Digite os 6 dígitos.','err'); }
+  $('ac-btn-codigo').disabled = true; setMsg('ac-msg','Conferindo...','ok');
+  const r = await api('verificar_codigo', { token: acToken, codigo });
+  $('ac-btn-codigo').disabled = false;
+  if (!r.ok){ return setMsg('ac-msg', r.error || 'Código não confere.', 'err'); }
+  setMsg('ac-msg','','');
+  $('ac-passo-codigo').classList.add('hide'); $('ac-passo-senha').classList.remove('hide');
+};
+$('ac-btn-senha').onclick = async () => {
+  const senha = $('ac-senha').value, senha2 = $('ac-senha2').value, codigo = $('ac-codigo').value.trim();
+  if (senha.length < 6){ return setMsg('ac-msg','A senha precisa de ao menos 6 caracteres.','err'); }
+  if (senha !== senha2){ return setMsg('ac-msg','As senhas não conferem.','err'); }
+  $('ac-btn-senha').disabled = true; setMsg('ac-msg','Criando seu acesso...','ok');
+  const r = await api('definir_acesso', { token: acToken, codigo, senha });
+  if (!r.ok){ $('ac-btn-senha').disabled = false; return setMsg('ac-msg', r.error || 'Não consegui finalizar.', 'err'); }
+  // entra automaticamente
+  const { error } = await supa.auth.signInWithPassword({ email: acEmail, password: senha });
+  $('ac-btn-senha').disabled = false;
+  if (error){ show('tela-login'); return setMsg('lg-msg','Acesso criado! Faça login. 🎉','ok'); }
+  history.replaceState(null,'',location.pathname);
+  abrirApp();
+};
+
+// ---------- APP / CALENDÁRIO ----------
+let vAno, vMes, porDia = {};
+async function abrirApp(){
+  show('tela-app');
+  const { data:{ user } } = await supa.auth.getUser();
+  let nome = user?.email || '';
+  const { data: u } = await supa.from('usuarios').select('nome').limit(1);
+  if (u && u[0]?.nome) nome = u[0].nome.split(' ')[0];
+  $('ap-nome').textContent = nome;
+  $('cal-dow').innerHTML = DOW.map(d=>`<div class="dow">${d}</div>`).join('');
+  const hoje = new Date(Date.now() - 3*3600*1000); // BRT
+  vAno = hoje.getUTCFullYear(); vMes = hoje.getUTCMonth();
+  await carregarMes();
+}
+async function carregarMes(){
+  const ini = `${vAno}-${String(vMes+1).padStart(2,'0')}-01`;
+  const fim = `${vAno}-${String(vMes+1).padStart(2,'0')}-${String(new Date(Date.UTC(vAno,vMes+1,0)).getUTCDate()).padStart(2,'0')}`;
+  porDia = {};
+  const { data: comps } = await supa.from('compromissos').select('id,titulo,data,horario,local').eq('cancelado',false).gte('data',ini).lte('data',fim);
+  const { data: cts } = await supa.from('contas').select('id,descricao,valor,data_vencimento,status').gte('data_vencimento',ini).lte('data_vencimento',fim);
+  (comps||[]).forEach(c => { const d=(c.data||'').slice(8,10); (porDia[d]=porDia[d]||{c:[],p:[]}).c.push(c); });
+  (cts||[]).forEach(c => { const d=(c.data_vencimento||'').slice(8,10); (porDia[d]=porDia[d]||{c:[],p:[]}).p.push(c); });
+  renderCal();
+  $('ap-detalhe').innerHTML = listaProximos();
+}
+function renderCal(){
+  $('cal-mes').textContent = `${MESES[vMes]} ${vAno}`;
+  const primeiro = new Date(Date.UTC(vAno,vMes,1)).getUTCDay();
+  const dias = new Date(Date.UTC(vAno,vMes+1,0)).getUTCDate();
+  const hoje = new Date(Date.now()-3*3600*1000);
+  const ehHoje = (d)=> hoje.getUTCFullYear()===vAno && hoje.getUTCMonth()===vMes && hoje.getUTCDate()===d;
+  let html = '';
+  for (let i=0;i<primeiro;i++) html += `<div class="day out"></div>`;
+  for (let d=1; d<=dias; d++){
+    const k = String(d).padStart(2,'0'); const ev = porDia[k];
+    let dots=''; if (ev){ if (ev.c.length) dots+='<i class="dot c"></i>'; if (ev.p.length) dots+='<i class="dot p"></i>'; }
+    html += `<div class="day${ehHoje(d)?' hoje':''}" data-d="${k}">${d}<div class="dots">${dots}</div></div>`;
+  }
+  $('cal-grid').innerHTML = html;
+  $('cal-grid').querySelectorAll('.day[data-d]').forEach(el => el.onclick = ()=> selDia(el.dataset.d, el));
+}
+function selDia(k, el){
+  $('cal-grid').querySelectorAll('.day').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  const ev = porDia[k];
+  if (!ev || (!ev.c.length && !ev.p.length)){ $('ap-detalhe').innerHTML = `<div class="sec">${parseInt(k)} de ${MESES[vMes]}</div><div class="vazio">Nada agendado nesse dia. 🌿</div>`; return; }
+  let h = `<div class="sec">${parseInt(k)} de ${MESES[vMes]}</div>`;
+  h += ev.c.map(c => itemComp(c)).join('') + ev.p.map(c => itemConta(c)).join('');
+  $('ap-detalhe').innerHTML = h;
+}
+function itemComp(c){
+  return `<div class="item"><div class="ic">📅</div><div><div class="t">${esc(c.titulo)}</div><div class="sub">${c.horario?('🕐 '+c.horario):''}${c.local?('   📍 '+esc(c.local)):''}</div></div></div>`;
+}
+function itemConta(c){
+  return `<div class="item p"><div class="ic">💸</div><div><div class="t">${esc(c.descricao)}</div><div class="sub">Vence ${ (c.data_vencimento||'').slice(8,10)}/${(c.data_vencimento||'').slice(5,7)}${c.status==='pago'?' · pago ✅':''}</div></div><div class="val">${fmtMoeda(c.valor)}</div></div>`;
+}
+function listaProximos(){
+  const dias = Object.keys(porDia).sort();
+  if (!dias.length) return `<div class="sec">Este mês</div><div class="vazio">Nenhum compromisso ou conta neste mês. Toque num dia pra ver. 🗓️</div>`;
+  let comp=[], cont=[];
+  dias.forEach(k => { (porDia[k].c||[]).forEach(x=>comp.push(x)); (porDia[k].p||[]).forEach(x=>cont.push(x)); });
+  let h='';
+  if (comp.length){ h += `<div class="sec">📅 Compromissos do mês</div>` + comp.map(itemComp).join(''); }
+  if (cont.length){ h += `<div class="sec">💸 Contas do mês</div>` + cont.map(itemConta).join(''); }
+  return h;
+}
+function esc(s){ return String(s||'').replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+$('cal-prev').onclick = ()=>{ vMes--; if(vMes<0){vMes=11;vAno--;} carregarMes(); };
+$('cal-next').onclick = ()=>{ vMes++; if(vMes>11){vMes=0;vAno++;} carregarMes(); };
+$('ap-sair').onclick = async ()=>{ await supa.auth.signOut(); show('tela-login'); };
+
+init();
+</script>
+</body>
+</html>
