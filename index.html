@@ -15,7 +15,7 @@
   --bg:#f3f1ea; --card:#fff; --ink:#15231b; --muted:#717f78; --soft:#9aa39c;
   --green:#0b6b3a; --green-d:#084e29; --green-l:#e7f3ec; --blue:#2563eb; --blue-l:#e8effe;
   --rose:#e11d48; --rose-l:#fdeaef; --amber:#e0922a; --amber-l:#fbf0dd;
-  --line:#e7e2d6; --radius:18px; --shadow:0 6px 22px rgba(20,40,28,.07); --shadow-sm:0 2px 8px rgba(20,40,28,.05);
+  --line:#e7e2d6; --radius:18px; --shadow:0 4px 14px rgba(20,40,28,.08),0 12px 30px rgba(20,40,28,.06); --shadow-sm:0 1px 2px rgba(20,40,28,.04),0 4px 12px rgba(20,40,28,.05); --shadow-lg:0 24px 60px rgba(8,60,33,.22);
   --fdisp:'Bricolage Grotesque',system-ui,sans-serif; --fbody:'Plus Jakarta Sans',system-ui,sans-serif;
   --side:248px;
 }
@@ -167,11 +167,21 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 /* MODAL */
 .ov{position:fixed;inset:0;z-index:50;background:rgba(20,35,27,.42);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s both}
 @media(min-width:560px){.ov{align-items:center}}
-.modal{width:100%;max-width:480px;background:var(--card);border-radius:24px 24px 0 0;max-height:92dvh;overflow:auto;animation:sheet .32s cubic-bezier(.2,.8,.3,1) both}
+.modal{width:100%;max-width:480px;background:var(--card);border-radius:24px 24px 0 0;max-height:92dvh;overflow:auto;box-shadow:var(--shadow-lg);animation:sheet .32s cubic-bezier(.2,.8,.3,1) both}
 @media(min-width:560px){.modal{border-radius:24px}}
 .modal-h{position:sticky;top:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--line);z-index:2}
 .modal-h .t{font-family:var(--fdisp);font-weight:800;font-size:19px} .modal-h .cl{width:34px;height:34px;border-radius:10px;background:var(--bg);font-size:18px;display:flex;align-items:center;justify-content:center}
 .modal-b{padding:16px 20px 22px}
+.modal-h.hero{align-items:center;padding:16px 18px;border-bottom:0;color:#fff;gap:10px}
+.modal-h.hero .hero-l{display:flex;align-items:center;gap:12px;min-width:0}
+.modal-h.hero .hero-ic{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:23px;flex:none}
+.modal-h.hero .t{color:#fff;font-size:20px;line-height:1.1}
+.modal-h.hero .sub{font-size:12px;font-weight:600;opacity:.9;margin-top:3px}
+.modal-h.hero .cl{background:rgba(255,255,255,.22);color:#fff}
+.modal.tp-desp .modal-h.hero{background:linear-gradient(135deg,#f43f5e 0%,#9f1239 100%)}
+.modal.tp-rec .modal-h.hero{background:linear-gradient(135deg,#22c55e 0%,#0b6b3a 100%)}
+.kpi{transition:transform .18s,box-shadow .18s} .kpi[data-fil]:hover,.kpi[data-go]:hover{transform:translateY(-2px);box-shadow:var(--shadow);cursor:pointer}
+.kpi .n,.item .vv{font-variant-numeric:tabular-nums}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 textarea.fld{resize:vertical;min-height:64px}
 .checkrow{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;font-weight:600} .checkrow input{width:20px;height:20px;accent-color:var(--green)}
@@ -513,7 +523,8 @@ function modalConta(c,tipoNovo){const ed=!!c;c=c||{};const tp=ed?(c.tipo||'despe
   </div>
   <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button>${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago">✔ Marcar como paga</button>':''}${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}<div id="f-msg" class="msg"></div>`);
   const vEl=ov.querySelector('#f-valor');vEl.addEventListener('input',()=>{let d=vEl.value.replace(/\D/g,'');vEl.value=d?(parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';});
-  const aplicaTipo=(r)=>{const t=ov.querySelector('.modal-h .t');if(t)t.textContent=ed?(r?'Editar receita':'Editar despesa'):(r?'Nova receita':'Nova despesa');const sv=ov.querySelector('#f-save');if(sv)sv.textContent=ed?'Salvar alterações':(r?'Criar receita':'Criar despesa');const lv=ov.querySelector('#lbl-venc');if(lv)lv.textContent=r?'Recebimento *':'Vencimento *';const fd=ov.querySelector('#f-desc');if(fd)fd.placeholder=r?'Ex: Honorário, venda, recebimento':'Ex: Conta de energia';const bx=ov.querySelector('#box-anexos');if(bx)bx.style.display=r?'none':'';};
+  const _mh=ov.querySelector('.modal-h');_mh.classList.add('hero');_mh.innerHTML=`<div class="hero-l"><span class="hero-ic" id="mh-ic">💸</span><div><div class="t" id="mh-t"></div><div class="sub" id="mh-sub"></div></div></div><button class="cl" aria-label="Fechar">✕</button>`;_mh.querySelector('.cl').onclick=()=>ov.remove();
+  const aplicaTipo=(r)=>{const _m=ov.querySelector('.modal');if(_m){_m.classList.toggle('tp-rec',r);_m.classList.toggle('tp-desp',!r);}const ic=ov.querySelector('#mh-ic');if(ic)ic.textContent=r?'💰':'💸';const sub=ov.querySelector('#mh-sub');if(sub)sub.textContent=r?'Entrada de dinheiro':'Saída de dinheiro';const t=ov.querySelector('.modal-h .t');if(t)t.textContent=ed?(r?'Editar receita':'Editar despesa'):(r?'Nova receita':'Nova despesa');const sv=ov.querySelector('#f-save');if(sv)sv.textContent=ed?'Salvar alterações':(r?'Criar receita':'Criar despesa');const lv=ov.querySelector('#lbl-venc');if(lv)lv.textContent=r?'Recebimento *':'Vencimento *';const fd=ov.querySelector('#f-desc');if(fd)fd.placeholder=r?'Ex: Honorário, venda, recebimento':'Ex: Conta de energia';const bx=ov.querySelector('#box-anexos');if(bx)bx.style.display=r?'none':'';};
   ov.querySelectorAll('[data-tt]').forEach(b=>b.onclick=()=>{const r=b.dataset.tt==='receita';ov.querySelector('#f-tipo').value=b.dataset.tt;ov.querySelectorAll('.tt-btn').forEach(x=>x.classList.toggle('on',x.dataset.tt===b.dataset.tt));aplicaTipo(r);});
   aplicaTipo(isR);
   ov.querySelectorAll('[data-ver]').forEach(b=>b.onclick=()=>verAnexo(b.dataset.ver==='boleto'?c.boleto_path:c.comprovante_path));
