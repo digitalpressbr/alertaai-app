@@ -245,6 +245,38 @@ textarea.fld{resize:vertical;min-height:64px}
 @media(min-width:760px){.minicards{grid-template-columns:repeat(4,1fr)}.hubgrid{grid-template-columns:repeat(3,1fr)}.cardgrid{grid-template-columns:1fr 1fr}}
 @media(min-width:900px){.kpis4{grid-template-columns:repeat(4,1fr)}.dash2{grid-template-columns:1fr 1fr}}
 @media(min-width:1100px){.cardgrid{grid-template-columns:1fr 1fr 1fr}}
+/* ===== MATCH Genspark: shell claro + títulos grandes + KPIs/mini-cards ícone-redondo ===== */
+:root{--bg:#eef2f1}
+.fld{background:#f6f8f7}
+.ph h1{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1.06}
+@media(min-width:900px){.ph h1{font-size:35px}}
+.ph .d{font-size:14px;margin-top:3px}
+.kpi{display:flex;align-items:center;gap:14px;padding:17px 18px;overflow:visible}
+.kpi .ic{width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0;flex:none}
+.kpi .kt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.kpi .kt .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.kpi .kt .n{font-size:23px;line-height:1.1;font-variant-numeric:tabular-nums}
+.mc{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+.mc.r,.mc.a,.mc.n,.mc.g{border-top-color:var(--line);border-top-width:1px}
+.mc .mic{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.mc.r .mic{background:var(--rose-l)}.mc.a .mic{background:var(--amber-l)}.mc.n .mic{background:#e7ece9}.mc.g .mic{background:var(--green-l)}
+.mc .mcb{display:flex;flex-direction:column;min-width:0}
+.mc .mv{font-size:19px}
+/* tabela de contas (estilo Genspark) */
+.tblwrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;padding:13px 16px;font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th:nth-child(6),.tbl th:nth-child(7){text-align:right}
+.tbl td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+.tbl tbody tr{cursor:pointer;transition:.12s}.tbl tbody tr:hover{background:#f7faf8}.tbl tbody tr:last-child td{border-bottom:0}
+.tb-desc{font-weight:600;white-space:normal}
+.tb-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.tb-dot.vd{background:var(--rose)}.tb-dot.av{background:var(--amber)}.tb-dot.pg{background:var(--green)}
+.tb-badge{font-size:10.5px;font-weight:800;letter-spacing:.03em}
+.tb-badge.vd{color:#b00930}.tb-badge.av{color:#92610f}.tb-badge.pg{color:var(--green-d)}
+.tb-val{font-weight:700;font-variant-numeric:tabular-nums;color:var(--rose);text-align:right}.tb-val.rec{color:var(--green)}
+.tb-ac{text-align:right}
+.tb-act{padding:6px 15px;border-radius:9px;background:var(--green);color:#fff;font-weight:700;font-size:12.5px}.tb-act:hover{background:var(--green-d)}
 </style>
 </head>
 <body>
@@ -405,28 +437,24 @@ function viewInicio(){
   <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()]}, ${d.getUTCDate()} de ${MES[S.mes]} de ${S.ano}</div></div>
     <div class="act"><button class="bpill g" data-add="receita">＋ Receita</button><button class="bpill" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis kpis4">
-    <div class="kpi g"><div class="ic">💰</div><div class="n">${money(totRec)}</div><div class="l">receitas do mês</div></div>
-    <div class="kpi r"><div class="ic">💸</div><div class="n">${money(totDes)}</div><div class="l">despesas do mês</div></div>
-    <div class="kpi ${saldo>=0?'b':'r'}"><div class="ic">${saldo>=0?'📈':'📉'}</div><div class="n">${money(saldo)}</div><div class="l">saldo do mês</div></div>
-    <div class="kpi a" data-go="pagar"><div class="ic">⚠️</div><div class="n">${money(tVenc)}</div><div class="l">${vencidas.length} vencida(s)</div></div>
+    <div class="kpi g"><div class="ic">📈</div><div class="kt"><div class="l">receitas do mês</div><div class="n">${money(totRec)}</div></div></div>
+    <div class="kpi r"><div class="ic">📉</div><div class="kt"><div class="l">despesas do mês</div><div class="n">${money(totDes)}</div></div></div>
+    <div class="kpi ${saldo>=0?'b':'r'}"><div class="ic">${saldo>=0?'💵':'📉'}</div><div class="kt"><div class="l">saldo do mês</div><div class="n">${money(saldo)}</div></div></div>
+    <div class="kpi a" data-go="pagar" style="cursor:pointer"><div class="ic">⚠️</div><div class="kt"><div class="l">${vencidas.length} conta(s) vencida(s)</div><div class="n">${money(tVenc)}</div></div></div>
   </div>
   <div class="dash2">
     <div class="panel"><h3>Fluxo de caixa <span class="sub2">últimos 6 meses</span></h3><div class="chart-wrap tall"><canvas id="ch1"></canvas></div></div>
     <div class="panel"><h3>Despesas por categoria <span class="sub2">${MES[S.mes]}</span></h3><div class="chart-wrap tall" id="catwrap"><canvas id="ch1b"></canvas></div></div>
   </div>
   <div class="cols2" style="margin-top:16px">
-    <div class="panel"><h3>📅 Agenda de hoje <span class="lk" data-go="agenda">Ver →</span></h3><div id="d-hoje"></div></div>
-    <div class="panel"><h3>💸 Próximos vencimentos <span class="lk" data-go="pagar">Ver →</span></h3><div id="d-prox"></div></div>
-    <div class="panel"><h3>💰 Próximas receitas <span class="lk" data-go="receber">Ver →</span></h3><div id="d-rec"></div></div>
-    <div class="panel"><h3>⚠️ Contas vencidas <span class="lk" data-go="pagar">Ver →</span></h3><div id="d-venc"></div></div>
+    <div class="panel"><h3>Próximos Vencimentos <span class="lk" data-go="pagar">Ver todas →</span></h3><div id="d-prox"></div></div>
+    <div class="panel"><h3>Próximas Receitas <span class="lk" data-go="receber">Ver todas →</span></h3><div id="d-rec"></div></div>
   </div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
   v.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>modalConta(null,e.dataset.add));
-  $('d-hoje').innerHTML=compHoje.length?compHoje.map(itemComp).join(''):emptyBox('🌿','Sem compromissos hoje.');
-  $('d-prox').innerHTML=aVencer.length?aVencer.slice(0,5).map(c=>itemConta(c)).join(''):emptyBox('✅','Nada a vencer.');
-  $('d-rec').innerHTML=aReceber.length?aReceber.slice(0,5).map(c=>itemReceita(c)).join(''):emptyBox('💰','Nada a receber.');
-  $('d-venc').innerHTML=vencidas.length?vencidas.slice(0,5).map(c=>itemConta(c)).join(''):emptyBox('🎉','Nenhuma vencida!');
+  $('d-prox').innerHTML=aVencer.length?aVencer.slice(0,6).map(c=>itemConta(c)).join(''):emptyBox('✅','Nada a vencer.');
+  $('d-rec').innerHTML=aReceber.length?aReceber.slice(0,6).map(c=>itemReceita(c)).join(''):emptyBox('💰','Nada a receber.');
   bindItems(v);
   desenharSerie();desenharCategorias();
 }
@@ -485,10 +513,10 @@ function viewContasPagar(){
   const f=S.filtroContas||'todas';
   let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta(s)</div></div><div class="act"><button class="bpill" data-add="despesa">＋ Nova despesa</button></div></div>
   <div class="minicards">
-    <div class="mc r"><div class="mt">Vencidas</div><div class="mv">${money(sum(venc))}</div><div class="ml">${venc.length} conta(s)</div></div>
-    <div class="mc a"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div>
-    <div class="mc n"><div class="mt">A vencer</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div>
-    <div class="mc g"><div class="mt">Pagas no mês</div><div class="mv">${money(sum(pg))}</div><div class="ml">${pg.length} conta(s)</div></div>
+    <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Vencidas</div><div class="mv">${money(sum(venc))}</div><div class="ml">${venc.length} conta(s)</div></div></div>
+    <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
+    <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A vencer</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
+    <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Pagas no mês</div><div class="mv">${money(sum(pg))}</div><div class="ml">${pg.length} conta(s)</div></div></div>
   </div>
   <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div></div>
   <div id="ct-list"></div>`;
@@ -503,7 +531,7 @@ function viewContasPagar(){
     else if(ff==='avencer')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento>=hoje);
     else if(ff==='pagas')lst=lst.filter(c=>c.status==='pago');
     else lst.sort((a,b)=>((a.status==='pago')-(b.status==='pago'))||(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
-    const box=$('ct-list');box.innerHTML=lst.length?lst.map(c=>itemConta(c)).join(''):emptyBox('🔍','Nenhuma conta com esse filtro.');bindItems(box);
+    const box=$('ct-list');box.innerHTML=contaTabela(lst,'desp');bindItems(box);
   }
   renderCt();
 }
@@ -518,10 +546,10 @@ function viewContasReceber(){
   const f=S.filtroRec||'todas';
   let h=`<div class="ph"><div><h1>Contas a receber</h1><div class="d">${money(sum(ab))} a receber · ${ab.length} conta(s)</div></div><div class="act"><button class="bpill g" data-add="receita">＋ Nova receita</button></div></div>
   <div class="minicards">
-    <div class="mc r"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length} conta(s)</div></div>
-    <div class="mc a"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div>
-    <div class="mc n"><div class="mt">A receber</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div>
-    <div class="mc g"><div class="mt">Recebido no mês</div><div class="mv">${money(sum(rb))}</div><div class="ml">${rb.length} conta(s)</div></div>
+    <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length} conta(s)</div></div></div>
+    <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
+    <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A receber</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
+    <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Recebido no mês</div><div class="mv">${money(sum(rb))}</div><div class="ml">${rb.length} conta(s)</div></div></div>
   </div>
   <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div></div>
   <div id="rc-list"></div>`;
@@ -536,7 +564,7 @@ function viewContasReceber(){
     else if(ff==='areceber')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento>=hoje);
     else if(ff==='recebidas')lst=lst.filter(c=>c.status==='pago');
     else lst.sort((a,b)=>((a.status==='pago')-(b.status==='pago'))||(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
-    const box=$('rc-list');box.innerHTML=lst.length?lst.map(c=>itemReceita(c)).join(''):emptyBox('💰','Nenhuma receita com esse filtro.');bindItems(box);
+    const box=$('rc-list');box.innerHTML=contaTabela(lst,'rec');bindItems(box);
   }
   renderRc();
 }
@@ -589,8 +617,10 @@ function viewFornecedores(){const v=$('view');v.innerHTML=`<div class="ph"><div>
   $('add-forn').onclick=()=>modalPessoa('forn');const g=$('forn-grid');g.innerHTML=S.forn.length?S.forn.map(f=>cadCard(f,'forn')).join(''):emptyBox('🏢','Nenhum fornecedor ainda. Cadastre o primeiro!');g.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const it=S.forn.find(x=>x.id===b.dataset.ed);if(it)modalPessoa('forn',it);});}
 function viewClientes(){const v=$('view');v.innerHTML=`<div class="ph"><div><h1>Clientes</h1><div class="d">${S.cli.length} cadastrado(s)</div></div><div class="act"><button class="bpill g" id="add-cli">＋ Novo cliente</button></div></div><div class="cardgrid" id="cli-grid"></div>`;
   $('add-cli').onclick=()=>modalPessoa('cli');const g=$('cli-grid');g.innerHTML=S.cli.length?S.cli.map(f=>cadCard(f,'cli')).join(''):emptyBox('👥','Nenhum cliente ainda. Cadastre o primeiro!');g.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const it=S.cli.find(x=>x.id===b.dataset.ed);if(it)modalPessoa('cli',it);});}
+const AVCORES=['#16a34a','#2563eb','#e0922a','#8b5cf6','#0ea5e9','#e11d48','#0d9488','#a16207','#db2777','#ca8a04'];
+function avColor(n){let h=0,s=String(n||'?');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return AVCORES[h%AVCORES.length];}
 function cadCard(o,tipo){const isF=tipo==='forn';const doc=o.cnpj||o.cpf_cnpj||'';const nQtd=(isF?S.contas.filter(c=>c.fornecedor_id===o.id):S.contas.filter(c=>c.cliente_id===o.id)).length;const sub=o.razao_social&&o.razao_social!==o.nome?o.razao_social:'';const lines=[];if(o.telefone)lines.push('📞 '+esc(o.telefone));if(o.email)lines.push('✉️ '+esc(o.email));if(o.cidade)lines.push('📍 '+esc(o.cidade)+(o.uf?'/'+esc(o.uf):''));
-  return `<div class="supcard" data-ed="${o.id}"><div class="sc-h"><div class="sc-av">${(o.nome||'?')[0].toUpperCase()}</div><div class="sc-ic">${isF?'🏢':'👥'}</div></div><div class="sc-nm">${esc(o.nome)}</div>${sub?`<div class="sc-sub">${esc(sub)}</div>`:''}${doc?`<div class="sc-doc">${esc(doc)}</div>`:''}${o.categoria?`<span class="cattag">${esc(o.categoria)}</span>`:''}<div class="sc-info">${lines.join('<br>')||'<span style="color:var(--soft)">Sem contato</span>'}</div><div class="sc-ft">${nQtd} ${isF?'conta(s)':'recebimento(s)'}</div></div>`;}
+  return `<div class="supcard" data-ed="${o.id}"><div class="sc-h"><div class="sc-av" style="background:${avColor(o.nome)}">${(o.nome||'?')[0].toUpperCase()}</div><div class="sc-ic">${isF?'🏢':'👥'}</div></div><div class="sc-nm">${esc(o.nome)}</div>${sub?`<div class="sc-sub">${esc(sub)}</div>`:''}${doc?`<div class="sc-doc">${esc(doc)}</div>`:''}${o.categoria?`<span class="cattag">${esc(o.categoria)}</span>`:''}<div class="sc-info">${lines.join('<br>')||'<span style="color:var(--soft)">Sem contato</span>'}</div><div class="sc-ft">${nQtd} ${isF?'conta(s)':'recebimento(s)'}</div></div>`;}
 function modalPessoa(tipo,c){const ed=!!c;c=c||{};const isF=tipo==='forn';const tpIni=c.tipo_pessoa||(isF?'pj':'pf');
   const ov=openModal(ed?(isF?'Editar fornecedor':'Editar cliente'):(isF?'Novo fornecedor':'Novo cliente'),`
   <div class="tipotog2"><button type="button" class="tt2${tpIni==='pj'?' on':''}" data-tp="pj">Pessoa Jurídica</button><button type="button" class="tt2${tpIni==='pf'?' on':''}" data-tp="pf">Pessoa Física</button></div><input type="hidden" id="p-tipopessoa" value="${tpIni}">
@@ -660,6 +690,24 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
 function exportCSV(){const rows=[['Tipo','Descrição','Valor','Vencimento','Status','Categoria']];const catN=id=>{const c=S.cat.find(x=>x.id===id);return c?c.nome:'';};
   S.contas.forEach(c=>rows.push([c.tipo==='receita'?'Receita':'Despesa',(c.descricao||'').replace(/;/g,','),moneyN(c.valor),c.data_vencimento||'',c.status||'',catN(c.categoria_id)]));
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`alertaai_${S.ano}_${String(S.mes+1).padStart(2,'0')}.csv`;a.click();toast('CSV exportado ✅');}
+
+/* ---- TABELA de contas (Genspark) ---- */
+function linhaTabela(c,tipo){
+  const hoje=hojeBRT(),pago=c.status==='pago',venc=c.data_vencimento||'';
+  let badge,dot;
+  if(pago){badge=`<span class="tb-badge pg">${tipo==='rec'?'RECEBIDA':'PAGA'}</span>`;dot='pg';}
+  else if(venc<hoje){badge=`<span class="tb-badge vd">${tipo==='rec'?'ATRASADA':'VENCIDA'}</span>`;dot='vd';}
+  else{badge='<span class="tb-badge av">PENDENTE</span>';dot='av';}
+  const cat=S.cat.find(x=>x.id===c.categoria_id),catTxt=cat?((cat.icone?cat.icone+' ':'')+esc(cat.nome)):'—';
+  const pessoa=tipo==='rec'?((S.cli.find(x=>x.id===c.cliente_id)||{}).nome):((S.forn.find(x=>x.id===c.fornecedor_id)||{}).nome);
+  const acao=pago?'<span style="color:var(--soft);font-size:12px">—</span>':`<button class="tb-act${tipo==='rec'?' g':''}" data-${tipo==='rec'?'recv':'pay'}="${c.id}">${tipo==='rec'?'Receber':'Pagar'}</button>`;
+  const vatr=venc<hoje&&!pago?' style="color:var(--rose);font-weight:600"':'';
+  return `<tr data-conta="${c.id}"><td><span class="tb-dot ${dot}"></span>${badge}</td><td class="tb-desc">${esc(c.descricao)}${(c.boleto_path||c.comprovante_path)?' 📎':''}</td><td>${catTxt}</td><td>${esc(pessoa||'—')}</td><td${vatr}>${dBRc(venc)}</td><td class="tb-val${tipo==='rec'?' rec':''}">${tipo==='rec'?'+ ':'− '}${money(c.valor)}</td><td class="tb-ac">${acao}</td></tr>`;
+}
+function contaTabela(lst,tipo){
+  if(!lst.length)return emptyBox(tipo==='rec'?'💰':'🔍','Nenhuma conta com esse filtro.');
+  return `<div class="tblwrap"><table class="tbl"><thead><tr><th>Status</th><th>Descrição</th><th>Categoria</th><th>${tipo==='rec'?'Cliente':'Fornecedor'}</th><th>Vencimento</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${lst.map(c=>linhaTabela(c,tipo)).join('')}</tbody></table></div>`;
+}
 
 /* ---- ITEMS ---- */
 function itemComp(c){const hora=c.horario&&c.horario!=='00:00'?'🕐 '+c.horario:'';const loc=c.local?'  📍 '+esc(c.local):'';
