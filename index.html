@@ -91,7 +91,7 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 /* page heading */
 .ph{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:4px 0 6px}
 .ph h1{font-size:26px;font-weight:800;margin:0}
-.ph .d{font-size:13px;color:var(--muted);text-transform:capitalize}
+.ph .d{font-size:13px;color:var(--muted)}
 .ph .act{display:flex;gap:8px}
 .bpill{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:11px;background:var(--green);color:#fff;font-weight:700;font-size:14px;box-shadow:0 3px 10px rgba(11,107,58,.18)}
 .bpill:hover{background:var(--green-d)} .bpill.g{background:var(--green-l);color:var(--green);box-shadow:none}
@@ -116,13 +116,15 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 
 /* item rows */
 .item{display:flex;align-items:flex-start;gap:12px;background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow-sm);border:1px solid var(--line);border-left:4px solid var(--blue);transition:.15s;cursor:pointer}
-.item:hover{transform:translateX(2px);box-shadow:var(--shadow)} .item.r{border-left-color:var(--rose)} .item.vd{border-left-color:var(--rose);background:#fff6f8} .item.done{opacity:.6}
+.item:hover{transform:translateX(2px);box-shadow:var(--shadow)} .item.r{border-left-color:var(--rose)} .item.vd{border-left-color:var(--rose);background:#fff6f8} .item.hj{border-left-color:var(--amber);background:#fffaf0} .item.av{border-left-color:#aab4ae} .item.pg{border-left-color:var(--green)} .item.done{opacity:.62}
+.qpay{align-self:center;margin-left:10px;width:34px;height:34px;border-radius:50%;background:var(--green-l);color:var(--green);font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;transition:.15s}
+.qpay:hover{background:var(--green);color:#fff;transform:scale(1.08)}
 .item .di{font-size:18px;margin-top:1px} .item .bd{flex:1;min-width:0}
 .item .tt{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item .ss{font-size:12px;color:var(--muted);margin-top:2px}
 .item .vv{font-family:var(--fdisp);font-weight:700;color:var(--rose);white-space:nowrap;align-self:center} .item .vv.pago{color:var(--green)}
 .chip{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px}
-.chip.vd{background:var(--rose-l);color:#b00930} .chip.pg{background:var(--green-l);color:var(--green-d)}
+.chip.vd{background:var(--rose-l);color:#b00930} .chip.hj{background:var(--amber-l);color:#92610f} .chip.pg{background:var(--green-l);color:var(--green-d)}
 .empty{text-align:center;color:var(--muted);font-size:13.5px;padding:24px 14px;background:var(--card);border-radius:14px;border:1px dashed var(--line)} .empty .e{font-size:28px;display:block;margin-bottom:6px}
 .panel .item{box-shadow:none;border-left-width:4px;margin-bottom:7px}
 
@@ -307,10 +309,10 @@ function viewInicio(){
   <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()]}, ${d.getUTCDate()} de ${MES[S.mes]} de ${S.ano}</div></div>
     <div class="act"><button class="bpill g" data-add="comp">＋ Compromisso</button><button class="bpill" data-add="conta">＋ Conta</button></div></div>
   <div class="kpis">
-    <div class="kpi r"><div class="ic">⚠️</div><div class="n">${moneyK(tVencidas)}</div><div class="l">${vencidas.length} conta(s) vencida(s)</div></div>
-    <div class="kpi a"><div class="ic">⏳</div><div class="n">${moneyK(tAvencer)}</div><div class="l">${aVencer.length} a vencer</div></div>
-    <div class="kpi g"><div class="ic">✅</div><div class="n">${moneyK(pagasMes)}</div><div class="l">pago em ${MES[S.mes]}</div></div>
-    <div class="kpi b"><div class="ic">📅</div><div class="n">${compHoje.length}</div><div class="l">compromisso(s) hoje</div></div>
+    <div class="kpi r" data-go="contas" style="cursor:pointer"><div class="ic">⚠️</div><div class="n">${money(tVencidas)}</div><div class="l">${vencidas.length} conta(s) vencida(s)</div></div>
+    <div class="kpi a" data-go="contas" style="cursor:pointer"><div class="ic">⏳</div><div class="n">${money(tAvencer)}</div><div class="l">${aVencer.length} a vencer</div></div>
+    <div class="kpi g" data-go="contas" style="cursor:pointer"><div class="ic">✅</div><div class="n">${money(pagasMes)}</div><div class="l">pago em ${MES[S.mes]}</div></div>
+    <div class="kpi b" data-go="agenda" style="cursor:pointer"><div class="ic">📅</div><div class="n">${compHoje.length}</div><div class="l">compromisso(s) hoje</div></div>
   </div>
   <div class="dash">
     <div class="panel"><h3>Resumo financeiro do mês</h3><div class="chart-wrap"><canvas id="ch1"></canvas></div></div>
@@ -322,7 +324,7 @@ function viewInicio(){
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
   v.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>e.dataset.add==='comp'?modalComp():modalConta());
   $('d-hoje').innerHTML=compHoje.length?compHoje.map(itemComp).join(''):emptyBox('🌿','Sem compromissos hoje.');
-  $('d-venc').innerHTML=vencidas.length?vencidas.slice(0,5).map(c=>itemConta(c,true)).join(''):emptyBox('🎉','Nenhuma conta vencida!');
+  $('d-venc').innerHTML=vencidas.length?vencidas.slice(0,5).map(c=>itemConta(c)).join(''):emptyBox('🎉','Nenhuma conta vencida!');
   $('d-prox').innerHTML=aVencer.length?aVencer.slice(0,5).map(c=>itemConta(c)).join(''):emptyBox('✅','Nada a vencer agora.');
   bindItems(v);
   desenharGrafico(tVencidas,tAvencer,pagasMes);
@@ -368,7 +370,7 @@ function viewContas(){
   const tot=abertas.reduce((s,c)=>s+Number(c.valor||0),0);
   let h=`<div class="ph"><div><h1>Contas</h1><div class="d">${money(tot)} em aberto em ${MES[S.mes]} • ${abertas.length} conta(s)</div></div><div class="act"><button class="bpill" data-add="conta">＋ Nova conta</button></div></div>
   <div class="sec-h"><div class="t">A pagar</div></div>`;
-  h+=abertas.length?abertas.map(c=>itemConta(c,c.data_vencimento<hojeBRT())).join(''):emptyBox('✅','Tudo pago este mês! 🎉');
+  h+=abertas.length?abertas.map(c=>itemConta(c)).join(''):emptyBox('✅','Tudo pago este mês! 🎉');
   if(pagas.length){h+=`<div class="sec-h"><div class="t">Pagas</div></div>`+pagas.map(c=>itemConta(c)).join('');}
   const v=$('view');v.innerHTML=h;v.querySelector('[data-add]').onclick=()=>modalConta();bindItems(v);
 }
@@ -392,9 +394,18 @@ function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn
 /* ---- ITEMS ---- */
 function itemComp(c){const hora=c.horario&&c.horario!=='00:00'?'🕐 '+c.horario:'';const loc=c.local?'  📍 '+esc(c.local):'';
   return `<div class="item" data-comp="${c.id}"><span class="di">📅</span><div class="bd"><div class="tt">${esc(c.titulo)}</div><div class="ss">${dBRc(c.data)}${hora?' · '+hora:''}${loc}</div></div></div>`;}
-function itemConta(c,vencida){const pago=c.status==='pago';return `<div class="item ${vencida?'vd':'r'}${pago?' done':''}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip pg">pago</span>':vencida?'<span class="chip vd">vencida</span>':''}</div><div class="ss">Vence ${dBRc(c.data_vencimento)}${c.observacao?' · '+esc(c.observacao):''}</div></div><div class="vv${pago?' pago':''}">${money(c.valor)}</div></div>`;}
+function itemConta(c){
+  const pago=c.status==='pago', venc=c.data_vencimento||'', hoje=hojeBRT();
+  let cls='av', chip='';
+  if(pago){cls='pg done';}
+  else if(venc<hoje){cls='vd'; chip='<span class="chip vd">vencida</span>';}
+  else if(venc===hoje){cls='hj'; chip='<span class="chip hj">vence hoje</span>';}
+  const pay=pago?'':`<button class="qpay" data-pay="${c.id}" title="Marcar como paga">✓</button>`;
+  return `<div class="item ${cls}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip pg">pago</span>':chip}</div><div class="ss">Vence ${dBRc(venc)}${c.observacao?' · '+esc(c.observacao):''}</div></div><div class="vv${pago?' pago':''}">${money(c.valor)}</div>${pay}</div>`;
+}
 function bindItems(root){root.querySelectorAll('[data-comp]').forEach(e=>e.onclick=()=>{const c=S.comp.find(x=>x.id===e.dataset.comp);if(c)modalComp(c);});
-  root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{const c=[...S.contas,...S.abertas].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});}
+  root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{const c=[...S.contas,...S.abertas].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
+  root.querySelectorAll('[data-pay]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();e.disabled=true;const id=e.dataset.pay;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');toast('Conta paga ✓');await carregar();irPara(S.tab);});}
 
 /* ---- FAB ---- */
 let sheetOpen=false;
