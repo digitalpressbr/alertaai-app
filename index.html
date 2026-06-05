@@ -145,7 +145,14 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .sec-h{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 10px}
 .sec-h .t{font-family:var(--fdisp);font-weight:700;font-size:16px} .sec-h .lk{font-size:13px;color:var(--green);font-weight:600;cursor:pointer}
 .mng{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:13px;padding:11px 14px;margin-bottom:8px;border:1px solid var(--line)}
-.mng .nm{flex:1;font-weight:600} .mng .rm{color:var(--rose);font-size:18px;padding:4px 6px;border-radius:8px} .mng .rm:hover{background:var(--rose-l)}
+.mng .nm{flex:1;font-weight:600} .mng .rm{color:var(--rose);font-size:17px;padding:4px 7px;border-radius:8px} .mng .rm:hover{background:var(--rose-l)}
+.mng .ed{color:var(--muted);font-size:15px;padding:4px 7px;border-radius:8px} .mng .ed:hover{background:var(--green-l);color:var(--green)}
+.filterbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 2px 14px}
+.fld.busca{max-width:300px;padding:10px 14px}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.fchip{padding:7px 15px;border-radius:999px;font-weight:600;font-size:13px;background:var(--card);border:1.5px solid var(--line);color:var(--muted);transition:.15s}
+.fchip:hover{border-color:var(--green-line)} .fchip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.ferr{color:#b00930;font-size:12px;margin-top:5px;display:none} .ferr.show{display:block}
 .cols2{display:grid;grid-template-columns:1fr;gap:10px} @media(min-width:900px){.cols2{grid-template-columns:1fr 1fr;gap:14px}}
 .support{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:16px;margin-top:18px;font-size:13.5px;color:var(--muted)} .support b{color:var(--ink)}
 
@@ -230,6 +237,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;',
 const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const money=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const moneyN=v=>Number(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const moneyK=v=>{v=Number(v||0);return v>=1000?'R$ '+(v/1000).toFixed(1).replace('.',',')+'k':money(v);};
 const dBRc=d=>d?d.slice(8,10)+'/'+d.slice(5,7):'';
 const hojeBRT=()=>new Date(Date.now()-3*3600e3).toISOString().slice(0,10);
@@ -309,9 +317,9 @@ function viewInicio(){
   <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()]}, ${d.getUTCDate()} de ${MES[S.mes]} de ${S.ano}</div></div>
     <div class="act"><button class="bpill g" data-add="comp">＋ Compromisso</button><button class="bpill" data-add="conta">＋ Conta</button></div></div>
   <div class="kpis">
-    <div class="kpi r" data-go="contas" style="cursor:pointer"><div class="ic">⚠️</div><div class="n">${money(tVencidas)}</div><div class="l">${vencidas.length} conta(s) vencida(s)</div></div>
-    <div class="kpi a" data-go="contas" style="cursor:pointer"><div class="ic">⏳</div><div class="n">${money(tAvencer)}</div><div class="l">${aVencer.length} a vencer</div></div>
-    <div class="kpi g" data-go="contas" style="cursor:pointer"><div class="ic">✅</div><div class="n">${money(pagasMes)}</div><div class="l">pago em ${MES[S.mes]}</div></div>
+    <div class="kpi r" data-fil="vencidas" style="cursor:pointer"><div class="ic">⚠️</div><div class="n">${money(tVencidas)}</div><div class="l">${vencidas.length} conta(s) vencida(s)</div></div>
+    <div class="kpi a" data-fil="avencer" style="cursor:pointer"><div class="ic">⏳</div><div class="n">${money(tAvencer)}</div><div class="l">${aVencer.length} a vencer</div></div>
+    <div class="kpi g" data-fil="pagas" style="cursor:pointer"><div class="ic">✅</div><div class="n">${money(pagasMes)}</div><div class="l">pago em ${MES[S.mes]}</div></div>
     <div class="kpi b" data-go="agenda" style="cursor:pointer"><div class="ic">📅</div><div class="n">${compHoje.length}</div><div class="l">compromisso(s) hoje</div></div>
   </div>
   <div class="dash">
@@ -322,6 +330,7 @@ function viewInicio(){
   </div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
+  v.querySelectorAll('[data-fil]').forEach(e=>e.onclick=()=>{S.filtroContas=e.dataset.fil;S.buscaContas='';irPara('contas');});
   v.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>e.dataset.add==='comp'?modalComp():modalConta());
   $('d-hoje').innerHTML=compHoje.length?compHoje.map(itemComp).join(''):emptyBox('🌿','Sem compromissos hoje.');
   $('d-venc').innerHTML=vencidas.length?vencidas.slice(0,5).map(c=>itemConta(c)).join(''):emptyBox('🎉','Nenhuma conta vencida!');
@@ -366,13 +375,29 @@ function renderAgList(){let arr;if(S.selDia){const ev=S.porDia[S.selDia]||{b:[],
 
 /* ---- CONTAS ---- */
 function viewContas(){
+  const hoje=hojeBRT();
   const abertas=S.contas.filter(c=>c.status!=='pago'),pagas=S.contas.filter(c=>c.status==='pago');
-  const tot=abertas.reduce((s,c)=>s+Number(c.valor||0),0);
-  let h=`<div class="ph"><div><h1>Contas</h1><div class="d">${money(tot)} em aberto em ${MES[S.mes]} • ${abertas.length} conta(s)</div></div><div class="act"><button class="bpill" data-add="conta">＋ Nova conta</button></div></div>
-  <div class="sec-h"><div class="t">A pagar</div></div>`;
-  h+=abertas.length?abertas.map(c=>itemConta(c)).join(''):emptyBox('✅','Tudo pago este mês! 🎉');
-  if(pagas.length){h+=`<div class="sec-h"><div class="t">Pagas</div></div>`+pagas.map(c=>itemConta(c)).join('');}
-  const v=$('view');v.innerHTML=h;v.querySelector('[data-add]').onclick=()=>modalConta();bindItems(v);
+  const totAb=abertas.reduce((s,c)=>s+Number(c.valor||0),0),totPg=pagas.reduce((s,c)=>s+Number(c.valor||0),0);
+  const chips=[['todas','Todas'],['avencer','A vencer'],['vencidas','Vencidas'],['pagas','Pagas']];
+  const f=S.filtroContas||'todas';
+  let h=`<div class="ph"><div><h1>Contas de ${MES[S.mes]}</h1><div class="d">A pagar ${money(totAb)} · Pagas ${money(totPg)} · ${abertas.length} em aberto</div></div><div class="act"><button class="bpill" data-add="conta">＋ Nova conta</button></div></div>
+  <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div></div>
+  <div id="ct-list"></div>`;
+  const v=$('view');v.innerHTML=h;
+  v.querySelector('[data-add]').onclick=()=>modalConta();
+  v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroContas=b.dataset.f;viewContas();});
+  const bu=$('ct-busca');bu.oninput=()=>{S.buscaContas=bu.value;renderCt();};
+  function renderCt(){
+    const q=(S.buscaContas||'').toLowerCase(),ff=S.filtroContas||'todas';
+    let lst=S.contas.slice();
+    if(q)lst=lst.filter(c=>(c.descricao||'').toLowerCase().includes(q)||(c.observacao||'').toLowerCase().includes(q));
+    if(ff==='vencidas')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento<hoje);
+    else if(ff==='avencer')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento>=hoje);
+    else if(ff==='pagas')lst=lst.filter(c=>c.status==='pago');
+    else lst.sort((a,b)=>((a.status==='pago')-(b.status==='pago'))||(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
+    const box=$('ct-list');box.innerHTML=lst.length?lst.map(c=>itemConta(c)).join(''):emptyBox('🔍','Nenhuma conta com esse filtro.');bindItems(box);
+  }
+  renderCt();
 }
 
 /* ---- MAIS ---- */
@@ -388,8 +413,9 @@ function viewMais(){
 function renderMng(){const fl=$('forn-list'),cl=$('cat-list');
   fl.innerHTML=S.forn.length?S.forn.map(f=>mngRow(f,'forn')).join(''):emptyBox('🏢','Nenhum fornecedor ainda.');
   cl.innerHTML=S.cat.length?S.cat.map(c=>mngRow(c,'cat')).join(''):emptyBox('🏷️','Nenhuma categoria ainda.');
-  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removerCad(b.dataset.tipo,b.dataset.rm));}
-function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="rm" data-rm="${o.id}" data-tipo="${tipo}">🗑️</button></div>`;}
+  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removerCad(b.dataset.tipo,b.dataset.rm));
+  document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const arr=b.dataset.tipo==='forn'?S.forn:S.cat;const it=arr.find(x=>x.id===b.dataset.ed);if(it)modalSimples(b.dataset.tipo,it);});}
+function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="ed" data-ed="${o.id}" data-tipo="${tipo}" title="Editar">✏️</button><button class="rm" data-rm="${o.id}" data-tipo="${tipo}" title="Remover">🗑️</button></div>`;}
 
 /* ---- ITEMS ---- */
 function itemComp(c){const hora=c.horario&&c.horario!=='00:00'?'🕐 '+c.horario:'';const loc=c.local?'  📍 '+esc(c.local):'';
@@ -428,16 +454,17 @@ async function criarLembreteComp(cid,titulo,data,hora){const now=Date.now();let 
 async function cancelarComp(id,ov){if(!confirm('Cancelar este compromisso?'))return;await supa.from('compromissos').update({cancelado:true}).eq('id',id);await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');ov.remove();toast('Compromisso cancelado');await carregar();irPara(S.tab);}
 function modalConta(c){const ed=!!c;c=c||{};const ov=openModal(ed?'Editar conta':'Nova conta',`
   <label class="lb">Descrição *</label><input id="f-desc" class="fld" placeholder="Ex: Conta de energia" value="${esc(c.descricao||'')}">
-  <div class="row2"><div><label class="lb">Valor (R$) *</label><input id="f-valor" class="fld" inputmode="decimal" placeholder="0,00" value="${c.valor!=null?String(c.valor).replace('.',','):''}"></div><div><label class="lb">Vencimento *</label><input id="f-venc" class="fld" type="date" value="${c.data_vencimento||hojeBRT()}"></div></div>
+  <div class="row2"><div><label class="lb">Valor (R$) *</label><input id="f-valor" class="fld" inputmode="decimal" placeholder="0,00" value="${c.valor!=null?moneyN(c.valor):''}"></div><div><label class="lb">Vencimento *</label><input id="f-venc" class="fld" type="date" value="${c.data_vencimento||hojeBRT()}"></div></div>
   ${fldSelect('f-forn','Fornecedor',S.forn,c.fornecedor_id)}${fldSelect('f-cat','Categoria',S.cat,c.categoria_id)}
   <label class="lb">Observação</label><input id="f-obs" class="fld" placeholder="Opcional" value="${esc(c.observacao||'')}">
   <label class="checkrow"><input type="checkbox" id="f-rec" ${c.recorrente?'checked':''}> Conta recorrente (todo mês)</label>
   <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button>${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago">✔ Marcar como paga</button>':''}${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}<div id="f-msg" class="msg"></div>`);
+  const vEl=ov.querySelector('#f-valor');vEl.addEventListener('input',()=>{let d=vEl.value.replace(/\D/g,'');vEl.value=d?(parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';});
   ov.querySelector('#f-save').onclick=()=>salvarConta(ed?c.id:null,ov);if(ed&&c.status!=='pago')ov.querySelector('#f-pago').onclick=()=>marcarPago(c.id,ov);if(ed)ov.querySelector('#f-del').onclick=()=>excluirConta(c.id,ov);}
 async function salvarConta(id,ov){const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;if(!descricao)return setMsg('f-msg','Dá uma descrição.','err');if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:$('f-forn').value||null,categoria_id:$('f-cat').value||null,observacao:$('f-obs').value.trim()||null,recorrente:$('f-rec').checked};let cid=id;if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}else{reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});ov.remove();toast(id?'Conta atualizada ✅':'Conta criada ✅');await carregar();irPara(S.tab);}
 async function marcarPago(id,ov){await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');ov.remove();toast('Conta marcada como paga ✅');await carregar();irPara(S.tab);}
 async function excluirConta(id,ov){if(!confirm('Excluir esta conta?'))return;await supa.from('contas').delete().eq('id',id);ov.remove();toast('Conta excluída');await carregar();irPara(S.tab);}
-function modalSimples(tipo){const tit=tipo==='forn'?'Novo fornecedor':'Nova categoria';const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}"><button class="btn mt18" id="f-save">Adicionar</button><div id="f-msg" class="msg"></div>`);ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast('Adicionado ✅');await carregar();viewMais();};setTimeout(()=>$('f-nome').focus(),100);}
+function modalSimples(tipo,item){const ed=!!item;item=item||{};const tit=(ed?'Editar ':(tipo==='forn'?'Novo ':'Nova '))+(tipo==='forn'?'fornecedor':'categoria');const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" value="${esc(item.nome||'')}" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}"><button class="btn mt18" id="f-save">${ed?'Salvar':'Adicionar'}</button><div id="f-msg" class="msg"></div>`);ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;const tbl=tipo==='forn'?'fornecedores':'categorias';if(ed)await supa.from(tbl).update({nome}).eq('id',item.id);else await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast(ed?'Atualizado ✅':'Adicionado ✅');await carregar();viewMais();};setTimeout(()=>$('f-nome').focus(),100);}
 async function removerCad(tipo,id){if(!confirm('Remover?'))return;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).delete().eq('id',id);toast('Removido');await carregar();renderMng();}
 init();
 </script>
