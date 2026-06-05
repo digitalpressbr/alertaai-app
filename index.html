@@ -330,7 +330,7 @@ function viewInicio(){
   const aVencer=S.abertas.filter(c=>c.data_vencimento>=hoje);
   const tVencidas=vencidas.reduce((s,c)=>s+Number(c.valor||0),0);
   const tAvencer=aVencer.reduce((s,c)=>s+Number(c.valor||0),0);
-  const pagasMes=S.contas.filter(c=>c.status==='pago').reduce((s,c)=>s+Number(c.valor||0),0);
+  const pagasMes=S.contas.filter(c=>c.status==='pago'&&c.tipo!=='receita').reduce((s,c)=>s+Number(c.valor||0),0);
   const compHoje=S.comp.filter(c=>c.data===hoje);
   const proxComp=S.comp.filter(c=>c.data>=hoje).slice(0,5);
   const d=new Date(Date.now()-3*3600e3);
