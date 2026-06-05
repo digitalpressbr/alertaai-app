@@ -243,7 +243,7 @@ textarea.fld{resize:vertical;min-height:64px}
 .rbar{height:8px;border-radius:999px;background:var(--bg);overflow:hidden}.rbar i{display:block;height:100%;border-radius:999px;transition:width .5s}
 .dt.g{background:var(--green)}.item.rcv{border-left-color:var(--green)}.qpay.g{background:var(--green-l);color:var(--green)}.qpay.g:hover{background:var(--green);color:#fff}
 @media(min-width:760px){.minicards{grid-template-columns:repeat(4,1fr)}.hubgrid{grid-template-columns:repeat(3,1fr)}.cardgrid{grid-template-columns:1fr 1fr}}
-@media(min-width:900px){.kpis4{grid-template-columns:repeat(4,1fr)}.dash2{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.kpis4{grid-template-columns:repeat(4,1fr)}.dash2{grid-template-columns:1.3fr 1fr}}
 @media(min-width:1100px){.cardgrid{grid-template-columns:1fr 1fr 1fr}}
 /* ===== MATCH Genspark: shell claro + títulos grandes + KPIs/mini-cards ícone-redondo ===== */
 :root{--bg:#eef2f1}
@@ -277,6 +277,24 @@ textarea.fld{resize:vertical;min-height:64px}
 .tb-val{font-weight:700;font-variant-numeric:tabular-nums;color:var(--rose);text-align:right}.tb-val.rec{color:var(--green)}
 .tb-ac{text-align:right}
 .tb-act{padding:6px 15px;border-radius:9px;background:var(--green);color:#fff;font-weight:700;font-size:12.5px}.tb-act:hover{background:var(--green-d)}
+/* handoff v1 — polish final */
+.kpi .kt .n{font-family:var(--fdisp);font-weight:800}
+.mc .mv{font-family:var(--fdisp);font-weight:800}
+.fld{font-size:16px}
+.btn.tdesp{background:var(--rose);box-shadow:0 3px 10px rgba(225,29,72,.22)}.btn.tdesp:hover{background:#b00930}
+.btn.trec{background:#16a34a;box-shadow:0 3px 10px rgba(22,163,74,.22)}.btn.trec:hover{background:var(--green)}
+.agpanel{display:flex;flex-direction:column}
+.ag-sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin:2px 2px 8px}
+.ag-sec.mt{margin-top:18px}
+.agday{display:flex;gap:11px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.agday:last-child{border-bottom:0}
+.agcol{display:flex;flex-direction:column;align-items:center;width:34px;flex:none}
+.agcol .dd{font-family:var(--fdisp);font-weight:800;font-size:16px;line-height:1}
+.agcol .dw{font-size:9.5px;color:var(--soft);text-transform:uppercase}
+.agev{flex:1;min-width:0}
+.agev .none{color:var(--soft);font-size:13px}
+.agev .ev{font-size:13px;display:flex;gap:7px;align-items:center;margin-bottom:3px}
+.agev .ev .vdot{width:7px;height:7px;border-radius:50%;flex:none}
 </style>
 </head>
 <body>
@@ -483,7 +501,7 @@ function viewAgenda(){
     <div class="cal-h"><button id="pmes">‹</button><div class="m">${MES[S.mes]} ${S.ano}</div><button id="nmes">›</button></div>
     <div class="grid">${DOW.map(x=>`<div class="dow">${x}</div>`).join('')}</div><div class="grid" id="cal-grid"></div>
     <div class="legend"><span><i style="background:var(--blue)"></i>Compromissos</span><span><i style="background:var(--rose)"></i>Despesas</span><span><i style="background:var(--green)"></i>Receitas</span></div></div>
-  <div><div class="sec-h"><div class="t" id="ag-t">Compromissos do mês</div></div><div id="ag-list"></div></div></div>`;
+  <div class="panel"><div id="ag-list"></div></div></div>`;
   const v=$('view');v.innerHTML=h;
   $('pmes').onclick=()=>mudaMes(-1);$('nmes').onclick=()=>mudaMes(1);
   v.querySelector('[data-add]').onclick=()=>modalComp();
@@ -497,10 +515,23 @@ function renderCalendar(){
   for(let d=1;d<=ndays;d++){const k=String(d).padStart(2,'0'),ev=S.porDia[k];let dots='';if(ev){if(ev.b.length)dots+='<i class="dt b"></i>';if(ev.r.length)dots+='<i class="dt r"></i>';if(ev.e&&ev.e.length)dots+='<i class="dt g"></i>';}
     g+=`<div class="day${isT(d)?' today':''}${S.selDia===k?' sel':''}" data-d="${k}">${d}<div class="dots">${dots}</div></div>`;}
   $('cal-grid').innerHTML=g;
-  $('cal-grid').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{S.selDia=S.selDia===e.dataset.d?null:e.dataset.d;renderCalendar();renderAgList();$('ag-t').textContent=S.selDia?'Dia '+parseInt(S.selDia):'Compromissos do mês';});
+  $('cal-grid').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{S.selDia=S.selDia===e.dataset.d?null:e.dataset.d;renderCalendar();renderAgList();});
 }
-function renderAgList(){let arr;if(S.selDia){const ev=S.porDia[S.selDia]||{b:[],r:[],e:[]};arr=[...ev.b.map(c=>itemComp(c)),...ev.r.map(c=>itemConta(c)),...(ev.e||[]).map(c=>itemReceita(c))];}else arr=S.comp.map(c=>itemComp(c));
-  const box=$('ag-list');box.innerHTML=arr.length?arr.join(''):emptyBox('🗓️',S.selDia?'Nada nesse dia.':'Nenhum compromisso este mês.');bindItems(box);}
+function evLinha(c,tipo){const cor=tipo==='comp'?'var(--blue)':tipo==='desp'?'var(--rose)':'var(--green)';let txt;if(tipo==='comp'){const h=c.horario&&c.horario!=='00:00'?c.horario+' ':'';txt=h+esc(c.titulo);}else{txt='<b>'+money(c.valor)+'</b> '+esc(c.descricao);}return `<div class="ev"><span class="vdot" style="background:${cor}"></span><span>${txt}</span></div>`;}
+function eventosDia(dd){const ev=S.porDia[dd]||{b:[],r:[],e:[]};return [...ev.b.map(c=>evLinha(c,'comp')),...ev.r.map(c=>evLinha(c,'desp')),...(ev.e||[]).map(c=>evLinha(c,'rec'))];}
+function renderAgList(){
+  const box=$('ag-list'),hoje=new Date(Date.now()-3*3600e3);
+  if(S.selDia){const evs=eventosDia(S.selDia);box.innerHTML=`<div class="agpanel"><div class="ag-sec">Dia ${parseInt(S.selDia)} de ${MES[S.mes]}</div>${evs.length?evs.join(''):'<div class="agev"><span class="none">Nada nesse dia.</span></div>'}</div>`;return;}
+  const mesAtual=hoje.getUTCFullYear()===S.ano&&hoje.getUTCMonth()===S.mes;
+  let html='<div class="agpanel">';
+  if(mesAtual){
+    const hd=String(hoje.getUTCDate()).padStart(2,'0'),evH=eventosDia(hd);
+    html+=`<div class="ag-sec">Hoje, ${hoje.getUTCDate()} de ${MES[S.mes]}</div>`+(evH.length?evH.join(''):'<div class="agev"><span class="none">Sem eventos hoje.</span></div>');
+    html+='<div class="ag-sec mt">Próximos 7 dias</div>';
+    for(let i=1;i<=7;i++){const d=new Date(Date.UTC(S.ano,S.mes,hoje.getUTCDate()+i)),dd=String(d.getUTCDate()).padStart(2,'0');const dentro=d.getUTCMonth()===S.mes&&d.getUTCFullYear()===S.ano;const evs=dentro?eventosDia(dd):[];html+=`<div class="agday"><div class="agcol"><div class="dd">${d.getUTCDate()}</div><div class="dw">${DOW[d.getUTCDay()]}</div></div><div class="agev">${evs.length?evs.join(''):'<span class="none">Nenhum compromisso</span>'}</div></div>`;}
+  }else{const todos=[];Object.keys(S.porDia).sort().forEach(k=>eventosDia(k).forEach(e=>todos.push(e)));html+=`<div class="ag-sec">Eventos de ${MES[S.mes]}</div>`+(todos.length?todos.join(''):'<div class="agev"><span class="none">Nada neste mês.</span></div>');}
+  html+='</div>';box.innerHTML=html;
+}
 
 /* ---- CONTAS A PAGAR ---- */
 function viewContasPagar(){
@@ -749,7 +780,7 @@ function modalConta(c,tipoNovo){const ed=!!c;c=c||{};const tp=ed?(c.tipo||'despe
   <div class="tipotog"><button type="button" class="tt-btn desp${!isR?' on':''}" data-tt="despesa">💸 Despesa</button><button type="button" class="tt-btn rec${isR?' on':''}" data-tt="receita">💰 Receita</button></div><input type="hidden" id="f-tipo" value="${tp}">
   <label class="lb">Descrição *</label><input id="f-desc" class="fld" placeholder="Ex: Conta de energia" value="${esc(c.descricao||'')}">
   <div class="row2"><div><label class="lb">Valor (R$) *</label><input id="f-valor" class="fld" inputmode="decimal" placeholder="0,00" value="${c.valor!=null?moneyN(c.valor):''}"></div><div><label class="lb" id="lbl-venc">Vencimento *</label><input id="f-venc" class="fld" type="date" value="${c.data_vencimento||hojeBRT()}"></div></div>
-  <div id="f-relacao"></div><div id="f-cat-wrap"></div>
+  <div id="f-cat-wrap"></div><div id="f-relacao"></div>
   <label class="lb">Forma de pagamento</label>
   <div class="formapg" id="f-formapg">${FORMAS.map(([nm,ic])=>`<button type="button" class="fp${c.forma_pagamento===nm?' on':''}" data-fp="${nm}">${ic} ${nm}</button>`).join('')}</div>
   <input type="hidden" id="f-forma" value="${esc(c.forma_pagamento||'')}">
@@ -762,7 +793,7 @@ function modalConta(c,tipoNovo){const ed=!!c;c=c||{};const tp=ed?(c.tipo||'despe
   <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button>${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago">✔ Marcar como paga</button>':''}${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}<div id="f-msg" class="msg"></div>`);
   const vEl=ov.querySelector('#f-valor');vEl.addEventListener('input',()=>{let d=vEl.value.replace(/\D/g,'');vEl.value=d?(parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';});
   const _mh=ov.querySelector('.modal-h');_mh.classList.add('hero');_mh.innerHTML=`<div class="hero-l"><span class="hero-ic" id="mh-ic">💸</span><div><div class="t" id="mh-t"></div><div class="sub" id="mh-sub"></div></div></div><button class="cl" aria-label="Fechar">✕</button>`;_mh.querySelector('.cl').onclick=()=>ov.remove();
-  const aplicaTipo=(r)=>{const _m=ov.querySelector('.modal');if(_m){_m.classList.toggle('tp-rec',r);_m.classList.toggle('tp-desp',!r);}const ic=ov.querySelector('#mh-ic');if(ic)ic.textContent=r?'💰':'💸';const sub=ov.querySelector('#mh-sub');if(sub)sub.textContent=r?'Entrada de dinheiro':'Saída de dinheiro';const t=ov.querySelector('.modal-h .t');if(t)t.textContent=ed?(r?'Editar receita':'Editar despesa'):(r?'Nova receita':'Nova despesa');const sv=ov.querySelector('#f-save');if(sv)sv.textContent=ed?'Salvar alterações':(r?'Criar receita':'Criar despesa');const lv=ov.querySelector('#lbl-venc');if(lv)lv.textContent=r?'Recebimento *':'Vencimento *';const fd=ov.querySelector('#f-desc');if(fd)fd.placeholder=r?'Ex: Honorário, venda, recebimento':'Ex: Conta de energia';const bx=ov.querySelector('#box-anexos');if(bx)bx.style.display=r?'none':'';const rel=ov.querySelector('#f-relacao');if(rel)rel.innerHTML=relOptions(r?'receita':'despesa',c.fornecedor_id,c.cliente_id);const cw=ov.querySelector('#f-cat-wrap');if(cw)cw.innerHTML=catOptions(r?'receita':'despesa',c.categoria_id);};
+  const aplicaTipo=(r)=>{const _m=ov.querySelector('.modal');if(_m){_m.classList.toggle('tp-rec',r);_m.classList.toggle('tp-desp',!r);}const ic=ov.querySelector('#mh-ic');if(ic)ic.textContent=r?'💰':'💸';const sub=ov.querySelector('#mh-sub');if(sub)sub.textContent=r?'Entrada de dinheiro':'Saída de dinheiro';const t=ov.querySelector('.modal-h .t');if(t)t.textContent=ed?(r?'Editar receita':'Editar despesa'):(r?'Nova receita':'Nova despesa');const sv=ov.querySelector('#f-save');if(sv){sv.textContent=ed?'Salvar alterações':(r?'Criar receita':'Criar despesa');sv.classList.toggle('tdesp',!r);sv.classList.toggle('trec',r);}const lv=ov.querySelector('#lbl-venc');if(lv)lv.textContent=r?'Recebimento *':'Vencimento *';const fd=ov.querySelector('#f-desc');if(fd)fd.placeholder=r?'Ex: Honorário, venda, recebimento':'Ex: Conta de energia';const bx=ov.querySelector('#box-anexos');if(bx)bx.style.display=r?'none':'';const rel=ov.querySelector('#f-relacao');if(rel)rel.innerHTML=relOptions(r?'receita':'despesa',c.fornecedor_id,c.cliente_id);const cw=ov.querySelector('#f-cat-wrap');if(cw)cw.innerHTML=catOptions(r?'receita':'despesa',c.categoria_id);};
   ov.querySelectorAll('[data-tt]').forEach(b=>b.onclick=()=>{const r=b.dataset.tt==='receita';ov.querySelector('#f-tipo').value=b.dataset.tt;ov.querySelectorAll('.tt-btn').forEach(x=>x.classList.toggle('on',x.dataset.tt===b.dataset.tt));aplicaTipo(r);});
   aplicaTipo(isR);
   ov.querySelectorAll('[data-fp]').forEach(b=>b.onclick=()=>{const f=ov.querySelector('#f-forma');const sel=f.value===b.dataset.fp;f.value=sel?'':b.dataset.fp;ov.querySelectorAll('[data-fp]').forEach(x=>x.classList.remove('on'));if(!sel)b.classList.add('on');});
