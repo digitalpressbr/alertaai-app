@@ -174,6 +174,15 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 textarea.fld{resize:vertical;min-height:64px}
 .checkrow{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14px;font-weight:600} .checkrow input{width:20px;height:20px;accent-color:var(--green)}
+.anexos{display:flex;flex-direction:column;gap:11px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.anexo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lk-anexo{font-size:12.5px;color:var(--green);font-weight:600;background:var(--green-l);padding:4px 10px;border-radius:8px}
+.filein{flex:1;min-width:150px;font-size:13px;color:var(--muted)}
+.filein::file-selector-button{font-family:inherit;font-weight:600;font-size:12.5px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:7px 11px;border-radius:9px;cursor:pointer;margin-right:8px}
+.meter{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:14px 16px;margin-top:14px}
+.meter .mt{font-size:13px;font-weight:600;display:flex;justify-content:space-between;margin-bottom:8px}
+.meter .bar{height:8px;border-radius:999px;background:var(--green-l);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--green);border-radius:999px;transition:width .4s}
 #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:80;background:var(--ink);color:#fff;padding:12px 20px;border-radius:13px;font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.3s}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)} #toast.bad{background:#b00930}
 .spin{width:34px;height:34px;border:3px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:rot .8s linear infinite;margin:50px auto}
@@ -245,8 +254,13 @@ const brtUtc=(data,hora)=>new Date(Date.parse(`${data}T${(hora||'00:00')}:00Z`)+
 function show(s){['screen-login','screen-acesso','screen-main'].forEach(x=>$(x).classList.toggle('hide',x!==s));}
 function setMsg(id,t,k){const e=$(id);if(e){e.className='msg '+(k||'');e.textContent=t||'';}}
 function toast(t,bad){const e=$('toast');e.textContent=t;e.className='show'+(bad?' bad':'');setTimeout(()=>e.className='',2600);}
-const S={uid:null,nome:'',email:'',ano:0,mes:0,comp:[],contas:[],abertas:[],forn:[],cat:[],porDia:{},tab:'inicio',selDia:null};
+const S={uid:null,nome:'',email:'',ano:0,mes:0,comp:[],contas:[],abertas:[],forn:[],cat:[],porDia:{},tab:'inicio',selDia:null,storageBytes:0};
 let chart=null;
+const LIMITE_MB=200;
+const fmtBytes=b=>{b=Number(b||0);return b<1048576?Math.max(1,Math.round(b/1024))+' KB':(b/1048576).toFixed(1)+' MB';};
+async function comprimirImg(file){if(!file.type.startsWith('image/'))return file;try{const img=await createImageBitmap(file);const max=1600;let w=img.width,h=img.height;if(w>max||h>max){const s=max/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.82));return blob&&blob.size<file.size?new File([blob],file.name.replace(/\.\w+$/,'.jpg'),{type:'image/jpeg'}):file;}catch(_e){return file;}}
+async function uploadAnexo(file,contaId,tipo){file=await comprimirImg(file);if(file.size>5242880){toast('Arquivo muito grande (máx 5 MB)',true);return null;}const {data:{user}}=await supa.auth.getUser();const ext=(file.name.split('.').pop()||'dat').toLowerCase();const path=`${user.id}/${contaId}/${tipo}.${ext}`;const {error}=await supa.storage.from('anexos').upload(path,file,{upsert:true,contentType:file.type});if(error){toast('Falha no upload do anexo',true);return null;}try{const {data:u}=await supa.from('usuarios').select('storage_bytes').eq('id',S.uid).single();const nb=Number(u?.storage_bytes||0)+file.size;await supa.from('usuarios').update({storage_bytes:nb}).eq('id',S.uid);S.storageBytes=nb;}catch(_e){}return path;}
+async function verAnexo(path){if(!path)return;const {data}=await supa.storage.from('anexos').createSignedUrl(path,3600);if(data&&data.signedUrl)window.open(data.signedUrl,'_blank');else toast('Não consegui abrir o anexo',true);}
 
 function getToken(){const m=(location.hash||location.search||'').match(/token=([A-Za-z0-9_\-]+)/);return m?m[1]:'';}
 async function init(){const tk=getToken();if(tk)return iniciarAcesso(tk);const {data:{session}}=await supa.auth.getSession();if(session)return abrirApp();show('screen-login');}
@@ -269,8 +283,8 @@ const TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['contas','�
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara('inicio');
@@ -405,6 +419,7 @@ function viewMais(){
   let h=`<div class="ph"><div><h1>Cadastros</h1><div class="d">Fornecedores, categorias e suporte</div></div></div>
   <div class="cols2"><div><div class="sec-h"><div class="t">🏢 Fornecedores</div><div class="lk" data-add="forn">+ Adicionar</div></div><div id="forn-list"></div></div>
   <div><div class="sec-h"><div class="t">🏷️ Categorias</div><div class="lk" data-add="cat">+ Adicionar</div></div><div id="cat-list"></div></div></div>
+  <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1)}%"></i></div></div>
   <div class="support">🛟 <b>Suporte AlertaAí</b><br>Dúvidas, sugestões ou problemas? Escreva pra <b>digitalpressbr@gmail.com</b> — a gente responde rapidinho.</div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">AlertaAí · um produto Digital Press 🦉</div>`;
   const v=$('view');v.innerHTML=h;
@@ -427,7 +442,7 @@ function itemConta(c){
   else if(venc<hoje){cls='vd'; chip='<span class="chip vd">vencida</span>';}
   else if(venc===hoje){cls='hj'; chip='<span class="chip hj">vence hoje</span>';}
   const pay=pago?'':`<button class="qpay" data-pay="${c.id}" title="Marcar como paga">✓</button>`;
-  return `<div class="item ${cls}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip pg">pago</span>':chip}</div><div class="ss">Vence ${dBRc(venc)}${c.observacao?' · '+esc(c.observacao):''}</div></div><div class="vv${pago?' pago':''}">${money(c.valor)}</div>${pay}</div>`;
+  return `<div class="item ${cls}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip pg">pago</span>':chip}</div><div class="ss">Vence ${dBRc(venc)}${c.observacao?' · '+esc(c.observacao):''}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv${pago?' pago':''}">${money(c.valor)}</div>${pay}</div>`;
 }
 function bindItems(root){root.querySelectorAll('[data-comp]').forEach(e=>e.onclick=()=>{const c=S.comp.find(x=>x.id===e.dataset.comp);if(c)modalComp(c);});
   root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{const c=[...S.contas,...S.abertas].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
@@ -458,10 +473,15 @@ function modalConta(c){const ed=!!c;c=c||{};const ov=openModal(ed?'Editar conta'
   ${fldSelect('f-forn','Fornecedor',S.forn,c.fornecedor_id)}${fldSelect('f-cat','Categoria',S.cat,c.categoria_id)}
   <label class="lb">Observação</label><input id="f-obs" class="fld" placeholder="Opcional" value="${esc(c.observacao||'')}">
   <label class="checkrow"><input type="checkbox" id="f-rec" ${c.recorrente?'checked':''}> Conta recorrente (todo mês)</label>
+  <div class="anexos">
+    <div class="anexo-row"><span class="lb" style="margin:0">📎 Boleto</span>${c.boleto_path?'<button class="lk-anexo" data-ver="boleto">ver atual</button>':''}<input id="f-boleto" type="file" accept=".pdf,image/*" class="filein"></div>
+    <div class="anexo-row"><span class="lb" style="margin:0">🧾 Comprovante</span>${c.comprovante_path?'<button class="lk-anexo" data-ver="comprovante">ver atual</button>':''}<input id="f-comprov" type="file" accept=".pdf,image/*" class="filein"></div>
+  </div>
   <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button>${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago">✔ Marcar como paga</button>':''}${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}<div id="f-msg" class="msg"></div>`);
   const vEl=ov.querySelector('#f-valor');vEl.addEventListener('input',()=>{let d=vEl.value.replace(/\D/g,'');vEl.value=d?(parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';});
+  ov.querySelectorAll('[data-ver]').forEach(b=>b.onclick=()=>verAnexo(b.dataset.ver==='boleto'?c.boleto_path:c.comprovante_path));
   ov.querySelector('#f-save').onclick=()=>salvarConta(ed?c.id:null,ov);if(ed&&c.status!=='pago')ov.querySelector('#f-pago').onclick=()=>marcarPago(c.id,ov);if(ed)ov.querySelector('#f-del').onclick=()=>excluirConta(c.id,ov);}
-async function salvarConta(id,ov){const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;if(!descricao)return setMsg('f-msg','Dá uma descrição.','err');if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:$('f-forn').value||null,categoria_id:$('f-cat').value||null,observacao:$('f-obs').value.trim()||null,recorrente:$('f-rec').checked};let cid=id;if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}else{reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});ov.remove();toast(id?'Conta atualizada ✅':'Conta criada ✅');await carregar();irPara(S.tab);}
+async function salvarConta(id,ov){const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;if(!descricao)return setMsg('f-msg','Dá uma descrição.','err');if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:$('f-forn').value||null,categoria_id:$('f-cat').value||null,observacao:$('f-obs').value.trim()||null,recorrente:$('f-rec').checked};let cid=id;if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}else{reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});const fb=$('f-boleto')&&$('f-boleto').files[0],fc=$('f-comprov')&&$('f-comprov').files[0];if(fb||fc){setMsg('f-msg','Enviando anexos...','ok');const up={};if(fb){const p=await uploadAnexo(fb,cid,'boleto');if(p)up.boleto_path=p;}if(fc){const p=await uploadAnexo(fc,cid,'comprovante');if(p)up.comprovante_path=p;}if(Object.keys(up).length)await supa.from('contas').update(up).eq('id',cid);}ov.remove();toast(id?'Conta atualizada ✅':'Conta criada ✅');await carregar();irPara(S.tab);}
 async function marcarPago(id,ov){await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');ov.remove();toast('Conta marcada como paga ✅');await carregar();irPara(S.tab);}
 async function excluirConta(id,ov){if(!confirm('Excluir esta conta?'))return;await supa.from('contas').delete().eq('id',id);ov.remove();toast('Conta excluída');await carregar();irPara(S.tab);}
 function modalSimples(tipo,item){const ed=!!item;item=item||{};const tit=(ed?'Editar ':(tipo==='forn'?'Novo ':'Nova '))+(tipo==='forn'?'fornecedor':'categoria');const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" value="${esc(item.nome||'')}" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}"><button class="btn mt18" id="f-save">${ed?'Salvar':'Adicionar'}</button><div id="f-msg" class="msg"></div>`);ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;const tbl=tipo==='forn'?'fornecedores':'categorias';if(ed)await supa.from(tbl).update({nome}).eq('id',item.id);else await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast(ed?'Atualizado ✅':'Adicionado ✅');await carregar();viewMais();};setTimeout(()=>$('f-nome').focus(),100);}
