@@ -704,7 +704,7 @@ function desenharFluxo(r,d){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)r
 /* ---- ASSINATURA ---- */
 function viewAssinatura(){
   const v=$('view');const plano=S.plano||'teste';
-  const nomes={teste:'Teste grátis',cortesia:'Cortesia',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)',gratis:'Grátis'};
+  const nomes={teste:'Teste grátis',free:'Gratuito',gratis:'Gratuito',cortesia:'Cortesia',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)'};
   const planos=[['cortesia','Família / Tester','Grátis','Para quem ajuda nos testes','#16a34a'],['custo','Custo','R$ 9,90/mês','Cobre só o custo de operação','#2563eb'],['mensal','Padrão','R$ 19,90/mês','Acesso completo','#0b6b3a']];
   v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu plano atual: <b>${nomes[plano]||plano}</b></div></div></div>
   <div class="cardgrid">${planos.map(([id,nome,preco,desc,cor])=>`<div class="planocard${plano===id?' atual':''}" style="border-top:3px solid ${cor}"><div class="pl-nome">${nome}</div><div class="pl-preco" style="color:${cor}">${preco}</div><div class="pl-desc">${esc(desc)}</div>${plano===id?'<div class="pl-tag">✓ Seu plano atual</div>':''}</div>`).join('')}</div>
