@@ -802,9 +802,9 @@ function modalConta(c,tipoNovo){const ed=!!c;c=c||{};const tp=ed?(c.tipo||'despe
   <label class="lb">Forma de pagamento</label>
   <div class="formapg" id="f-formapg">${FORMAS.map(([nm,ic])=>`<button type="button" class="fp${c.forma_pagamento===nm?' on':''}" data-fp="${nm}">${ic} ${nm}</button>`).join('')}</div>
   <input type="hidden" id="f-forma" value="${esc(c.forma_pagamento||'')}">
+  <div id="box-anexos"></div>
   <label class="lb">Observação</label><textarea id="f-obs" class="fld" maxlength="500" placeholder="Opcional">${esc(c.observacao||'')}</textarea><div class="charc"><span id="f-obsc">${(c.observacao||'').length}</span>/500</div>
   <div class="row2"><label class="checkrow" style="margin-top:0"><input type="checkbox" id="f-rec" ${c.recorrente?'checked':''}> Conta recorrente (todo mês)</label><label class="checkrow" style="margin-top:0"><input type="checkbox" id="f-japago" ${c.status==='pago'?'checked':''}> <span id="f-jplbl">Já paguei</span></label></div>
-  <div id="box-anexos"></div>
   ${ed&&c.status!=='pago'?'<button class="btn sec" id="f-pago" style="margin-top:14px">✔ Marcar como paga</button>':''}${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Excluir esta conta</button>':''}
   <div class="modal-ft"><button type="button" class="btn sec" id="f-cancel">Cancelar</button><button class="btn grow" id="f-save">${ed?'Salvar alterações':'Criar conta'}</button></div><div id="f-msg" class="msg"></div>`);
   const vEl=ov.querySelector('#f-valor');vEl.addEventListener('input',()=>{let d=vEl.value.replace(/\D/g,'');vEl.value=d?(parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';});
