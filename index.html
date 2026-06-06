@@ -429,6 +429,7 @@ const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const FN=SUPA_URL+'/functions/v1/web-auth';
 const FN_SUP=SUPA_URL+'/functions/v1/suporte';
 const FN_ASSIN=SUPA_URL+'/functions/v1/assinatura';
+const FN_PAG=SUPA_URL+'/functions/v1/pagamento';
 const supa=createClient(SUPA_URL,ANON,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=id=>document.getElementById(id);
 const el=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild;};
@@ -493,6 +494,7 @@ async function abrirApp(){
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara('inicio');
+  if(new URLSearchParams(location.search).get('pago')){toast('Pagamento recebido! Estamos confirmando — seu acesso é liberado em instantes. 💚');history.replaceState({},'',location.pathname);}
 }
 function renderNav(){
   $('navd').innerHTML='';$('navm').innerHTML='';
@@ -741,10 +743,11 @@ function viewAssinatura(){
   const riscado=(desc>0&&desc<100)?'<span class="pl-old">R$ 19,90</span> ':'';
   v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu status: <b>${nomes[plano]||plano}</b></div></div></div>
   ${banner}
-  <div class="planobig"><div class="pb-l"><div class="pl-nome">Plano AlertaAí</div><div class="pl-desc">Acesso completo: agenda, contas, fluxo de caixa, relatórios e lembretes no WhatsApp.</div></div><div class="pb-r"><div class="pl-preco">${riscado}${preco}</div></div></div>
+  <div class="planobig"><div class="pb-l"><div class="pl-nome">Plano AlertaAí</div><div class="pl-desc">Acesso completo: agenda, contas, fluxo de caixa, relatórios e lembretes no WhatsApp.</div></div><div class="pb-r"><div class="pl-preco">${riscado}${preco}</div>${desc>=100?'':'<button class="btn" id="btn-assinar" style="margin-top:10px;width:auto;white-space:nowrap">💳 Assinar agora</button>'}</div></div>
   <div class="panel" style="margin-top:16px"><h3>🎟️ Tenho um cupom</h3><div class="row-busca"><input id="cup-in" class="fld" placeholder="Código (ex: CONVIDADO)" style="text-transform:uppercase"><button class="btn" id="cup-go" style="width:auto;white-space:nowrap">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
   <div class="support" style="margin-top:14px">Para assinar ou tirar dúvidas, fale com o suporte: <b>digitalpressbr@gmail.com</b> ou pelo botão 🆘 na aba Mais.</div>`;
   $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
+  const ba=$('btn-assinar');if(ba)ba.onclick=async()=>{ba.disabled=true;ba.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');ba.disabled=false;ba.textContent='💳 Assinar agora';}catch(_e){toast('Falha de rede.');ba.disabled=false;ba.textContent='💳 Assinar agora';}};
 }
 
 /* ---- MAIS (hub) ---- */
