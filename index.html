@@ -421,6 +421,9 @@ textarea.fld{resize:vertical;min-height:64px}
 .faq details[open] summary::after{content:'\2013'}
 .faq .fa{padding:0 14px 13px;font-size:12.5px;color:var(--muted);line-height:1.55}
 .assbox.cortesia{background:#eaf7ef;border-color:#cfe8d8}
+/* ===== Dashboard v2 ===== */
+.kpi .kt .ks{font-size:10.5px;font-weight:700;margin-top:2px;color:var(--soft);display:flex;align-items:center;gap:3px}
+.kpi .kt .ks.up{color:var(--green-mid)} .kpi .kt .ks.down{color:var(--rose)}
 </style>
 </head>
 <body>
@@ -602,12 +605,17 @@ function viewInicio(){
   const aReceber=S.aberRec.filter(c=>c.data_vencimento>=hoje).slice().sort((a,b)=>(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
   const compHoje=S.comp.filter(c=>c.data===hoje);
   const d=new Date(Date.now()-3*3600e3);
+  const pm=new Date(Date.UTC(S.ano,S.mes-1,1)),pY=pm.getUTCFullYear(),pM=pm.getUTCMonth();
+  let prevR=0,prevD=0;S.serie.forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===pY&&(+dt.slice(5,7)-1)===pM){if(c.tipo==='receita')prevR+=Number(c.valor||0);else prevD+=Number(c.valor||0);}});
+  const _vp=(cur,prev)=>prev?Math.round((cur-prev)/prev*100):null;
+  const vR=_vp(totRec,prevR),vD=_vp(totDes,prevD);
+  const _vtxt=(p,inv)=>p===null?'':`<div class="ks ${((p>=0)!==!!inv)?'up':'down'}">${p>=0?'▲ +':'▼ '}${Math.abs(p)}% vs mês passado</div>`;
   const h=`
   <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()]}, ${d.getUTCDate()} de ${MES[S.mes]} de ${S.ano}</div></div>
     <div class="act"><button class="bpill g" data-add="receita">＋ Receita</button><button class="bpill" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis kpis4">
-    <div class="kpi g"><div class="ic">📈</div><div class="kt"><div class="l">receitas do mês</div><div class="n">${money(totRec)}</div></div></div>
-    <div class="kpi r"><div class="ic">📉</div><div class="kt"><div class="l">despesas do mês</div><div class="n">${money(totDes)}</div></div></div>
+    <div class="kpi g"><div class="ic">📈</div><div class="kt"><div class="l">receitas do mês</div><div class="n">${money(totRec)}</div>${_vtxt(vR,false)}</div></div>
+    <div class="kpi r"><div class="ic">📉</div><div class="kt"><div class="l">despesas do mês</div><div class="n">${money(totDes)}</div>${_vtxt(vD,true)}</div></div>
     <div class="kpi ${saldo>=0?'b':'r'}"><div class="ic">${saldo>=0?'💵':'📉'}</div><div class="kt"><div class="l">saldo do mês</div><div class="n">${money(saldo)}</div></div></div>
     <div class="kpi a" data-go="pagar" style="cursor:pointer"><div class="ic">⚠️</div><div class="kt"><div class="l">${vencidas.length} conta(s) vencida(s)</div><div class="n">${money(tVenc)}</div></div></div>
   </div>
@@ -638,10 +646,14 @@ function desenharSerie(){
 }
 function desenharCategorias(){
   if(!window.Chart)return;const ctx=$('ch1b');if(!ctx)return;if(window._catc)window._catc.destroy();
-  const map={};S.contas.filter(c=>c.tipo!=='receita').forEach(c=>{const cat=S.cat.find(x=>x.id===c.categoria_id);const nm=cat?cat.nome:'Sem categoria';const cor=cat&&cat.cor?cat.cor:'#9aa39c';(map[nm]=map[nm]||{v:0,cor}).v+=Number(c.valor||0);});
+  const map={};S.contas.filter(c=>c.tipo!=='receita').forEach(c=>{const cat=S.cat.find(x=>x.id===c.categoria_id);const nm=cat?cat.nome:'Sem categoria';const cor=cat&&cat.cor?cat.cor:'';(map[nm]=map[nm]||{v:0,cor}).v+=Number(c.valor||0);});
   const ent=Object.entries(map).sort((a,b)=>b[1].v-a[1].v);
   const wrap=$('catwrap');if(!ent.length){if(wrap)wrap.innerHTML=emptyBox('🗂️','Sem despesas categorizadas este mês.');return;}
-  window._catc=new Chart(ctx,{type:'doughnut',data:{labels:ent.map(e=>e[0]),datasets:[{data:ent.map(e=>e[1].v),backgroundColor:ent.map(e=>e[1].cor),borderWidth:0,hoverOffset:6}]},options:{maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{font:{family:'Plus Jakarta Sans',size:11.5},padding:10,usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+money(c.raw)}}}}});
+  const PALETA=['#0b6b3a','#e0922a','#2563eb','#e11d48','#16a34a','#9333ea','#0891b2','#db2777','#ca8a04','#0d9488'];
+  const cores=ent.map((e,i)=>e[1].cor||(e[0]==='Sem categoria'?'#c7cdc9':PALETA[i%PALETA.length]));
+  const total=ent.reduce((s,e)=>s+e[1].v,0);
+  const centro={id:'centroTot',afterDraw(ch){const a=ch.chartArea;if(!a)return;const x=(a.left+a.right)/2,y=(a.top+a.bottom)/2,g=ch.ctx;g.save();g.textAlign='center';g.textBaseline='middle';g.fillStyle='#9aa39c';g.font='600 11px "Plus Jakarta Sans"';g.fillText('Total',x,y-12);g.fillStyle='#15231b';g.font='800 17px "Bricolage Grotesque"';g.fillText(money(total),x,y+7);g.restore();}};
+  window._catc=new Chart(ctx,{type:'doughnut',data:{labels:ent.map(e=>e[0]),datasets:[{data:ent.map(e=>e[1].v),backgroundColor:cores,borderColor:'#fff',borderWidth:2,hoverOffset:6}]},options:{maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'right',labels:{font:{family:'Plus Jakarta Sans',size:11},padding:9,usePointStyle:true,boxWidth:8,generateLabels:ch=>{const ds=ch.data.datasets[0];return ch.data.labels.map((l,i)=>({text:(l.length>13?l.slice(0,12)+'…':l)+'  '+Math.round(ds.data[i]/total*100)+'%',fillStyle:ds.backgroundColor[i],strokeStyle:ds.backgroundColor[i],pointStyle:'circle',index:i}));}}},tooltip:{callbacks:{label:c=>' '+c.label+': '+money(c.raw)+' ('+Math.round(c.raw/total*100)+'%)'}}}},plugins:[centro]});
 }
 function emptyBox(e,t){return `<div class="empty"><span class="e">${e}</span>${esc(t)}</div>`;}
 
