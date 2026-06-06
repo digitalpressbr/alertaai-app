@@ -345,6 +345,13 @@ textarea.fld{resize:vertical;min-height:64px}
 .modal.tp-desp .dropz{border-color:#f0c2cd;background:#fdf0f3}
 .modal.tp-desp .dropz:hover,.modal.tp-desp .dropz.drag{border-color:var(--rose);background:var(--rose-l)}
 /* Assinatura */
+.trialbox{background:var(--green-l);border:1px solid #cfe8d8;border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.trialbox.cortesia{background:#eaf7ef}
+.trialbox.venc{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+.planobig{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:20px}
+.planobig .pl-preco{font-family:var(--fdisp);font-weight:800;font-size:26px;color:var(--green-d);white-space:nowrap}
+.pl-old{text-decoration:line-through;color:var(--muted);font-size:16px;font-weight:600}
+@media(max-width:640px){.planobig{flex-direction:column;align-items:flex-start}}
 .planocard{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px}
 .planocard.atual{box-shadow:var(--shadow);border-color:var(--green)}
 .pl-nome{font-weight:700;font-size:15px}.pl-preco{font-family:var(--fdisp);font-weight:800;font-size:24px;margin:6px 0}
@@ -441,7 +448,7 @@ const soDig=s=>String(s||'').replace(/\D/g,'');
 function show(s){['screen-login','screen-acesso','screen-main'].forEach(x=>$(x).classList.toggle('hide',x!==s));}
 function setMsg(id,t,k){const e=$(id);if(e){e.className='msg '+(k||'');e.textContent=t||'';}}
 function toast(t,bad){const e=$('toast');e.textContent=t;e.className='show'+(bad?' bad':'');setTimeout(()=>e.className='',2600);}
-const S={uid:null,nome:'',email:'',plano:'teste',ano:0,mes:0,comp:[],contas:[],abertas:[],aberRec:[],forn:[],cli:[],cat:[],serie:[],porDia:{},tab:'inicio',selDia:null,storageBytes:0};
+const S={uid:null,nome:'',email:'',plano:'teste',assinAte:null,desconto:0,ano:0,mes:0,comp:[],contas:[],abertas:[],aberRec:[],forn:[],cli:[],cat:[],serie:[],porDia:{},tab:'inicio',selDia:null,storageBytes:0};
 let chart=null;
 const LIMITE_MB=200;
 const fmtBytes=b=>{b=Number(b||0);return b<1048576?Math.max(1,Math.round(b/1024))+' KB':(b/1048576).toFixed(1)+' MB';};
@@ -478,8 +485,8 @@ const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara('inicio');
@@ -703,14 +710,21 @@ function desenharFluxo(r,d){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)r
 
 /* ---- ASSINATURA ---- */
 function viewAssinatura(){
-  const v=$('view');const plano=S.plano||'teste';
-  const nomes={teste:'Teste grátis',free:'Gratuito',gratis:'Gratuito',cortesia:'Cortesia',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)'};
-  const planos=[['cortesia','Família / Tester','Grátis','Para quem ajuda nos testes','#16a34a'],['custo','Custo','R$ 9,90/mês','Cobre só o custo de operação','#2563eb'],['mensal','Padrão','R$ 19,90/mês','Acesso completo','#0b6b3a']];
-  v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu plano atual: <b>${nomes[plano]||plano}</b></div></div></div>
-  <div class="cardgrid">${planos.map(([id,nome,preco,desc,cor])=>`<div class="planocard${plano===id?' atual':''}" style="border-top:3px solid ${cor}"><div class="pl-nome">${nome}</div><div class="pl-preco" style="color:${cor}">${preco}</div><div class="pl-desc">${esc(desc)}</div>${plano===id?'<div class="pl-tag">✓ Seu plano atual</div>':''}</div>`).join('')}</div>
-  <div class="panel" style="margin-top:16px"><h3>🎟️ Tenho um cupom</h3><div class="row-busca"><input id="cup-in" class="fld" placeholder="Código (ex: FAMILIA)" style="text-transform:uppercase"><button class="btn" id="cup-go" style="width:auto;white-space:nowrap">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
+  const v=$('view');const plano=S.plano||'teste';const desc=Number(S.desconto||0);
+  const dDMY=s=>s?s.split('-').reverse().slice(0,2).join('/'):'';
+  const nomes={teste:'Teste grátis',free:'Gratuito',gratis:'Gratuito',cortesia:'Cortesia (grátis)',meia:'50% de desconto',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)'};
+  let banner='';
+  if(plano==='cortesia'||desc>=100){banner='<div class="trialbox cortesia">💚 <b>Acesso cortesia</b> — você está com acesso liberado, sem cobrança.</div>';}
+  else if(plano==='teste'&&S.assinAte){const dias=Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);banner=dias>0?`<div class="trialbox">🎁 <b>Teste grátis</b> — faltam <b>${dias} dia${dias>1?'s':''}</b> (até ${dDMY(S.assinAte)}). Aproveite! 😊</div>`:'<div class="trialbox venc">⏰ Seu período de teste terminou. Assine pra continuar usando o AlertaAí. 💚</div>';}
+  else if(desc>0){banner=`<div class="trialbox cortesia">🏷️ Você tem <b>${desc}% de desconto</b> aplicado na sua assinatura.</div>`;}
+  const preco=desc>=100?'Grátis':desc>0?('R$ '+(19.9*(1-desc/100)).toFixed(2).replace('.',',')+'/mês'):'R$ 19,90/mês';
+  const riscado=(desc>0&&desc<100)?'<span class="pl-old">R$ 19,90</span> ':'';
+  v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu status: <b>${nomes[plano]||plano}</b></div></div></div>
+  ${banner}
+  <div class="planobig"><div class="pb-l"><div class="pl-nome">Plano AlertaAí</div><div class="pl-desc">Acesso completo: agenda, contas, fluxo de caixa, relatórios e lembretes no WhatsApp.</div></div><div class="pb-r"><div class="pl-preco">${riscado}${preco}</div></div></div>
+  <div class="panel" style="margin-top:16px"><h3>🎟️ Tenho um cupom</h3><div class="row-busca"><input id="cup-in" class="fld" placeholder="Código (ex: FOUNDER)" style="text-transform:uppercase"><button class="btn" id="cup-go" style="width:auto;white-space:nowrap">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
   <div class="support" style="margin-top:14px">Para assinar ou tirar dúvidas, fale com o suporte: <b>digitalpressbr@gmail.com</b> ou pelo botão 🆘 na aba Mais.</div>`;
-  $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
+  $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
 }
 
 /* ---- MAIS (hub) ---- */
