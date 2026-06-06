@@ -348,6 +348,9 @@ textarea.fld{resize:vertical;min-height:64px}
 .trialbox{background:var(--green-l);border:1px solid #cfe8d8;border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .trialbox.cortesia{background:#eaf7ef}
 .trialbox.venc{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+.trialbar{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.trialbar button{margin-left:auto;background:var(--green);color:#fff;border:none;border-radius:9px;padding:8px 16px;font-weight:700;cursor:pointer;font-size:13px}
+.trialbar button:hover{background:var(--green-d)}
 .planobig{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:20px}
 .planobig .pl-preco{font-family:var(--fdisp);font-weight:800;font-size:26px;color:var(--green-d);white-space:nowrap}
 .pl-old{text-decoration:line-through;color:var(--muted);font-size:16px;font-weight:600}
@@ -499,7 +502,24 @@ function renderNav(){
   });
   MOBILE_TABS.forEach(([k,ic,l])=>{const b=el(`<button data-k="${k}"><span class="ic">${ic}</span><span>${l}</span></button>`);b.onclick=()=>irPara(k);$('navm').appendChild(b);});
 }
-function irPara(k){S.tab=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));(ROUTES[k]||viewInicio)();window.scrollTo({top:0,behavior:'smooth'});}
+function diasTrial(){
+  if(!S.assinAte) return null;
+  if(['cortesia','ativo','mensal','anual'].includes(S.plano)||Number(S.desconto)>=100) return null;
+  return Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);
+}
+function bloqueado(){const d=diasTrial();return d!==null&&d<=0;}
+function irPara(k){
+  if(bloqueado()&&k!=='assinatura')k='assinatura';
+  S.tab=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  (ROUTES[k]||viewInicio)();
+  const d=diasTrial();
+  if(!bloqueado()&&d!==null&&d>0&&d<=15&&k!=='assinatura'){
+    const b=el(`<div class="trialbar">⏳ Seu teste grátis acaba em <b>${d} dia${d>1?'s':''}</b>. Evite o bloqueio — <button>Assinar agora</button></div>`);
+    b.querySelector('button').onclick=()=>irPara('assinatura');
+    const v=$('view');v.insertBefore(b,v.firstChild);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 async function carregar(){
   const ini=`${S.ano}-${String(S.mes+1).padStart(2,'0')}-01`;
