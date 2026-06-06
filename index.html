@@ -344,6 +344,22 @@ textarea.fld{resize:vertical;min-height:64px}
 .modal.tp-desp .formapg.radio .fp.on .rc::after{background:var(--rose)}
 .modal.tp-desp .dropz{border-color:#f0c2cd;background:#fdf0f3}
 .modal.tp-desp .dropz:hover,.modal.tp-desp .dropz.drag{border-color:var(--rose);background:var(--rose-l)}
+/* Fornecedores: barra + toggle Cards/Lista + painel CNPJ */
+.forn-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 2px 16px}
+.forn-bar .busca{flex:1;min-width:200px}
+.viewtog{display:flex;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;margin-left:auto}
+.viewtog .vt{padding:9px 15px;font-weight:600;font-size:13px;color:var(--muted);background:#fff;border:0}
+.viewtog .vt.on{background:var(--green-l);color:var(--green-d)}
+.cnpjbox{display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px;margin-top:18px}
+.cnpj-ic{width:48px;height:48px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.cnpj-tx{flex:1;min-width:180px}.cnpj-t{font-weight:700;color:var(--green-d)}.cnpj-s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.fornlista{display:flex;flex-direction:column;gap:8px}
+.fornrow{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 14px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.14s}
+.fornrow:hover{box-shadow:var(--shadow);transform:translateX(2px)}
+.sc-av.sm{width:38px;height:38px;border-radius:11px;font-size:16px}
+.fr-main{flex:1;min-width:0}.fr-nm{font-weight:700}.fr-sub{font-size:12.5px;color:var(--muted)}
+.fr-side{text-align:right;font-size:12.5px;white-space:nowrap;color:var(--muted)}
+.supcard .sc-ic{font-size:21px;cursor:pointer;opacity:.4;line-height:1;padding:0 4px}
 </style>
 </head>
 <body>
@@ -698,15 +714,49 @@ function catOptions(tipo,val){const cats=S.cat.filter(c=>(c.tipo||'despesa')===t
 function relOptions(tipo,fornId,cliId){return tipo==='receita'?fldSelect('f-cli','Cliente / pagador',S.cli,cliId):fldSelect('f-forn','Fornecedor',S.forn,fornId);}
 
 /* ---- FORNECEDORES / CLIENTES ---- */
-function viewFornecedores(){const v=$('view');v.innerHTML=`<div class="ph"><div><h1>Fornecedores</h1><div class="d">${S.forn.length} cadastrado(s)</div></div><div class="act"><button class="bpill" id="add-forn">＋ Novo fornecedor</button></div></div><div class="cardgrid" id="forn-grid"></div>`;
-  $('add-forn').onclick=()=>modalPessoa('forn');const g=$('forn-grid');g.innerHTML=S.forn.length?S.forn.map(f=>cadCard(f,'forn')).join(''):emptyBox('🏢','Nenhum fornecedor ainda. Cadastre o primeiro!');g.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const it=S.forn.find(x=>x.id===b.dataset.ed);if(it)modalPessoa('forn',it);});}
+function viewFornecedores(){
+  const v=$('view');const n=S.forn.length;const cats=[...new Set(S.forn.map(f=>f.categoria).filter(Boolean))].sort();const fv=S.fornView||'cards';
+  v.innerHTML=`<div class="ph"><div><h1>Fornecedores</h1><div class="d">${n} ${n===1?'fornecedor cadastrado':'fornecedores cadastrados'}</div></div><div class="act"><button class="bpill" id="add-forn">＋ Novo Fornecedor</button></div></div>
+  <div class="forn-bar">
+    <input id="fn-busca" class="fld busca" placeholder="🔍 Buscar fornecedor..." value="${esc(S.buscaForn||'')}">
+    <select id="fn-cat" class="fld" style="max-width:210px"><option value="">Categoria: Todas</option>${cats.map(c=>`<option value="${esc(c)}"${S.catForn===c?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    <div class="viewtog"><button class="vt${fv==='cards'?' on':''}" data-fv="cards">📇 Cards</button><button class="vt${fv==='lista'?' on':''}" data-fv="lista">≡ Lista</button></div>
+  </div>
+  <div id="forn-list"></div>
+  <div class="cnpjbox">
+    <div class="cnpj-ic">🔎</div>
+    <div class="cnpj-tx"><div class="cnpj-t">Adicionar via CNPJ</div><div class="cnpj-s">Informe o CNPJ do fornecedor para autopreencher os dados automaticamente.</div></div>
+    <input id="cnpj-in" class="fld" inputmode="numeric" placeholder="00.000.000/0000-00" style="max-width:240px">
+    <button class="btn" id="cnpj-go" style="width:auto;white-space:nowrap">🔍 Buscar dados na Receita Federal</button>
+  </div>`;
+  $('add-forn').onclick=()=>modalPessoa('forn');
+  $('fn-busca').oninput=e=>{S.buscaForn=e.target.value;renderForn();};
+  $('fn-cat').onchange=e=>{S.catForn=e.target.value;renderForn();};
+  v.querySelectorAll('[data-fv]').forEach(b=>b.onclick=()=>{S.fornView=b.dataset.fv;viewFornecedores();});
+  $('cnpj-go').onclick=()=>cnpjBuscarAbrir($('cnpj-in').value);
+  function renderForn(){
+    const q=(S.buscaForn||'').toLowerCase(),cf=S.catForn||'';
+    const lst=S.forn.filter(f=>(!q||(f.nome||'').toLowerCase().includes(q)||(f.cnpj||f.cpf_cnpj||'').includes(q))&&(!cf||f.categoria===cf));
+    const box=$('forn-list');
+    if(!lst.length){box.className='';box.innerHTML=emptyBox('🏢',n?'Nenhum fornecedor encontrado.':'Nenhum fornecedor ainda. Cadastre o primeiro!');return;}
+    box.className=fv==='lista'?'fornlista':'cardgrid';
+    box.innerHTML=fv==='lista'?lst.map(fornRow).join(''):lst.map(f=>cadCard(f,'forn')).join('');
+    box.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const it=S.forn.find(x=>x.id===b.dataset.ed);if(it)modalPessoa('forn',it);});
+  }
+  renderForn();
+}
+function fornRow(o){const doc=o.cnpj||o.cpf_cnpj||'';const q=S.contas.filter(c=>c.fornecedor_id===o.id).length;return `<div class="fornrow" data-ed="${o.id}"><div class="sc-av sm" style="background:${avColor(o.nome)}">${(o.nome||'?')[0].toUpperCase()}</div><div class="fr-main"><div class="fr-nm">${esc(o.nome)}</div><div class="fr-sub">${esc(doc||'—')}${o.categoria?' · '+esc(o.categoria):''}</div></div><div class="fr-side">${o.telefone?'📞 '+esc(o.telefone)+'<br>':''}<span style="color:var(--soft)">${q} conta(s)</span></div></div>`;}
+async function cnpjBuscarAbrir(doc){doc=soDig(doc);if(doc.length!==14)return toast('Digite um CNPJ válido (14 dígitos).',true);toast('Buscando na Receita Federal...');
+  try{const r=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+doc);if(!r.ok)throw 0;const d=await r.json();
+    modalPessoa('forn',{tipo_pessoa:'pj',cnpj:doc,nome:d.razao_social||d.nome_fantasia||'',nome_fantasia:d.nome_fantasia||'',telefone:d.ddd_telefone_1||'',email:d.email||'',cep:d.cep?String(d.cep):'',endereco:[d.logradouro,d.numero,d.bairro].filter(Boolean).join(', '),cidade:d.municipio||'',uf:d.uf||''});
+  }catch(_e){toast('Não achei esse CNPJ. Cadastre manual.',true);modalPessoa('forn',{tipo_pessoa:'pj',cnpj:doc});}}
 function viewClientes(){const v=$('view');v.innerHTML=`<div class="ph"><div><h1>Clientes</h1><div class="d">${S.cli.length} cadastrado(s)</div></div><div class="act"><button class="bpill g" id="add-cli">＋ Novo cliente</button></div></div><div class="cardgrid" id="cli-grid"></div>`;
   $('add-cli').onclick=()=>modalPessoa('cli');const g=$('cli-grid');g.innerHTML=S.cli.length?S.cli.map(f=>cadCard(f,'cli')).join(''):emptyBox('👥','Nenhum cliente ainda. Cadastre o primeiro!');g.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const it=S.cli.find(x=>x.id===b.dataset.ed);if(it)modalPessoa('cli',it);});}
 const AVCORES=['#16a34a','#2563eb','#e0922a','#8b5cf6','#0ea5e9','#e11d48','#0d9488','#a16207','#db2777','#ca8a04'];
 function avColor(n){let h=0,s=String(n||'?');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return AVCORES[h%AVCORES.length];}
 function cadCard(o,tipo){const isF=tipo==='forn';const doc=o.cnpj||o.cpf_cnpj||'';const nQtd=(isF?S.contas.filter(c=>c.fornecedor_id===o.id):S.contas.filter(c=>c.cliente_id===o.id)).length;const sub=o.razao_social&&o.razao_social!==o.nome?o.razao_social:'';const lines=[];if(o.telefone)lines.push('📞 '+esc(o.telefone));if(o.email)lines.push('✉️ '+esc(o.email));if(o.cidade)lines.push('📍 '+esc(o.cidade)+(o.uf?'/'+esc(o.uf):''));
-  return `<div class="supcard" data-ed="${o.id}"><div class="sc-h"><div class="sc-av" style="background:${avColor(o.nome)}">${(o.nome||'?')[0].toUpperCase()}</div><div class="sc-ic">${isF?'🏢':'👥'}</div></div><div class="sc-nm">${esc(o.nome)}</div>${sub?`<div class="sc-sub">${esc(sub)}</div>`:''}${doc?`<div class="sc-doc">${esc(doc)}</div>`:''}${o.categoria?`<span class="cattag">${esc(o.categoria)}</span>`:''}<div class="sc-info">${lines.join('<br>')||'<span style="color:var(--soft)">Sem contato</span>'}</div><div class="sc-ft">${nQtd} ${isF?'conta(s)':'recebimento(s)'}</div></div>`;}
-function modalPessoa(tipo,c){const ed=!!c;c=c||{};const isF=tipo==='forn';const tpIni=c.tipo_pessoa||(isF?'pj':'pf');
+  return `<div class="supcard" data-ed="${o.id}"><div class="sc-h"><div class="sc-av" style="background:${avColor(o.nome)}">${(o.nome||'?')[0].toUpperCase()}</div><div class="sc-ic">⋮</div></div><div class="sc-nm">${esc(o.nome)}</div>${sub?`<div class="sc-sub">${esc(sub)}</div>`:''}${doc?`<div class="sc-doc">${esc(doc)}</div>`:''}${o.categoria?`<span class="cattag" style="background:${avColor(o.categoria)}1f;color:${avColor(o.categoria)}">${esc(o.categoria)}</span>`:''}<div class="sc-info">${lines.join('<br>')||'<span style="color:var(--soft)">Sem contato</span>'}</div><div class="sc-ft">${nQtd} ${isF?'conta(s)':'recebimento(s)'}</div></div>`;}
+function modalPessoa(tipo,c){const ed=!!(c&&c.id);c=c||{};const isF=tipo==='forn';const tpIni=c.tipo_pessoa||(isF?'pj':'pf');
   const ov=openModal(ed?(isF?'Editar fornecedor':'Editar cliente'):(isF?'Novo fornecedor':'Novo cliente'),`
   <div class="tipotog2"><button type="button" class="tt2${tpIni==='pj'?' on':''}" data-tp="pj">Pessoa Jurídica</button><button type="button" class="tt2${tpIni==='pf'?' on':''}" data-tp="pf">Pessoa Física</button></div><input type="hidden" id="p-tipopessoa" value="${tpIni}">
   <label class="lb" id="p-doclbl">${tpIni==='pj'?'CNPJ':'CPF'}</label>
