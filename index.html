@@ -18,6 +18,12 @@
   --line:#e7e2d6; --radius:18px; --shadow:0 4px 14px rgba(20,40,28,.08),0 12px 30px rgba(20,40,28,.06); --shadow-sm:0 1px 2px rgba(20,40,28,.04),0 4px 12px rgba(20,40,28,.05); --shadow-lg:0 24px 60px rgba(8,60,33,.22);
   --fdisp:'Bricolage Grotesque',system-ui,sans-serif; --fbody:'Plus Jakarta Sans',system-ui,sans-serif;
   --side:248px;
+  /* === paleta oficial v2.0 (aliases — NÃO inventar cor fora disto) === */
+  --green-dark:#084e29; --green-soft:#e7f3ec; --green-mid:#16a34a;
+  --rose-dark:#b00930; --rose-soft:#fdeaef; --rose-grad-1:#ef4444; --rose-grad-2:#b91c1c;
+  --amber-dark:#92610f; --amber-soft:#fbf0dd; --blue-soft:#e8effe;
+  --bg-alt:#fcfbf7; --line-light:#f0ebe0;
+  --font-display:var(--fdisp); --font-body:var(--fbody); --sidebar-width:248px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -245,8 +251,8 @@ textarea.fld{resize:vertical;min-height:64px}
 @media(min-width:760px){.minicards{grid-template-columns:repeat(4,1fr)}.hubgrid{grid-template-columns:repeat(3,1fr)}.cardgrid{grid-template-columns:1fr 1fr}}
 @media(min-width:900px){.kpis4{grid-template-columns:repeat(4,1fr)}.dash2{grid-template-columns:1.3fr 1fr}}
 @media(min-width:1100px){.cardgrid{grid-template-columns:1fr 1fr 1fr}}
-/* ===== MATCH Genspark: shell claro + títulos grandes + KPIs/mini-cards ícone-redondo ===== */
-:root{--bg:#eef2f1}
+/* ===== MATCH Genspark v2: shell creme oficial + títulos grandes + KPIs/mini-cards ícone-redondo ===== */
+:root{--bg:#f6f3ec}
 .fld{background:#f6f8f7}
 .ph h1{font-size:29px;font-weight:800;letter-spacing:-.02em;line-height:1.06}
 @media(min-width:900px){.ph h1{font-size:35px}}
@@ -375,6 +381,46 @@ textarea.fld{resize:vertical;min-height:64px}
 .fr-main{flex:1;min-width:0}.fr-nm{font-weight:700}.fr-sub{font-size:12.5px;color:var(--muted)}
 .fr-side{text-align:right;font-size:12.5px;white-space:nowrap;color:var(--muted)}
 .supcard .sc-ic{font-size:21px;cursor:pointer;opacity:.4;line-height:1;padding:0 4px}
+/* ===== Assinatura v2 (mockup Genspark) ===== */
+.assbanner{display:flex;align-items:center;gap:18px;background:linear-gradient(135deg,var(--amber) 0%,#c9761b 100%);color:#fff;border-radius:18px;padding:18px 22px;box-shadow:0 10px 26px rgba(224,146,42,.28);margin-bottom:16px}
+.assbanner .ab-tx{flex:1;min-width:0}
+.assbanner .ab-t{font-family:var(--fdisp);font-weight:800;font-size:17px;line-height:1.25}
+.assbanner .ab-s{font-size:13px;opacity:.95;margin-top:6px;line-height:1.4}
+.ring{flex:none;width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#fff calc(var(--p,50)*1%),rgba(255,255,255,.3) 0)}
+.ring-in{width:74px;height:74px;border-radius:50%;background:var(--amber);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.ring .rn{font-family:var(--fdisp);font-weight:800;font-size:27px;line-height:1;color:#fff}
+.ring .rl{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:#fff;opacity:.92;margin-top:2px}
+.assgrid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:900px){.assgrid{grid-template-columns:1.15fr 1fr .95fr;align-items:start}}
+.assbox{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:20px}
+.plan-badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.07em;color:var(--green-d);background:var(--green-l);padding:4px 11px;border-radius:999px;text-transform:uppercase}
+.plan-name{font-family:var(--fdisp);font-weight:800;font-size:22px;margin:12px 0 4px}
+.plan-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.plan-price{display:flex;align-items:baseline;gap:8px;margin:18px 0 2px;flex-wrap:wrap}
+.plan-price .pp{font-family:var(--fdisp);font-weight:800;font-size:40px;color:var(--green-d);font-variant-numeric:tabular-nums;line-height:1}
+.plan-price .pm{font-size:14px;color:var(--muted);font-weight:600}
+.plan-annual{font-size:12.5px;color:var(--soft);margin-bottom:16px}
+.btn-assinar{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;border-radius:13px;background:linear-gradient(135deg,var(--green-mid),var(--green));color:#fff;font-weight:800;font-size:15px;box-shadow:0 8px 20px rgba(11,107,58,.28);transition:.15s}
+.btn-assinar:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(11,107,58,.34)} .btn-assinar:disabled{opacity:.6}
+.plan-foot{text-align:center;font-size:12px;color:var(--soft);margin-top:11px}
+.benefits{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
+.benefits li{display:flex;align-items:flex-start;gap:11px;font-size:13.5px;font-weight:500;line-height:1.4}
+.benefits .ck{width:23px;height:23px;border-radius:50%;background:var(--green-l);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none;margin-top:1px}
+.cupbox .cl{display:block;font-size:13px;font-weight:700;margin-bottom:8px}
+.cuprow{display:flex;gap:8px}
+.cuprow .fld{flex:1;text-transform:uppercase;padding:11px 13px}
+.cuprow .btn{width:auto;padding:0 18px;white-space:nowrap;margin:0}
+.paymethods{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 8px}
+.pmlogo{font-weight:800;font-size:11px;letter-spacing:.02em;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.paynote{font-size:11.5px;color:var(--soft);line-height:1.5}
+.faq{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.faq details{background:var(--bg-alt);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.faq summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';font-size:17px;color:var(--soft);flex:none}
+.faq details[open] summary::after{content:'\2013'}
+.faq .fa{padding:0 14px 13px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.assbox.cortesia{background:#eaf7ef;border-color:#cfe8d8}
 </style>
 </head>
 <body>
@@ -733,21 +779,42 @@ function desenharFluxo(r,d){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)r
 /* ---- ASSINATURA ---- */
 function viewAssinatura(){
   const v=$('view');const plano=S.plano||'teste';const desc=Number(S.desconto||0);
-  const dDMY=s=>s?s.split('-').reverse().slice(0,2).join('/'):'';
-  const nomes={teste:'Teste grátis',free:'Gratuito',gratis:'Gratuito',cortesia:'Cortesia (grátis)',meia:'50% de desconto',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)'};
+  const dDMY=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4):'';
+  const cortesia=(plano==='cortesia'||desc>=100);
+  const ativo=['ativo','mensal','anual'].includes(plano);
+  let dias=null;if(plano==='teste'&&S.assinAte)dias=Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);
+  const precoNum=(desc>0&&desc<100)?19.9*(1-desc/100):19.9;
+  const precoTxt=cortesia?'Grátis':moneyN(precoNum);
   let banner='';
-  if(plano==='cortesia'||desc>=100){banner='<div class="trialbox cortesia">💚 <b>Acesso cortesia</b> — você está com acesso liberado, sem cobrança.</div>';}
-  else if(plano==='teste'&&S.assinAte){const dias=Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);banner=dias>0?`<div class="trialbox">🎁 <b>Teste grátis</b> — faltam <b>${dias} dia${dias>1?'s':''}</b> (até ${dDMY(S.assinAte)}). Aproveite! 😊</div>`:'<div class="trialbox venc">⏰ Seu período de teste terminou. Assine pra continuar usando o AlertaAí. 💚</div>';}
-  else if(desc>0){banner=`<div class="trialbox cortesia">🏷️ Você tem <b>${desc}% de desconto</b> aplicado na sua assinatura.</div>`;}
-  const preco=desc>=100?'Grátis':desc>0?('R$ '+(19.9*(1-desc/100)).toFixed(2).replace('.',',')+'/mês'):'R$ 19,90/mês';
-  const riscado=(desc>0&&desc<100)?'<span class="pl-old">R$ 19,90</span> ':'';
-  v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu status: <b>${nomes[plano]||plano}</b></div></div></div>
+  if(cortesia){banner='<div class="assbox cortesia" style="margin-bottom:16px">💚 <b>Acesso cortesia</b> — sua conta está liberada, sem cobrança. Obrigado por fazer parte! 🦉</div>';}
+  else if(ativo){banner='<div class="assbox cortesia" style="margin-bottom:16px">✅ <b>Assinatura ativa</b> — obrigado! Sua conta está em dia. 💚</div>';}
+  else if(dias!==null&&dias>0){const pct=Math.max(4,Math.min(100,Math.round(dias/60*100)));
+    banner=`<div class="assbanner"><div class="ab-tx"><div class="ab-t">⚠️ Seu teste grátis termina em ${dias} dia${dias>1?'s':''} (${dDMY(S.assinAte)})</div><div class="ab-s">Assine agora e <b>EVITE O BLOQUEIO</b> da sua conta — continue com tudo funcionando.</div></div><div class="ring" style="--p:${pct}"><div class="ring-in"><div class="rn">${dias}</div><div class="rl">dias</div></div></div></div>`;}
+  else if(dias!==null&&dias<=0){banner='<div class="assbanner" style="background:linear-gradient(135deg,var(--rose-grad-1),var(--rose-grad-2));box-shadow:0 10px 26px rgba(225,29,72,.28)"><div class="ab-tx"><div class="ab-t">⏰ Seu teste grátis terminou</div><div class="ab-s">Assine agora pra <b>desbloquear</b> sua conta e voltar a usar o AlertaAí. 💚</div></div></div>';}
+  const BEN=['Agenda + Financeiro completo','Lembretes por áudio e texto ilimitados','Cadastros ilimitados (fornecedores, clientes, categorias)','Lembretes automáticos no WhatsApp','OCR de boletos por foto (leitura automática)','Armazenamento de anexos (200 MB)','Suporte humano de verdade no WhatsApp','Cancele quando quiser, sem multa'];
+  const FAQ=[['Posso cancelar quando quiser?','Sim! Sem fidelidade e sem multa. Você cancela quando quiser e segue com acesso até o fim do período já pago.'],['Como funciona o teste grátis?','São 60 dias grátis com tudo liberado. Perto do fim a gente te avisa — é só assinar pra não bloquear.'],['Como funciona o cupom de desconto?','Digite o código no campo de cupom e clique em Aplicar. Há cupons de cortesia (100%) e de parceiro (desconto na mensalidade).']];
+  v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu plano · ${cortesia?'Cortesia':ativo?'Ativa':(dias!==null&&dias>0?'Teste grátis ativo':'Teste encerrado')}</div></div></div>
   ${banner}
-  <div class="planobig"><div class="pb-l"><div class="pl-nome">Plano AlertaAí</div><div class="pl-desc">Acesso completo: agenda, contas, fluxo de caixa, relatórios e lembretes no WhatsApp.</div></div><div class="pb-r"><div class="pl-preco">${riscado}${preco}</div>${desc>=100?'':'<button class="btn" id="btn-assinar" style="margin-top:10px;width:auto;white-space:nowrap">💳 Assinar agora</button>'}</div></div>
-  <div class="panel" style="margin-top:16px"><h3>🎟️ Tenho um cupom</h3><div class="row-busca"><input id="cup-in" class="fld" placeholder="Código (ex: CONVIDADO)" style="text-transform:uppercase"><button class="btn" id="cup-go" style="width:auto;white-space:nowrap">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
-  <div class="support" style="margin-top:14px">Para assinar ou tirar dúvidas, fale com o suporte: <b>digitalpressbr@gmail.com</b> ou pelo botão 🆘 na aba Mais.</div>`;
+  <div class="assgrid">
+    <div class="assbox">
+      <span class="plan-badge">● Plano único</span>
+      <div class="plan-name">Plano AlertaAí</div>
+      <div class="plan-desc">Tudo o que você precisa pra gerenciar sua agenda e suas finanças num lugar só.</div>
+      <div class="plan-price">${desc>0&&desc<100?'<span class="pl-old">R$ 19,90</span>':''}<span class="pp">R$ ${precoTxt}</span><span class="pm">/mês</span></div>
+      <div class="plan-annual">${cortesia?'Você está com acesso cortesia 💚':'ou <b>R$ 199</b> no plano anual (economiza ~16%)'}</div>
+      ${cortesia?'':`<button class="btn-assinar" id="btn-assinar">🔒 Assinar agora — R$ ${precoTxt}/mês</button><div class="plan-foot">Pagamento mensal · Cancele quando quiser · sem multa</div>`}
+    </div>
+    <div class="assbox"><ul class="benefits">${BEN.map(b=>`<li><span class="ck">✓</span>${esc(b)}</li>`).join('')}</ul></div>
+    <div class="assbox">
+      <div class="cupbox"><span class="cl">🎟️ Tem um cupom de desconto?</span><div class="cuprow"><input id="cup-in" class="fld" placeholder="CÓDIGO (ex: CONVIDADO)"><button class="btn" id="cup-go">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
+      <div class="paymethods"><span class="pmlogo">VISA</span><span class="pmlogo">MASTER</span><span class="pmlogo">ELO</span><span class="pmlogo">PIX</span></div>
+      <div class="paynote">Pagamento seguro via <b>Mercado Pago</b>. O cartão é processado direto por eles — a gente nunca vê os seus dados. 🔒</div>
+      <div class="faq">${FAQ.map(([q,a])=>`<details><summary>${esc(q)}</summary><div class="fa">${esc(a)}</div></details>`).join('')}</div>
+    </div>
+  </div>
+  <div class="support" style="margin-top:16px;text-align:center">Dúvidas sobre a assinatura? Fale com a gente: <b>digitalpressbr@gmail.com</b> ou pelo 🆘 na aba Mais.</div>`;
   $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
-  const ba=$('btn-assinar');if(ba)ba.onclick=async()=>{ba.disabled=true;ba.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');ba.disabled=false;ba.textContent='💳 Assinar agora';}catch(_e){toast('Falha de rede.');ba.disabled=false;ba.textContent='💳 Assinar agora';}};
+  const ba=$('btn-assinar');if(ba)ba.onclick=async()=>{ba.disabled=true;ba.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');ba.disabled=false;ba.textContent='🔒 Assinar agora — R$ '+precoTxt+'/mês';}catch(_e){toast('Falha de rede.');ba.disabled=false;ba.textContent='🔒 Assinar agora — R$ '+precoTxt+'/mês';}};
 }
 
 /* ---- MAIS (hub) ---- */
