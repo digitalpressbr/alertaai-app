@@ -344,6 +344,11 @@ textarea.fld{resize:vertical;min-height:64px}
 .modal.tp-desp .formapg.radio .fp.on .rc::after{background:var(--rose)}
 .modal.tp-desp .dropz{border-color:#f0c2cd;background:#fdf0f3}
 .modal.tp-desp .dropz:hover,.modal.tp-desp .dropz.drag{border-color:var(--rose);background:var(--rose-l)}
+/* Assinatura */
+.planocard{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px}
+.planocard.atual{box-shadow:var(--shadow);border-color:var(--green)}
+.pl-nome{font-weight:700;font-size:15px}.pl-preco{font-family:var(--fdisp);font-weight:800;font-size:24px;margin:6px 0}
+.pl-desc{font-size:13px;color:var(--muted)}.pl-tag{margin-top:10px;font-size:12px;font-weight:700;color:var(--green-d);background:var(--green-l);padding:4px 10px;border-radius:8px;display:inline-block}
 /* Fornecedores: barra + toggle Cards/Lista + painel CNPJ */
 .forn-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 2px 16px}
 .forn-bar .busca{flex:1;min-width:200px}
@@ -413,6 +418,7 @@ const SUPA_URL='https://pjrolsaelcvnslbyxnfx.supabase.co';
 const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
 const FN=SUPA_URL+'/functions/v1/web-auth';
 const FN_SUP=SUPA_URL+'/functions/v1/suporte';
+const FN_ASSIN=SUPA_URL+'/functions/v1/assinatura';
 const supa=createClient(SUPA_URL,ANON,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=id=>document.getElementById(id);
 const el=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild;};
@@ -435,7 +441,7 @@ const soDig=s=>String(s||'').replace(/\D/g,'');
 function show(s){['screen-login','screen-acesso','screen-main'].forEach(x=>$(x).classList.toggle('hide',x!==s));}
 function setMsg(id,t,k){const e=$(id);if(e){e.className='msg '+(k||'');e.textContent=t||'';}}
 function toast(t,bad){const e=$('toast');e.textContent=t;e.className='show'+(bad?' bad':'');setTimeout(()=>e.className='',2600);}
-const S={uid:null,nome:'',email:'',ano:0,mes:0,comp:[],contas:[],abertas:[],aberRec:[],forn:[],cli:[],cat:[],serie:[],porDia:{},tab:'inicio',selDia:null,storageBytes:0};
+const S={uid:null,nome:'',email:'',plano:'teste',ano:0,mes:0,comp:[],contas:[],abertas:[],aberRec:[],forn:[],cli:[],cat:[],serie:[],porDia:{},tab:'inicio',selDia:null,storageBytes:0};
 let chart=null;
 const LIMITE_MB=200;
 const fmtBytes=b=>{b=Number(b||0);return b<1048576?Math.max(1,Math.round(b/1024))+' KB':(b/1048576).toFixed(1)+' MB';};
@@ -468,12 +474,12 @@ const NAV_GROUPS=[
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Mais']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['pagar','💸','Contas'],['receber','💰','Receber'],['mais','⚙️','Mais']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,mais:viewMais};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara('inicio');
@@ -695,10 +701,22 @@ function viewFluxo(){
 function itemReceita(c){const rec=c.status==='pago';const btn=rec?'':`<button class="qpay g" data-recv="${c.id}" title="Marcar como recebida">✓</button>`;return `<div class="item rcv${rec?' done':''}" data-conta="${c.id}"><span class="di">💰</span><div class="bd"><div class="tt">${esc(c.descricao)}${rec?'<span class="chip pg">recebido</span>':''}</div><div class="ss">Previsto ${dBRc(c.data_vencimento)}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv rec">+ ${money(c.valor)}</div>${btn}</div>`;}
 function desenharFluxo(r,d){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)return;if(window._fxc)window._fxc.destroy();window._fxc=new Chart(ctx,{type:'bar',data:{labels:['Receitas','Despesas'],datasets:[{data:[r,d],backgroundColor:['#16a34a','#e11d48'],borderRadius:8,maxBarThickness:90}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+money(c.raw)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$ '+(v>=1000?(v/1000)+'k':v)}}}}});}
 
+/* ---- ASSINATURA ---- */
+function viewAssinatura(){
+  const v=$('view');const plano=S.plano||'teste';
+  const nomes={teste:'Teste grátis',cortesia:'Cortesia',custo:'Preço de custo',mensal:'Padrão (mensal)',anual:'Padrão (anual)',gratis:'Grátis'};
+  const planos=[['cortesia','Família / Tester','Grátis','Para quem ajuda nos testes','#16a34a'],['custo','Custo','R$ 9,90/mês','Cobre só o custo de operação','#2563eb'],['mensal','Padrão','R$ 19,90/mês','Acesso completo','#0b6b3a']];
+  v.innerHTML=`<div class="ph"><div><h1>Assinatura</h1><div class="d">Seu plano atual: <b>${nomes[plano]||plano}</b></div></div></div>
+  <div class="cardgrid">${planos.map(([id,nome,preco,desc,cor])=>`<div class="planocard${plano===id?' atual':''}" style="border-top:3px solid ${cor}"><div class="pl-nome">${nome}</div><div class="pl-preco" style="color:${cor}">${preco}</div><div class="pl-desc">${esc(desc)}</div>${plano===id?'<div class="pl-tag">✓ Seu plano atual</div>':''}</div>`).join('')}</div>
+  <div class="panel" style="margin-top:16px"><h3>🎟️ Tenho um cupom</h3><div class="row-busca"><input id="cup-in" class="fld" placeholder="Código (ex: FAMILIA)" style="text-transform:uppercase"><button class="btn" id="cup-go" style="width:auto;white-space:nowrap">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
+  <div class="support" style="margin-top:14px">Para assinar ou tirar dúvidas, fale com o suporte: <b>digitalpressbr@gmail.com</b> ou pelo botão 🆘 na aba Mais.</div>`;
+  $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
+}
+
 /* ---- MAIS (hub) ---- */
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
-  const links=[['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios']];
+  const links=[['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
   let h=`<div class="ph"><div><h1>Mais</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
