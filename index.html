@@ -362,6 +362,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPA_URL='https://pjrolsaelcvnslbyxnfx.supabase.co';
 const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
 const FN=SUPA_URL+'/functions/v1/web-auth';
+const FN_SUP=SUPA_URL+'/functions/v1/suporte';
 const supa=createClient(SUPA_URL,ANON,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=id=>document.getElementById(id);
 const el=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild;};
@@ -647,7 +648,7 @@ function viewMais(){
   let h=`<div class="ph"><div><h1>Mais</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
-  <div class="support">🛟 <b>Suporte AlertaAí</b><br>Dúvidas, sugestões ou problemas? Escreva pra <b>digitalpressbr@gmail.com</b> — a gente responde rapidinho.</div>
+  <div class="support">🛟 <b>Suporte AlertaAí</b><br>Deu algum problema ou tem uma sugestão? Fale com a gente — chega na hora pro nosso suporte.<br><button class="btn" onclick="abrirSuporte('Aberto pelo menu Mais')" style="margin:12px auto 0;max-width:280px">🆘 Falar com o suporte</button><br><span style="font-size:12px;color:var(--soft)">ou por e-mail: digitalpressbr@gmail.com</span></div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">AlertaAí · um produto Digital Press 🦉</div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
@@ -824,6 +825,21 @@ async function marcarPago(id,ov){await supa.from('contas').update({status:'pago'
 async function excluirConta(id,ov){if(!confirm('Excluir esta conta?'))return;await supa.from('contas').delete().eq('id',id);ov.remove();toast('Conta excluída');await carregar();irPara(S.tab);}
 function modalSimples(tipo,item){const ed=!!item;item=item||{};const tit=(ed?'Editar ':(tipo==='forn'?'Novo ':'Nova '))+(tipo==='forn'?'fornecedor':'categoria');const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" value="${esc(item.nome||'')}" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}"><button class="btn mt18" id="f-save">${ed?'Salvar':'Adicionar'}</button><div id="f-msg" class="msg"></div>`);ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;const tbl=tipo==='forn'?'fornecedores':'categorias';if(ed)await supa.from(tbl).update({nome}).eq('id',item.id);else await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast(ed?'Atualizado ✅':'Adicionado ✅');await carregar();viewMais();};setTimeout(()=>$('f-nome').focus(),100);}
 async function removerCad(tipo,id){if(!confirm('Remover?'))return;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).delete().eq('id',id);toast('Removido');await carregar();renderMng();}
+/* ---- SUPORTE TÉCNICO (gatilho de erro → WhatsApp do Rodrigo) ---- */
+async function enviarSuporte(descricao,contexto){try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_SUP,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({descricao,contexto})});return await r.json().catch(()=>({ok:false}));}catch(_e){return {ok:false};}}
+function modalSuporte(contexto){const ov=openModal('🛟 Falar com o suporte',`
+  <p class="step-tip" style="margin-top:0">Conta o que aconteceu que a gente resolve. Seu relato vai direto pro suporte. 🦉</p>
+  <label class="lb">Descreva o ocorrido</label><textarea id="sp-desc" class="fld" style="min-height:120px" placeholder="Ex: tentei salvar uma despesa e apareceu um erro..."></textarea>
+  <button class="btn mt18" id="sp-send">Enviar para o suporte</button><div id="sp-msg" class="msg"></div>`);
+  ov.querySelector('#sp-send').onclick=async()=>{const d=ov.querySelector('#sp-desc').value.trim();if(d.length<5)return setMsg('sp-msg','Conta um pouquinho mais do que aconteceu 🙂','err');ov.querySelector('#sp-send').disabled=true;setMsg('sp-msg','Enviando...','ok');const ctx='Tela: '+(S.tab||'-')+(contexto?' · '+contexto:'')+' · '+navigator.userAgent.slice(0,90);const r=await enviarSuporte(d,ctx);if(r&&r.ok){ov.querySelector('.modal-b').innerHTML='<div style="text-align:center;padding:22px 8px"><div style="font-size:44px">✅</div><h3 style="margin:10px 0 6px;font-family:var(--fdisp)">Relato enviado!</h3><p style="color:var(--muted)">O suporte já recebeu e vai te retornar. Obrigado! 🦉</p><button class="btn mt18" id="sp-ok">Fechar</button></div>';ov.querySelector('#sp-ok').onclick=()=>ov.remove();}else{setMsg('sp-msg','Não consegui enviar agora. Tente de novo em instantes.','err');ov.querySelector('#sp-send').disabled=false;}};}
+window.abrirSuporte=(ctx)=>modalSuporte(ctx||'Aberto pelo usuário');
+let _supTs=0;
+function ofereceSuporte(err){if(!S.uid)return;const now=Date.now();if(now-_supTs<300000)return;_supTs=now;if(document.querySelector('.ov'))return;const ov=openModal('⚠️ Ops, algo deu errado',`
+  <p class="step-tip" style="margin-top:0">Parece que tivemos um probleminha agora. Deseja acionar o suporte técnico?</p>
+  <button class="btn mt18" id="sp-yes">Sim, preciso de ajuda</button><button class="btn sec" id="sp-no">Agora não</button>`);
+  ov.querySelector('#sp-no').onclick=()=>ov.remove();ov.querySelector('#sp-yes').onclick=()=>{ov.remove();modalSuporte('Erro detectado: '+String(err||'').slice(0,140));};}
+window.addEventListener('error',e=>{const m=(e&&e.message)||'';if(!m||/ResizeObserver|Script error/i.test(m))return;ofereceSuporte(m);});
+window.addEventListener('unhandledrejection',e=>{let m='';try{m=(e&&e.reason&&(e.reason.message||e.reason))||'';}catch(_e){}ofereceSuporte('Falha: '+String(m).slice(0,140));});
 init();
 </script>
 </body>
