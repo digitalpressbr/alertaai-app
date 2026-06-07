@@ -172,6 +172,15 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .cc-menu{position:absolute;top:-3px;right:-5px;color:var(--soft);font-size:18px;padding:2px 5px;background:none;line-height:1}
 .cc-pay{width:100%;margin-top:11px;padding:10px;border-radius:10px;font-weight:700;font-size:13.5px;background:var(--green);color:#fff}
 .cc-pay.vd{background:var(--rose)}
+/* Relatórios: 3 cards grandes empilhados (mockup M09) */
+.rsum{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.rs{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--soft);border-radius:14px;padding:13px 16px;box-shadow:var(--shadow-sm)}
+.rs.g{border-left-color:var(--green)}.rs.r{border-left-color:var(--rose)}.rs.b{border-left-color:var(--blue)}
+.rs-l{font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--soft)}
+.rs.g .rs-l{color:var(--green-d)}.rs.r .rs-l{color:#b00930}.rs.b .rs-l{color:var(--blue)}
+.rs-v{font-family:var(--fdisp);font-weight:800;font-size:26px;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.1}
+.rs.g .rs-v{color:var(--green-d)}.rs.r .rs-v{color:#b00930}.rs.b .rs-v{color:var(--blue)}
+.rs-d{font-size:12px;font-weight:700;margin-top:4px}.rs-d.up{color:var(--green-d)}.rs-d.down{color:#b00930}
 /* PWA: banner instalar */
 .pwa-banner{position:fixed;left:12px;right:12px;bottom:86px;z-index:60;background:var(--card);border:1px solid var(--green-line);border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.20);padding:11px 12px;display:flex;align-items:center;gap:11px;animation:pwaup .3s ease}
 @keyframes pwaup{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
@@ -1296,11 +1305,14 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   const porCat=arr=>{const m={};arr.forEach(c=>{const cat=S.cat.find(x=>x.id===c.categoria_id);const nm=cat?((cat.icone?cat.icone+' ':'')+cat.nome):'Sem categoria';const cor=cat&&cat.cor?cat.cor:'#9aa39c';(m[nm]=m[nm]||{v:0,cor}).v+=Number(c.valor||0);});return Object.entries(m).sort((a,b)=>b[1].v-a[1].v);};
   const rowsD=porCat(desp),rowsR=porCat(rec);const maxD=Math.max(1,...rowsD.map(r=>r[1].v)),maxR=Math.max(1,...rowsR.map(r=>r[1].v));
   const bar=(val,max,cor)=>`<div class="rbar"><i style="width:${max?Math.max(3,val/max*100):0}%;background:${cor}"></i></div>`;
-  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div><div class="act"><button class="bpill" id="exp-csv">⬇️ Exportar CSV</button></div></div>
-  <div class="kpis r3" style="grid-template-columns:repeat(3,1fr)">
-    <div class="kpi g"><div class="ic">💰</div><div class="n">${money(tR)}</div><div class="l">receitas</div></div>
-    <div class="kpi r"><div class="ic">💸</div><div class="n">${money(tD)}</div><div class="l">despesas</div></div>
-    <div class="kpi ${tR-tD>=0?'b':'r'}"><div class="ic">${tR-tD>=0?'📈':'📉'}</div><div class="n">${money(tR-tD)}</div><div class="l">resultado</div></div>
+  const pmRel=new Date(Date.UTC(S.ano,S.mes-1,1)),pYR=pmRel.getUTCFullYear(),pMR=pmRel.getUTCMonth();
+  let prevRR=0,prevDR=0;(S.serie||[]).forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===pYR&&(+dt.slice(5,7)-1)===pMR){if(c.tipo==='receita')prevRR+=Number(c.valor||0);else prevDR+=Number(c.valor||0);}});
+  const vpR=prevRR?Math.round((tR-prevRR)/prevRR*100):null,vpD=prevDR?Math.round((tD-prevDR)/prevDR*100):null,res=tR-tD;
+  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><button class="bpill" id="exp-csv">⬇️ Exportar CSV</button></div></div>
+  <div class="rsum">
+    <div class="rs g"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div>
+    <div class="rs r"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div>
+    <div class="rs b"><div class="rs-l">RESULTADO</div><div class="rs-v">${money(res)}</div><div class="rs-d ${res>=0?'up':'down'}">${res>=0?'✓ lucro positivo':'resultado negativo'}</div></div>
   </div>
   <div class="cols2" style="margin-top:16px">
     <div class="panel"><h3>💸 Despesas por categoria</h3>${rowsD.length?rowsD.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)}</b></div>${bar(o.v,maxD,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem despesas este mês.')}</div>
