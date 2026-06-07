@@ -485,6 +485,21 @@ textarea.fld{resize:vertical;min-height:64px}
 .dicacard .dic{font-size:20px;flex:none}
 .stpill{display:inline-flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.03em;padding:3px 9px;border-radius:999px}
 .stpill.vd{background:var(--rose-soft);color:var(--rose-dark)}.stpill.av{background:var(--amber-soft);color:var(--amber-dark)}.stpill.pg{background:var(--green-soft);color:var(--green-d)}
+.bpill.go{background:#fff;border:1.5px solid var(--green);color:var(--green);box-shadow:none}.bpill.go:hover{background:var(--green-soft);color:var(--green-d)}
+.bpill.sm{padding:6px 12px;font-size:13px}
+.mnav{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:11px;padding:3px;background:#fff;font-weight:700;font-size:14px}
+.mnav button{width:30px;height:30px;border-radius:8px;color:var(--green);font-size:17px;background:transparent}.mnav button:hover{background:var(--green-soft)}.mnav span{padding:0 8px;text-transform:capitalize}
+.kpi.fx{align-items:center}.kpi.fx .spk{margin-left:auto;width:120px;height:40px;flex:none;align-self:center}.kpi.fx .spk svg{width:100%;height:100%;display:block}
+.kpi .ksub2{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:4px}
+.kpi.fx .fxbadge{margin-left:auto;width:50px;height:50px;border-radius:14px;background:var(--green-soft);color:var(--green-mid);display:flex;align-items:center;justify-content:center;flex:none}.kpi.fx .fxbadge svg{width:24px;height:24px}
+.pnh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}.pnh h3{margin:0}
+.leg{display:flex;gap:14px;font-size:12.5px;font-weight:700;white-space:nowrap}.leg .g{color:var(--green-mid)}.leg .r{color:var(--rose)}
+.fxrow{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line-light)}.fxrow:last-child{border-bottom:0}
+.fxdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex:none}
+.fxdot.pg{background:var(--green-mid)}.fxdot.vd{background:var(--rose)}.fxdot.av{background:var(--amber)}
+.fxbd{flex:1;min-width:0}.fxt{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fxs{font-size:12px;color:var(--soft);margin-top:1px}
+.fxd{font-size:12.5px;color:var(--muted);white-space:nowrap}.fxv{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:104px;text-align:right}.fxv.g{color:var(--green-mid)}.fxv.r{color:var(--rose)}
+.fxtot{display:flex;justify-content:space-between;align-items:center;padding:13px 2px 2px;margin-top:8px;border-top:2px solid var(--line);font-weight:700;color:var(--muted)}.fxtot b{font-size:18px;font-family:var(--fdisp);margin-left:8px}.fxtot b.g{color:var(--green-mid)}.fxtot b.r{color:var(--rose)}
 .td-main{font-weight:600}
 .td-due{font-size:11px;font-weight:600;margin-top:2px}.td-due.vd{color:var(--rose)}.td-due.av{color:var(--amber-dark)}
 .td-vd{color:var(--rose);font-weight:600}
@@ -902,26 +917,44 @@ function viewContasReceber(){
 function viewFluxo(){
   const receitas=S.contas.filter(c=>c.tipo==='receita'),despesas=S.contas.filter(c=>c.tipo!=='receita');
   const totR=receitas.reduce((s,c)=>s+Number(c.valor||0),0),totD=despesas.reduce((s,c)=>s+Number(c.valor||0),0),saldo=totR-totD;
-  let h=`<div class="ph"><div><h1>Fluxo de caixa</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div><div class="act"><button class="bpill g" data-add="receita">＋ Receita</button><button class="bpill" data-add="despesa">＋ Despesa</button></div></div>
+  const L6=[],R6=[],D6=[];
+  for(let i=5;i>=0;i--){const dd=new Date(Date.UTC(S.ano,S.mes-i,1)),y=dd.getUTCFullYear(),m=dd.getUTCMonth();L6.push(MES[m].slice(0,3)+' '+y);let r=0,p=0;S.serie.forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===y&&(+dt.slice(5,7)-1)===m){if(c.tipo==='receita')r+=Number(c.valor||0);else p+=Number(c.valor||0);}});R6.push(r);D6.push(p);}
+  const U='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg>';
+  const Dn='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M16 17h5v-5"/></svg>';
+  const W='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><circle cx="16.5" cy="14" r="1.3" fill="#fff" stroke="none"/></svg>';
+  const TR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg>';
+  const h=`<div class="ph"><div><h1>Fluxo de caixa</h1><div class="d">${MES[S.mes]} de ${S.ano} · realizado e previsto</div></div>
+    <div class="act"><div class="mnav"><button id="fx-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="fx-next">›</button></div><button class="bpill go" data-add="receita">＋ Receita</button><button class="bpill dr" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
-    <div class="kpi g"><div class="ic">💰</div><div class="n">${money(totR)}</div><div class="l">receitas</div></div>
-    <div class="kpi r"><div class="ic">💸</div><div class="n">${money(totD)}</div><div class="l">despesas</div></div>
-    <div class="kpi ${saldo>=0?'g':'r'}"><div class="ic">${saldo>=0?'📈':'📉'}</div><div class="n">${money(saldo)}</div><div class="l">saldo do mês</div></div>
+    <div class="kpi g fx"><div class="ic">${U}</div><div class="kt"><div class="l">RECEITAS</div><div class="n">${money(totR)}</div><div class="ksub2">${receitas.length} lançamento${receitas.length!==1?'s':''}</div></div><div class="spk">${spark(R6,'#16a34a')}</div></div>
+    <div class="kpi r fx"><div class="ic">${Dn}</div><div class="kt"><div class="l">DESPESAS</div><div class="n">${money(totD)}</div><div class="ksub2">${despesas.length} lançamento${despesas.length!==1?'s':''}</div></div><div class="spk">${spark(D6,'#e11d48')}</div></div>
+    <div class="kpi b fx"><div class="ic">${W}</div><div class="kt"><div class="l">SALDO DO MÊS</div><div class="n">${money(saldo)}</div><div class="ks ${saldo>=0?'up':'down'}">${saldo>=0?'✓ resultado positivo':'▼ resultado negativo'}</div></div><div class="fxbadge">${TR}</div></div>
   </div>
-  <div class="panel"><h3>Receitas × Despesas</h3><div class="chart-wrap"><canvas id="ch2"></canvas></div></div>
+  <div class="panel"><div class="pnh"><h3>Receitas × Despesas <span class="sub2">— Últimos 6 meses</span></h3><div class="leg"><span class="g">● Receitas</span><span class="r">● Despesas</span></div></div><div class="chart-wrap tall"><canvas id="ch2"></canvas></div></div>
   <div class="cols2" style="margin-top:16px">
-    <div><div class="sec-h"><div class="t" style="color:var(--green)">💰 Receitas</div><div class="lk" data-add="receita">+ Receita</div></div><div id="fx-rec"></div></div>
-    <div><div class="sec-h"><div class="t" style="color:var(--rose)">💸 Despesas</div><div class="lk" data-add="despesa" style="color:var(--rose)">+ Despesa</div></div><div id="fx-desp"></div></div>
+    <div class="panel"><div class="pnh"><h3>Receitas do mês</h3><button class="bpill go sm" data-add="receita">＋ Receita</button></div><div id="fx-rec"></div><div class="fxtot">Total:<b class="g">${money(totR)}</b></div></div>
+    <div class="panel"><div class="pnh"><h3>Despesas do mês</h3><button class="bpill dr sm" data-add="despesa">＋ Despesa</button></div><div id="fx-desp"></div><div class="fxtot">Total:<b class="r">${money(totD)}</b></div></div>
   </div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>modalConta(null,e.dataset.add));
-  $('fx-rec').innerHTML=receitas.length?receitas.map(itemReceita).join(''):emptyBox('💰','Nenhuma receita neste mês.');
-  $('fx-desp').innerHTML=despesas.length?despesas.map(c=>itemConta(c)).join(''):emptyBox('💸','Nenhuma despesa neste mês.');
+  $('fx-prev').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes-1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewFluxo);};
+  $('fx-next').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes+1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewFluxo);};
+  $('fx-rec').innerHTML=receitas.length?receitas.slice().sort((a,b)=>(a.data_vencimento||'').localeCompare(b.data_vencimento||'')).map(c=>fxRow(c,'rec')).join(''):emptyBox('💰','Nenhuma receita neste mês.');
+  $('fx-desp').innerHTML=despesas.length?despesas.slice().sort((a,b)=>(a.data_vencimento||'').localeCompare(b.data_vencimento||'')).map(c=>fxRow(c,'desp')).join(''):emptyBox('💸','Nenhuma despesa neste mês.');
   bindItems(v);
-  desenharFluxo(totR,totD);
+  desenharFluxo6(L6,R6,D6);
 }
+function spark(arr,color){const w=120,hh=38,mx=Math.max(...arr,1),mn=Math.min(...arr,0),rng=(mx-mn)||1,n=arr.length;if(n<2)return '';const pts=arr.map((val,i)=>`${(i/(n-1))*w},${hh-((val-mn)/rng)*(hh-7)-4}`).join(' ');const lx=w,ly=hh-((arr[n-1]-mn)/rng)*(hh-7)-4;return `<svg viewBox="0 0 ${w} ${hh}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx}" cy="${ly}" r="3" fill="${color}"/></svg>`;}
+function fxRow(c,tipo){const isR=tipo==='rec';const hoje=hojeBRT();let pill,cls,ic,dtxt;
+  if(isR){const recv=c.status==='pago'||c.status==='recebido';pill=recv?'Recebida':'Prevista';cls=recv?'pg':'av';ic=recv?'✓':'⏰';dtxt=dBRc(c.data_vencimento);}
+  else{const pago=c.status==='pago';const venc=!pago&&(c.data_vencimento||'')<hoje;pill=pago?'Pago':(venc?'Vencida':'Pendente');cls=pago?'pg':(venc?'vd':'av');ic=pago?'✓':(venc?'!':'⏰');dtxt=pago?dBRc(c.data_vencimento):(venc?'Venceu '+dBRc(c.data_vencimento):'Vence '+dBRc(c.data_vencimento));}
+  const sub=isR?((S.cli.find(x=>x.id===c.cliente_id)||{}).nome||''):((S.forn.find(x=>x.id===c.fornecedor_id)||{}).nome||'');
+  return `<div class="fxrow" data-conta="${c.id}"><span class="fxdot ${cls}">${ic}</span><span class="stpill ${cls}">${pill}</span><div class="fxbd"><div class="fxt">${esc(c.descricao)}</div>${sub?`<div class="fxs">${esc(sub)}</div>`:''}</div><div class="fxd">${dtxt}</div><div class="fxv ${isR?'g':'r'}">${isR?'+':'−'} ${money(c.valor)}</div></div>`;}
+function desenharFluxo6(labels,rec,des){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)return;if(window._fxc)window._fxc.destroy();
+  const fmt=v=>'R$ '+Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  const lab={id:'barlab',afterDatasetsDraw(ch){const g=ch.ctx;g.save();g.font='700 10.5px "Plus Jakarta Sans"';g.textAlign='center';ch.data.datasets.forEach((ds,di)=>{const m=ch.getDatasetMeta(di);m.data.forEach((bar,i)=>{const v=ds.data[i];if(!v)return;g.fillStyle=di===0?'#0b6b3a':'#b91c1c';g.fillText(fmt(v),bar.x,bar.y-6);});});g.restore();}};
+  window._fxc=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Receitas',data:rec,backgroundColor:'#16a34a',borderRadius:6,maxBarThickness:32},{label:'Despesas',data:des,backgroundColor:'#e11d48',borderRadius:6,maxBarThickness:32}]},options:{maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,suggestedMax:8000,ticks:{stepSize:2000,callback:v=>v?'R$'+(v/1000)+'k':'R$0'},grid:{color:'#eef0ee'}}}},plugins:[lab]});}
 function itemReceita(c){const rec=c.status==='pago';const btn=rec?'':`<button class="qpay g" data-recv="${c.id}" title="Marcar como recebida">✓</button>`;return `<div class="item rcv${rec?' done':''}" data-conta="${c.id}"><span class="di">💰</span><div class="bd"><div class="tt">${esc(c.descricao)}${rec?'<span class="chip pg">recebido</span>':''}</div><div class="ss">Previsto ${dBRc(c.data_vencimento)}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv rec">+ ${money(c.valor)}</div>${btn}</div>`;}
-function desenharFluxo(r,d){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)return;if(window._fxc)window._fxc.destroy();window._fxc=new Chart(ctx,{type:'bar',data:{labels:['Receitas','Despesas'],datasets:[{data:[r,d],backgroundColor:['#16a34a','#e11d48'],borderRadius:8,maxBarThickness:90}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+money(c.raw)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$ '+(v>=1000?(v/1000)+'k':v)}}}}});}
 
 /* ---- ASSINATURA ---- */
 function viewAssinatura(){
