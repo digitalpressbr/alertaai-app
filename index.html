@@ -60,7 +60,7 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .side{display:none}
 @media(min-width:900px){
   #screen-main{display:grid;grid-template-columns:var(--side) 1fr}
-  .side{display:flex;flex-direction:column;position:sticky;top:0;height:100dvh;background:linear-gradient(180deg,var(--green),var(--green-d));color:#fff;padding:20px 16px;gap:6px}
+  .side{display:flex;flex-direction:column;position:sticky;top:0;height:100dvh;background:linear-gradient(180deg,#0a4a28 0%,#02301c 100%);color:#fff;padding:20px 16px;gap:6px}
   .topbar,.tabs{display:none!important}
   .main{min-height:100dvh}
   .view{max-width:1760px;margin:0 auto;padding:24px 40px 44px}
@@ -83,7 +83,7 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .side .logout{width:100%;padding:10px;border-radius:11px;background:rgba(255,255,255,.1);color:#fff;font-weight:600;font-size:13.5px}
 .side .logout:hover{background:rgba(255,255,255,.2)}
 /* topbar + tabs (mobile) */
-.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,var(--green),var(--green-d));color:#fff;padding:14px 18px;display:flex;align-items:center;gap:11px;box-shadow:0 4px 18px rgba(8,78,41,.18)}
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,#0a4a28,#02301c);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:11px;box-shadow:0 4px 18px rgba(8,78,41,.18)}
 .topbar .ow{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
 .topbar .ow img{width:34px;height:34px;object-fit:contain}
 .topbar .ttl{font-family:var(--fdisp);font-weight:800;font-size:18px;line-height:1}
@@ -210,7 +210,7 @@ textarea.fld{resize:vertical;min-height:64px}
 @keyframes rot{to{transform:rotate(360deg)}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}@keyframes sheet{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
 .stg>*{animation:rise .45s both}.stg>*:nth-child(2){animation-delay:.05s}.stg>*:nth-child(3){animation-delay:.1s}.stg>*:nth-child(4){animation-delay:.15s}.stg>*:nth-child(5){animation-delay:.2s}
 /* ===== PRO components ===== */
-.navgroup{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.45);padding:15px 12px 5px}
+.navgroup{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.62);padding:15px 12px 5px}
 .navgroup:first-child{padding-top:4px}
 .kpis4{grid-template-columns:repeat(2,1fr)}
 .dash2{display:grid;gap:16px;grid-template-columns:1fr}
@@ -432,6 +432,13 @@ textarea.fld{resize:vertical;min-height:64px}
 .kbar{height:6px;border-radius:999px;background:var(--blue-soft);overflow:hidden;margin-top:9px}
 .kbar i{display:block;height:100%;background:var(--blue);border-radius:999px;transition:width .5s}
 .kpi .kt .ksub{font-size:11px;color:var(--blue);font-weight:700;margin-top:5px}
+.kpi .kt .n{white-space:nowrap}
+/* sidebar v2 — ícones de linha brancos + contraste */
+.side nav button{color:rgba(255,255,255,.88)}
+.side nav button .ic,.tabs button .ic{display:inline-flex;align-items:center;justify-content:center}
+.side nav button .ic svg{width:19px;height:19px}
+.tabs button .ic svg{width:21px;height:21px}
+.side .bs,.topbar .sub{opacity:.78}
 </style>
 </head>
 <body>
@@ -553,13 +560,26 @@ async function abrirApp(){
   renderNav();await carregar();irPara('inicio');
   if(new URLSearchParams(location.search).get('pago')){toast('Pagamento recebido! Estamos confirmando — seu acesso é liberado em instantes. 💚');history.replaceState({},'',location.pathname);}
 }
+const _ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICONS={
+  inicio:_ic('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M9.5 20v-5.3h5V20"/>'),
+  agenda:_ic('<rect x="3" y="4.5" width="18" height="16.5" rx="2.4"/><path d="M3 9.6h18M8 2.6v3.8M16 2.6v3.8"/>'),
+  pagar:_ic('<rect x="2.5" y="5.5" width="19" height="13" rx="2.4"/><path d="M2.5 9.7h19"/>'),
+  receber:_ic('<circle cx="12" cy="12" r="8.6"/><path d="M12 7v10M14.6 9.2c-.5-.9-1.5-1.4-2.7-1.4-1.6 0-2.6.8-2.6 1.9 0 2.6 5.5 1.4 5.5 4 0 1.2-1.1 2-2.8 2-1.3 0-2.4-.5-2.9-1.4"/>'),
+  fluxo:_ic('<path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="9" rx=".6"/><rect x="10.5" y="5.5" width="3" height="14.5" rx=".6"/><rect x="15.5" y="13.5" width="3" height="6.5" rx=".6"/>'),
+  forn:_ic('<rect x="4.5" y="3" width="15" height="18" rx="1.6"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10.5 21v-3h3v3"/>'),
+  cli:_ic('<circle cx="9" cy="8" r="3.3"/><path d="M3.6 20c0-3.1 2.4-5.2 5.4-5.2s5.4 2.1 5.4 5.2"/><path d="M16.2 5.2a3.1 3.1 0 0 1 .2 6M17 14.9c2.4.4 4 2.4 4 5.1"/>'),
+  cat:_ic('<path d="M3.6 13.2 11 5.8a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.6a2 2 0 0 1-.6 1.4l-7.4 7.4a1.8 1.8 0 0 1-2.6 0l-6.8-6.8a1.8 1.8 0 0 1 0-2.6z"/><circle cx="16.3" cy="8.7" r="1.2"/>'),
+  relat:_ic('<path d="M4 4v16h16"/><path d="M7.5 15l3.5-4.5 3 2.5 5-6.5"/>'),
+  mais:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>',
+};
 function renderNav(){
   $('navd').innerHTML='';$('navm').innerHTML='';
   NAV_GROUPS.forEach(([g,items])=>{
     $('navd').appendChild(el(`<div class="navgroup">${g}</div>`));
-    items.forEach(([k,ic,l])=>{const b=el(`<button data-k="${k}"><span class="ic">${ic}</span>${l}</button>`);b.onclick=()=>irPara(k);$('navd').appendChild(b);});
+    items.forEach(([k,ic,l])=>{const b=el(`<button data-k="${k}"><span class="ic">${ICONS[k]||ic}</span>${l}</button>`);b.onclick=()=>irPara(k);$('navd').appendChild(b);});
   });
-  MOBILE_TABS.forEach(([k,ic,l])=>{const b=el(`<button data-k="${k}"><span class="ic">${ic}</span><span>${l}</span></button>`);b.onclick=()=>irPara(k);$('navm').appendChild(b);});
+  MOBILE_TABS.forEach(([k,ic,l])=>{const b=el(`<button data-k="${k}"><span class="ic">${ICONS[k]||ic}</span><span>${l}</span></button>`);b.onclick=()=>irPara(k);$('navm').appendChild(b);});
 }
 function diasTrial(){
   if(!S.assinAte) return null;
