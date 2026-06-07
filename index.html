@@ -190,6 +190,10 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .pwa-banner .pb-i{background:var(--green);color:#fff;font-weight:700;font-size:13px;padding:9px 15px;border-radius:11px;flex:none}
 .pwa-banner .pb-x{background:none;color:var(--soft);font-size:16px;padding:4px 6px;flex:none}
 @media(min-width:760px){.pwa-banner{left:auto;right:20px;bottom:20px;max-width:360px}}
+.pwa-banner .pb-t{cursor:pointer}
+.iosstep{display:flex;gap:11px;align-items:flex-start;margin-bottom:13px;font-size:14px;line-height:1.4;color:var(--ink)}
+.iosstep .iosn{flex:none;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.iostip{font-size:12.5px;color:var(--muted);background:var(--green-soft);border-radius:10px;padding:10px 12px;margin-top:4px}
 .day.sel .dt.b{background:#bcd2ff}.day.sel .dt.r{background:#ffc2d2}
 .legend{display:flex;gap:18px;justify-content:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
 .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
@@ -750,14 +754,30 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
 let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();_pwaPrompt=e;bannerInstalar(false);});
 window.addEventListener('appinstalled',()=>{const b=$('pwa-banner');if(b)b.remove();localStorage.setItem('pwa-ok','1');});
+function instrucoesIOS(){
+  if($('ios-help'))return;
+  const ov=el(`<div class="ov" id="ios-help"><div class="modal"><div class="modal-h"><div class="t">📲 Instalar o AlertaAí no iPhone</div><button class="cl" aria-label="fechar">✕</button></div><div class="modal-b">
+    <div class="iosstep"><span class="iosn">1</span><div>Toque no botão <b>Compartilhar</b> ⬆️ (o quadradinho com a seta pra cima) na barra do Safari, embaixo.</div></div>
+    <div class="iosstep"><span class="iosn">2</span><div>Role para baixo e toque em <b>Adicionar à Tela de Início</b>.</div></div>
+    <div class="iosstep"><span class="iosn">3</span><div>Toque em <b>Adicionar</b> no canto. Pronto — o ícone da coruja 🦉 aparece na sua tela!</div></div>
+    <div class="iostip">No iPhone o app é instalado por aqui (a Apple não deixa instalar com 1 toque). É rapidinho! 💚</div>
+  </div></div></div>`);
+  ov.querySelector('.cl').onclick=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  $('modal-root').appendChild(ov);
+}
 function bannerInstalar(ios){
   if($('pwa-banner')||localStorage.getItem('pwa-ok'))return;
   if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)return;
-  const txt=ios?'Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b> 📲':'Acesso rápido na tela do seu celular 📲';
-  const btn=ios?'':'<button class="pb-i">Instalar</button>';
-  const b=el(`<div id="pwa-banner" class="pwa-banner"><img src="coruja.png" alt=""><div class="pb-t"><b>Instalar o AlertaAí</b><span>${txt}</span></div>${btn}<button class="pb-x" aria-label="fechar">✕</button></div>`);
-  const bi=b.querySelector('.pb-i');if(bi)bi.onclick=async()=>{if(!_pwaPrompt)return;_pwaPrompt.prompt();await _pwaPrompt.userChoice;_pwaPrompt=null;b.remove();};
-  b.querySelector('.pb-x').onclick=()=>{localStorage.setItem('pwa-ok','1');b.remove();};
+  const sub=ios?'Toque aqui pra ver como 📲':'Acesso rápido na tela do celular 📲';
+  const b=el(`<div id="pwa-banner" class="pwa-banner"><img src="coruja.png" alt=""><div class="pb-t"><b>Instalar o AlertaAí</b><span>${sub}</span></div><button class="pb-i">Instalar</button><button class="pb-x" aria-label="fechar">✕</button></div>`);
+  const fazer=async()=>{
+    if(!ios&&_pwaPrompt){_pwaPrompt.prompt();const r=await _pwaPrompt.userChoice;_pwaPrompt=null;if(r&&r.outcome==='accepted')b.remove();return;}
+    instrucoesIOS(); // iOS (ou Android sem prompt nativo) → guia passo a passo
+  };
+  b.querySelector('.pb-i').onclick=fazer;
+  b.querySelector('.pb-t').onclick=fazer;
+  b.querySelector('img').onclick=fazer;
+  b.querySelector('.pb-x').onclick=(e)=>{e.stopPropagation();localStorage.setItem('pwa-ok','1');b.remove();};
   document.body.appendChild(b);
 }
 (function(){const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios)setTimeout(()=>bannerInstalar(true),2500);})();
