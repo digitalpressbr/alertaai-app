@@ -590,7 +590,9 @@ async function uploadAnexo(file,contaId,tipo){file=await comprimirImg(file);if(f
 async function verAnexo(path){if(!path)return;const {data}=await supa.storage.from('anexos').createSignedUrl(path,3600);if(data&&data.signedUrl)window.open(data.signedUrl,'_blank');else toast('Não consegui abrir o anexo',true);}
 
 function getToken(){const m=(location.hash||location.search||'').match(/token=([A-Za-z0-9_\-]+)/);return m?m[1]:'';}
-async function init(){const tk=getToken();if(tk)return iniciarAcesso(tk);const {data:{session}}=await supa.auth.getSession();if(session)return abrirApp();show('screen-login');}
+function getView(){const m=(location.hash||location.search||'').match(/[?#&]v=([a-z]+)/);return m?m[1]:'';}
+let _vIni='';
+async function init(){_vIni=getView();const tk=getToken();if(tk)return iniciarAcesso(tk);const {data:{session}}=await supa.auth.getSession();if(session)return abrirApp();show('screen-login');}
 
 /* LOGIN */
 $('lg-btn').onclick=async()=>{const email=$('lg-email').value.trim().toLowerCase(),senha=$('lg-senha').value;if(!email||!senha)return setMsg('lg-msg','Preencha e-mail e senha.','err');$('lg-btn').disabled=true;setMsg('lg-msg','Entrando...','ok');const {error}=await supa.auth.signInWithPassword({email,password:senha});$('lg-btn').disabled=false;if(error)return setMsg('lg-msg','E-mail ou senha incorretos.','err');abrirApp();};
@@ -622,7 +624,7 @@ async function abrirApp(){
   if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
-  renderNav();await carregar();irPara('inicio');
+  renderNav();await carregar();irPara((_vIni&&ROUTES[_vIni])?_vIni:'inicio');_vIni='';
   if(new URLSearchParams(location.search).get('pago')){toast('Pagamento recebido! Estamos confirmando — seu acesso é liberado em instantes. 💚');history.replaceState({},'',location.pathname);}
 }
 const _ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
