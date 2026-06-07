@@ -475,6 +475,14 @@ textarea.fld{resize:vertical;min-height:64px}
 .resumo .rc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .resumo .rc .rn{font-family:var(--fdisp);font-weight:800;font-size:21px}
 .resumo .rc .rl{font-size:10.5px;color:var(--muted);font-weight:600}
+/* ===== Contas v2 ===== */
+.bpill.dr{background:var(--rose);box-shadow:0 3px 10px rgba(225,29,72,.2)}.bpill.dr:hover{background:var(--rose-dark)}
+.tb-act.vd{background:var(--rose)}.tb-act.vd:hover{background:var(--rose-dark)}
+.catpill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.catpill.none{background:var(--bg);color:var(--soft);font-weight:600}
+.ct-sort{padding:9px 12px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font-weight:600;font-size:13px;color:var(--ink);cursor:pointer}
+.dicacard{display:flex;align-items:center;gap:11px;background:var(--amber-soft);border:1px solid #f0dcb8;border-radius:14px;padding:12px 16px;margin-top:14px;font-size:13px;color:var(--amber-dark)}
+.dicacard .dic{font-size:20px;flex:none}
 </style>
 </head>
 <body>
@@ -805,25 +813,28 @@ function viewContasPagar(){
   const sum=a=>a.reduce((s,c)=>s+Number(c.valor||0),0);
   const chips=[['todas','Todas'],['avencer','A vencer'],['vencidas','Vencidas'],['pagas','Pagas']];
   const f=S.filtroContas||'todas';
-  let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta(s)</div></div><div class="act"><button class="bpill" data-add="despesa">＋ Nova despesa</button></div></div>
+  let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta(s)</div></div><div class="act"><button class="bpill dr" data-add="despesa">＋ Nova despesa</button></div></div>
   <div class="minicards">
     <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Vencidas</div><div class="mv">${money(sum(venc))}</div><div class="ml">${venc.length} conta(s)</div></div></div>
     <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
     <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A vencer</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
     <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Pagas no mês</div><div class="mv">${money(sum(pg))}</div><div class="ml">${pg.length} conta(s)</div></div></div>
   </div>
-  <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div></div>
-  <div id="ct-list"></div>`;
+  <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div><select id="ct-sort" class="ct-sort"><option value="venc"${S.sortContas==='valor'?'':' selected'}>Por vencimento</option><option value="valor"${S.sortContas==='valor'?' selected':''}>Maior valor</option></select></div>
+  <div id="ct-list"></div>
+  ${desp.some(c=>!c.categoria_id)?'<div class="dicacard"><span class="dic">💡</span><div><b>Dica:</b> categorize suas contas pra ter insights por categoria no Dashboard e nos Relatórios.</div></div>':''}`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'despesa');
   v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroContas=b.dataset.f;viewContasPagar();});
   const bu=$('ct-busca');bu.oninput=()=>{S.buscaContas=bu.value;renderCt();};
+  $('ct-sort').onchange=()=>{S.sortContas=$('ct-sort').value;renderCt();};
   function renderCt(){
     const q=(S.buscaContas||'').toLowerCase(),ff=S.filtroContas||'todas';let lst=desp.slice();
     if(q)lst=lst.filter(c=>(c.descricao||'').toLowerCase().includes(q)||(c.observacao||'').toLowerCase().includes(q));
     if(ff==='vencidas')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento<hoje);
     else if(ff==='avencer')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento>=hoje);
     else if(ff==='pagas')lst=lst.filter(c=>c.status==='pago');
+    if(S.sortContas==='valor')lst.sort((a,b)=>Number(b.valor||0)-Number(a.valor||0));
     else lst.sort((a,b)=>((a.status==='pago')-(b.status==='pago'))||(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
     const box=$('ct-list');box.innerHTML=contaTabela(lst,'desp');bindItems(box);
   }
@@ -845,18 +856,21 @@ function viewContasReceber(){
     <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A receber</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
     <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Recebido no mês</div><div class="mv">${money(sum(rb))}</div><div class="ml">${rb.length} conta(s)</div></div></div>
   </div>
-  <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div></div>
-  <div id="rc-list"></div>`;
+  <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l])=>`<button class="fchip${f===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div><select id="rc-sort" class="ct-sort"><option value="venc"${S.sortRec==='valor'?'':' selected'}>Por vencimento</option><option value="valor"${S.sortRec==='valor'?' selected':''}>Maior valor</option></select></div>
+  <div id="rc-list"></div>
+  <div class="dicacard" style="background:var(--green-soft);border-color:#cfe8d8;color:var(--green-d)"><span class="dic">💬</span><div><b>Dica:</b> perto do vencimento, mande um lembrete pro cliente no WhatsApp — recebimento em dia fica mais fácil.</div></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'receita');
   v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroRec=b.dataset.f;viewContasReceber();});
   const bu=$('rc-busca');bu.oninput=()=>{S.buscaRec=bu.value;renderRc();};
+  $('rc-sort').onchange=()=>{S.sortRec=$('rc-sort').value;renderRc();};
   function renderRc(){
     const q=(S.buscaRec||'').toLowerCase(),ff=S.filtroRec||'todas';let lst=rec.slice();
     if(q)lst=lst.filter(c=>(c.descricao||'').toLowerCase().includes(q));
     if(ff==='atrasadas')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento<hoje);
     else if(ff==='areceber')lst=lst.filter(c=>c.status!=='pago'&&c.data_vencimento>=hoje);
     else if(ff==='recebidas')lst=lst.filter(c=>c.status==='pago');
+    if(S.sortRec==='valor')lst.sort((a,b)=>Number(b.valor||0)-Number(a.valor||0));
     else lst.sort((a,b)=>((a.status==='pago')-(b.status==='pago'))||(a.data_vencimento||'').localeCompare(b.data_vencimento||''));
     const box=$('rc-list');box.innerHTML=contaTabela(lst,'rec');bindItems(box);
   }
@@ -1067,9 +1081,11 @@ function linhaTabela(c,tipo){
   if(pago){badge=`<span class="tb-badge pg">${tipo==='rec'?'RECEBIDA':'PAGA'}</span>`;dot='pg';}
   else if(venc<hoje){badge=`<span class="tb-badge vd">${tipo==='rec'?'ATRASADA':'VENCIDA'}</span>`;dot='vd';}
   else{badge='<span class="tb-badge av">PENDENTE</span>';dot='av';}
-  const cat=S.cat.find(x=>x.id===c.categoria_id),catTxt=cat?((cat.icone?cat.icone+' ':'')+esc(cat.nome)):'—';
+  const cat=S.cat.find(x=>x.id===c.categoria_id);const catCor=(cat&&cat.cor)?cat.cor:'#9aa39c';
+  const catTxt=cat?`<span class="catpill" style="background:${catCor}1f;color:${catCor}">${cat.icone?cat.icone+' ':''}${esc(cat.nome)}</span>`:'<span class="catpill none">Sem categoria</span>';
   const pessoa=tipo==='rec'?((S.cli.find(x=>x.id===c.cliente_id)||{}).nome):((S.forn.find(x=>x.id===c.fornecedor_id)||{}).nome);
-  const acao=pago?'<span style="color:var(--soft);font-size:12px">—</span>':`<button class="tb-act${tipo==='rec'?' g':''}" data-${tipo==='rec'?'recv':'pay'}="${c.id}">${tipo==='rec'?'Receber':'Pagar'}</button>`;
+  const vencida=!pago&&venc<hoje;
+  const acao=pago?'<span style="color:var(--soft);font-size:12px">—</span>':`<button class="tb-act${tipo==='rec'?' g':(vencida?' vd':'')}" data-${tipo==='rec'?'recv':'pay'}="${c.id}">${tipo==='rec'?'Receber':'Pagar'}</button>`;
   const vatr=venc<hoje&&!pago?' style="color:var(--rose);font-weight:600"':'';
   return `<tr data-conta="${c.id}"><td><span class="tb-dot ${dot}"></span>${badge}</td><td class="tb-desc">${esc(c.descricao)}${(c.boleto_path||c.comprovante_path)?' 📎':''}</td><td>${catTxt}</td><td>${esc(pessoa||'—')}</td><td${vatr}>${dBRc(venc)}</td><td class="tb-val${tipo==='rec'?' rec':''}">${tipo==='rec'?'+ ':'− '}${money(c.valor)}</td><td class="tb-ac">${acao}</td></tr>`;
 }
