@@ -874,13 +874,13 @@ async function carregar(){
   const ini6=new Date(Date.UTC(S.ano,S.mes-5,1)).toISOString().slice(0,10);
   const [c1,c2,c3,c4,c5,c6,c7,c8]=await Promise.all([
     supa.from('compromissos').select('*').eq('cancelado',false).gte('data',ini).lte('data',fim).order('data').order('horario'),
-    supa.from('contas').select('*').gte('data_vencimento',ini).lte('data_vencimento',fim).order('data_vencimento'),
+    supa.from('contas').select('*').neq('status','cancelado').gte('data_vencimento',ini).lte('data_vencimento',fim).order('data_vencimento'),
     supa.from('fornecedores').select('*').order('nome'),
     supa.from('categorias').select('*').order('nome'),
-    supa.from('contas').select('*').neq('status','pago').neq('tipo','receita').order('data_vencimento').limit(300),
-    supa.from('contas').select('*').neq('status','pago').eq('tipo','receita').order('data_vencimento').limit(300),
+    supa.from('contas').select('*').neq('status','pago').neq('status','cancelado').neq('tipo','receita').order('data_vencimento').limit(300),
+    supa.from('contas').select('*').neq('status','pago').neq('status','cancelado').eq('tipo','receita').order('data_vencimento').limit(300),
     supa.from('clientes').select('*').order('nome'),
-    supa.from('contas').select('tipo,valor,data_vencimento,categoria_id,status').gte('data_vencimento',ini6).lte('data_vencimento',fim),
+    supa.from('contas').select('tipo,valor,data_vencimento,categoria_id,status').neq('status','cancelado').gte('data_vencimento',ini6).lte('data_vencimento',fim),
   ]);
   S.comp=c1.data||[];S.contas=c2.data||[];S.forn=c3.data||[];S.cat=c4.data||[];S.abertas=c5.data||[];S.aberRec=c6.data||[];S.cli=c7.data||[];S.serie=c8.data||[];
   S.porDia={};
