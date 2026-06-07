@@ -824,6 +824,7 @@ async function abrirApp(){
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara((_vIni&&ROUTES[_vIni])?_vIni:'inicio');_vIni='';
+  try{setTimeout(()=>bannerInstalar(/iphone|ipad|ipod/i.test(navigator.userAgent)),1400);}catch(_e){}
   if(new URLSearchParams(location.search).get('pago')){toast('Pagamento recebido! Estamos confirmando — seu acesso é liberado em instantes. 💚');history.replaceState({},'',location.pathname);}
 }
 const _ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -1032,8 +1033,9 @@ function renderAgSide(){
 /* ---- CONTAS A PAGAR ---- */
 function viewContasPagar(){
   const hoje=hojeBRT(),em7=addDias(hoje,7);
-  const desp=S.contas.filter(c=>c.tipo!=='receita');
-  const ab=desp.filter(c=>c.status!=='pago'),pg=desp.filter(c=>c.status==='pago');
+  const ab=(S.abertas||[]).filter(c=>c.tipo!=='receita');                                  // TODAS abertas (qualquer mês) — igual ao Dashboard
+  const pg=(S.contas||[]).filter(c=>c.tipo!=='receita'&&c.status==='pago');                  // pagas no mês atual
+  const desp=[...ab,...pg];
   const venc=ab.filter(c=>c.data_vencimento<hoje),sev=ab.filter(c=>c.data_vencimento>=hoje&&c.data_vencimento<=em7),fut=ab.filter(c=>c.data_vencimento>em7);
   const sum=a=>a.reduce((s,c)=>s+Number(c.valor||0),0);
   const chips=[['todas','Todas',ab.length+pg.length],['vencidas','Vencidas',venc.length],['avencer','A vencer',ab.length-venc.length],['pagas','Pagas',pg.length]];
@@ -1067,8 +1069,9 @@ function viewContasPagar(){
 /* ---- CONTAS A RECEBER ---- */
 function viewContasReceber(){
   const hoje=hojeBRT(),em7=addDias(hoje,7);
-  const rec=S.contas.filter(c=>c.tipo==='receita');
-  const ab=rec.filter(c=>c.status!=='pago'),rb=rec.filter(c=>c.status==='pago');
+  const ab=(S.aberRec||[]).filter(c=>c.tipo==='receita');                                   // TODAS receitas em aberto (qualquer mês)
+  const rb=(S.contas||[]).filter(c=>c.tipo==='receita'&&c.status==='pago');                  // recebidas no mês atual
+  const rec=[...ab,...rb];
   const atr=ab.filter(c=>c.data_vencimento<hoje),sev=ab.filter(c=>c.data_vencimento>=hoje&&c.data_vencimento<=em7),fut=ab.filter(c=>c.data_vencimento>em7);
   const sum=a=>a.reduce((s,c)=>s+Number(c.valor||0),0);
   const chips=[['todas','Todas',ab.length+rb.length],['areceber','A receber',ab.length-atr.length],['atrasadas','Atrasadas',atr.length],['recebidas','Recebidas',rb.length]];
