@@ -1043,13 +1043,13 @@ function viewContasReceber(){
   const chips=[['todas','Todas',ab.length+rb.length],['areceber','A receber',ab.length-atr.length],['atrasadas','Atrasadas',atr.length],['recebidas','Recebidas',rb.length]];
   const f=S.filtroRec||'todas';
   let h=`<div class="ph"><div><h1>Contas a receber</h1><div class="d">${money(sum(ab))} a receber · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill g" data-add="receita">＋ Nova receita</button></div></div>
+  <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='atrasadas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="rc-sort" class="ct-sort"><option value="venc"${S.sortRec==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortRec==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="minicards">
     <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length?atr.length+' conta(s)':'Tudo em dia! 🎉'}</div></div></div>
     <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
     <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A receber (mês)</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
     <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Recebido no mês</div><div class="mv">${money(sum(rb))}</div><div class="ml">${rb.length} conta(s)</div></div></div>
   </div>
-  <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='atrasadas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="rc-sort" class="ct-sort"><option value="venc"${S.sortRec==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortRec==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="contaswrap"><div id="rc-list"></div><aside class="dicaright wpp"><div class="dr-h"><span class="dic">💬</span> DICA</div><div class="dr-b">Envie lembretes automáticos pelo WhatsApp para clientes em atraso.</div><span style="color:var(--green-d);font-weight:700;font-size:12.5px;margin-top:11px;display:inline-block;cursor:pointer">Configurar lembretes →</span></aside></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'receita');
