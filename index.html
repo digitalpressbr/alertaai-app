@@ -174,7 +174,10 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .cc-pay.vd{background:var(--rose)}
 /* Relatórios: 3 cards grandes empilhados (mockup M09) */
 .rsum{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-.rs{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--soft);border-radius:14px;padding:13px 16px;box-shadow:var(--shadow-sm)}
+.rs{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--soft);border-radius:14px;padding:13px 16px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px}
+.rs-info{flex:1;min-width:0}
+.rs-spk{flex:none;width:96px;height:38px;opacity:.92}.rs-spk svg{width:100%;height:100%;display:block}
+.relrow .rl small{color:var(--soft);font-weight:600;font-size:11px}
 .rs.g{border-left-color:var(--green)}.rs.r{border-left-color:var(--rose)}.rs.b{border-left-color:var(--blue)}
 .rs-l{font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--soft)}
 .rs.g .rs-l{color:var(--green-d)}.rs.r .rs-l{color:#b00930}.rs.b .rs-l{color:var(--blue)}
@@ -1336,17 +1339,25 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   const pmRel=new Date(Date.UTC(S.ano,S.mes-1,1)),pYR=pmRel.getUTCFullYear(),pMR=pmRel.getUTCMonth();
   let prevRR=0,prevDR=0;(S.serie||[]).forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===pYR&&(+dt.slice(5,7)-1)===pMR){if(c.tipo==='receita')prevRR+=Number(c.valor||0);else prevDR+=Number(c.valor||0);}});
   const vpR=prevRR?Math.round((tR-prevRR)/prevRR*100):null,vpD=prevDR?Math.round((tD-prevDR)/prevDR*100):null,res=tR-tD;
-  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><button class="bpill" id="exp-csv">⬇️ Exportar CSV</button></div></div>
+  const R6=[],D6=[],S6=[];
+  for(let i=5;i>=0;i--){const dd=new Date(Date.UTC(S.ano,S.mes-i,1)),y=dd.getUTCFullYear(),m=dd.getUTCMonth();let r=0,p=0;(S.serie||[]).forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===y&&(+dt.slice(5,7)-1)===m){if(c.tipo==='receita')r+=Number(c.valor||0);else p+=Number(c.valor||0);}});R6.push(r);D6.push(p);S6.push(r-p);}
+  const fmap={};desp.forEach(c=>{const nm=(c.observacao||'').trim();if(nm)fmap[nm]=(fmap[nm]||0)+Number(c.valor||0);});
+  const topF=Object.entries(fmap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const pctD=(x)=>tD?Math.round(x/tD*100):0,pctR=(x)=>tR?Math.round(x/tR*100):0;
+  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><div class="mnav"><button id="rl-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="rl-next">›</button></div><button class="bpill" id="exp-csv">⬇️ CSV</button></div></div>
   <div class="rsum">
-    <div class="rs g"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div>
-    <div class="rs r"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div>
-    <div class="rs b"><div class="rs-l">RESULTADO</div><div class="rs-v">${money(res)}</div><div class="rs-d ${res>=0?'up':'down'}">${res>=0?'✓ lucro positivo':'resultado negativo'}</div></div>
+    <div class="rs g"><div class="rs-info"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(R6,'#16a34a')}</div></div>
+    <div class="rs r"><div class="rs-info"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(D6,'#e11d48')}</div></div>
+    <div class="rs b"><div class="rs-info"><div class="rs-l">RESULTADO</div><div class="rs-v">${money(res)}</div><div class="rs-d ${res>=0?'up':'down'}">${res>=0?'✓ lucro positivo':'resultado negativo'}</div></div><div class="rs-spk">${spark(S6,'#2563eb')}</div></div>
   </div>
   <div class="cols2" style="margin-top:16px">
-    <div class="panel"><h3>💸 Despesas por categoria</h3>${rowsD.length?rowsD.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)}</b></div>${bar(o.v,maxD,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem despesas este mês.')}</div>
-    <div class="panel"><h3>💰 Receitas por categoria</h3>${rowsR.length?rowsR.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)}</b></div>${bar(o.v,maxR,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem receitas este mês.')}</div>
-  </div>`;
-  $('exp-csv').onclick=exportCSV;}
+    <div class="panel"><h3>💸 Despesas por categoria</h3>${rowsD.length?rowsD.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)} <small>(${pctD(o.v)}%)</small></b></div>${bar(o.v,maxD,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem despesas este mês.')}</div>
+    <div class="panel"><h3>💰 Receitas por categoria</h3>${rowsR.length?rowsR.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)} <small>(${pctR(o.v)}%)</small></b></div>${bar(o.v,maxR,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem receitas este mês.')}</div>
+  </div>
+  ${topF.length?`<div class="panel" style="margin-top:14px"><h3>🏢 Top fornecedores</h3>${topF.map(([n,vv])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(vv)}</b></div>${bar(vv,topF[0][1],'#475569')}</div>`).join('')}</div>`:''}`;
+  $('exp-csv').onclick=exportCSV;
+  if($('rl-prev'))$('rl-prev').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes-1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};
+  if($('rl-next'))$('rl-next').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes+1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};}
 function exportCSV(){const rows=[['Tipo','Descrição','Valor','Vencimento','Status','Categoria']];const catN=id=>{const c=S.cat.find(x=>x.id===id);return c?c.nome:'';};
   S.contas.forEach(c=>rows.push([c.tipo==='receita'?'Receita':'Despesa',(c.descricao||'').replace(/;/g,','),moneyN(c.valor),c.data_vencimento||'',c.status||'',catN(c.categoria_id)]));
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`alertaai_${S.ano}_${String(S.mes+1).padStart(2,'0')}.csv`;a.click();toast('CSV exportado ✅');}
