@@ -1,0 +1,17 @@
+{
+  "name": "AlertaAí — agenda & contas",
+  "short_name": "AlertaAí",
+  "description": "Sua agenda e suas contas, com lembretes no WhatsApp.",
+  "start_url": "./?v=inicio",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f1e9",
+  "theme_color": "#0b6b3a",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "coruja.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "coruja.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "coruja.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
