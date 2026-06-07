@@ -598,7 +598,16 @@ textarea.fld{resize:vertical;min-height:64px}
   .item{max-width:100%}
   .item .ss{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ph h1{font-size:23px}
-  .kpi .n{font-size:20px}
+  .kpi .n{font-size:19px;white-space:nowrap}
+  /* números cabem no celular (sem cortar/quebrar) */
+  .mc .mv{font-size:16px;white-space:nowrap}
+  .mc .mic{width:40px;height:40px;font-size:18px}
+  .mc{padding:12px}
+  .r3{gap:7px!important}
+  .r3 .kpi{flex-direction:column;align-items:flex-start;padding:11px 9px;gap:2px}
+  .r3 .kpi .ic{width:30px;height:30px;font-size:14px;margin:0}
+  .r3 .kpi .n{font-size:13.5px;white-space:nowrap;line-height:1.1}
+  .r3 .kpi .l{font-size:10px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
   .kpi .kt{min-width:0;flex:1}
@@ -1281,7 +1290,7 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   const rowsD=porCat(desp),rowsR=porCat(rec);const maxD=Math.max(1,...rowsD.map(r=>r[1].v)),maxR=Math.max(1,...rowsR.map(r=>r[1].v));
   const bar=(val,max,cor)=>`<div class="rbar"><i style="width:${max?Math.max(3,val/max*100):0}%;background:${cor}"></i></div>`;
   v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div><div class="act"><button class="bpill" id="exp-csv">⬇️ Exportar CSV</button></div></div>
-  <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+  <div class="kpis r3" style="grid-template-columns:repeat(3,1fr)">
     <div class="kpi g"><div class="ic">💰</div><div class="n">${money(tR)}</div><div class="l">receitas</div></div>
     <div class="kpi r"><div class="ic">💸</div><div class="n">${money(tD)}</div><div class="l">despesas</div></div>
     <div class="kpi ${tR-tD>=0?'b':'r'}"><div class="ic">${tR-tD>=0?'📈':'📉'}</div><div class="n">${money(tR-tD)}</div><div class="l">resultado</div></div>
