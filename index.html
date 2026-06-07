@@ -439,6 +439,41 @@ textarea.fld{resize:vertical;min-height:64px}
 .side nav button .ic svg{width:19px;height:19px}
 .tabs button .ic svg{width:21px;height:21px}
 .side .bs,.topbar .sub{opacity:.78}
+/* ===== Agenda v2 ===== */
+.agwrap{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:900px){.agwrap{grid-template-columns:1.55fr 1fr;align-items:start}}
+.agtoggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.agtoggle button{padding:9px 14px;font-weight:700;font-size:13px;color:var(--muted)}
+.agtoggle button.on{background:var(--green-mid);color:#fff}
+.cal.v2 .cal-h{gap:6px}.cal.v2 .cal-h .m{flex:1;text-align:center}
+.cal-h .hojebtn{padding:7px 14px;border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:13px;color:var(--ink);background:#fff}
+.cal-h .hojebtn:hover{background:var(--green-soft);color:var(--green-d)}
+.grid.hd .dow{font-size:10.5px}
+.cal.v2 .calg{gap:5px}
+.cal.v2 .day{aspect-ratio:auto;min-height:82px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:5px 5px 4px;border:1px solid var(--line-light);border-radius:10px}
+.cal.v2 .day .dn{font-size:13px;font-weight:700}
+.cal.v2 .day.out{background:#faf8f1;color:#c3ccc4;pointer-events:none}
+.cal.v2 .day.today{border-color:var(--green);border-width:2px;background:#fff}
+.cal.v2 .day.sel{background:var(--green);color:#fff}
+.daychips{display:flex;flex-direction:column;gap:3px;margin-top:4px;width:100%;overflow:hidden}
+.dchip{font-size:10px;font-weight:700;padding:2px 5px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.dchip.r{background:var(--rose-soft);color:var(--rose-dark)}.dchip.g{background:var(--green-soft);color:var(--green-d)}.dchip.b{background:var(--blue-soft);color:var(--blue)}
+.dchip.more{background:none;color:var(--soft);padding:0 4px;font-weight:600}
+.aghoje,.prox7,.resumo{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px 18px;margin-bottom:14px}
+.agh-t{font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--soft);text-transform:uppercase;margin-bottom:10px}
+.empty-owl{text-align:center;padding:6px 0 2px}
+.empty-owl img{width:90px;height:90px;object-fit:contain}
+.empty-owl .et{font-family:var(--fdisp);font-weight:800;font-size:16px;margin-top:4px}
+.empty-owl .es{font-size:12.5px;color:var(--muted);margin-top:2px}
+.p7row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line-light)}.p7row:last-child{border-bottom:0}
+.p7d{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:5px 9px;font-family:var(--fdisp);font-weight:800;font-size:13px;flex:none}
+.p7d .dw{font-family:var(--fbody);font-size:9px;color:var(--soft);font-weight:700}
+.p7ev{font-size:12.5px;display:flex;align-items:center;gap:7px;color:var(--ink)}
+.p7ev .dot{width:7px;height:7px;border-radius:50%;flex:none}.p7ev.none{color:var(--soft)}
+.resumo{display:flex;gap:8px;align-items:stretch}
+.resumo .rc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.resumo .rc .rn{font-family:var(--fdisp);font-weight:800;font-size:21px}
+.resumo .rc .rl{font-size:10.5px;color:var(--muted);font-weight:600}
 </style>
 </head>
 <body>
@@ -692,41 +727,72 @@ function emptyBox(e,t){return `<div class="empty"><span class="e">${e}</span>${e
 
 /* ---- AGENDA ---- */
 function viewAgenda(){
-  let h=`<div class="ph"><div><h1>Agenda</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div><div class="act"><button class="bpill" data-add="comp">＋ Novo compromisso</button></div></div>
-  <div class="cols2"><div class="cal">
-    <div class="cal-h"><button id="pmes">‹</button><div class="m">${MES[S.mes]} ${S.ano}</div><button id="nmes">›</button></div>
-    <div class="grid">${DOW.map(x=>`<div class="dow">${x}</div>`).join('')}</div><div class="grid" id="cal-grid"></div>
-    <div class="legend"><span><i style="background:var(--blue)"></i>Compromissos</span><span><i style="background:var(--rose)"></i>Despesas</span><span><i style="background:var(--green)"></i>Receitas</span></div></div>
-  <div class="panel"><div id="ag-list"></div></div></div>`;
+  if(!S.agView)S.agView='mes';
+  const TB=[['mes','Mês'],['semana','Semana'],['dia','Dia']];
+  let left;
+  if(S.agView==='mes'){
+    left=`<div class="cal v2">
+      <div class="cal-h"><button id="pmes">‹</button><div class="m">${MES[S.mes]} ${S.ano}</div><button id="nmes">›</button><button class="hojebtn" id="hojebtn">Hoje</button></div>
+      <div class="grid hd">${DOW.map(x=>`<div class="dow">${x.toUpperCase()}</div>`).join('')}</div>
+      <div class="grid calg" id="cal-grid"></div>
+      <div class="legend"><span><i style="background:var(--green)"></i>Receitas</span><span><i style="background:var(--rose)"></i>Despesas</span><span><i style="background:var(--blue)"></i>Compromissos</span></div>
+    </div>`;
+  }else{
+    const hj=new Date(Date.now()-3*3600e3);
+    const base=(hj.getUTCMonth()===S.mes&&hj.getUTCFullYear()===S.ano)?hj.getUTCDate():1;
+    const n=S.agView==='dia'?1:7;let rows='';
+    for(let i=0;i<n;i++){const d=new Date(Date.UTC(S.ano,S.mes,base+i));if(d.getUTCMonth()!==S.mes)break;const dd=String(d.getUTCDate()).padStart(2,'0');const evs=eventosDia(dd);
+      rows+=`<div class="agday"><div class="agcol"><div class="dd">${d.getUTCDate()}</div><div class="dw">${DOW[d.getUTCDay()]}</div></div><div class="agev">${evs.length?evs.join(''):'<span class="none">Nenhum compromisso</span>'}</div></div>`;}
+    left=`<div class="cal v2"><div class="cal-h"><button id="pmes">‹</button><div class="m">${S.agView==='dia'?'Hoje':'Esta semana'} · ${MES[S.mes]}</div><button id="nmes">›</button><button class="hojebtn" id="hojebtn">Hoje</button></div><div class="agpanel" style="margin-top:8px">${rows||'<div class="agev"><span class="none">Nada por aqui.</span></div>'}</div></div>`;
+  }
+  const h=`<div class="ph"><div><h1>Agenda</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div>
+    <div class="act"><div class="agtoggle">${TB.map(([k,l])=>`<button data-ag="${k}" class="${S.agView===k?'on':''}">${l}</button>`).join('')}</div><button class="bpill" data-add="comp">＋ Novo compromisso</button></div></div>
+  <div class="agwrap">${left}<div id="ag-side"></div></div>`;
   const v=$('view');v.innerHTML=h;
-  $('pmes').onclick=()=>mudaMes(-1);$('nmes').onclick=()=>mudaMes(1);
+  if($('pmes'))$('pmes').onclick=()=>mudaMes(-1);
+  if($('nmes'))$('nmes').onclick=()=>mudaMes(1);
+  if($('hojebtn'))$('hojebtn').onclick=()=>{const t=new Date(Date.now()-3*3600e3);const fora=(t.getUTCFullYear()!==S.ano||t.getUTCMonth()!==S.mes);S.ano=t.getUTCFullYear();S.mes=t.getUTCMonth();S.selDia=null;if(fora)carregar().then(()=>viewAgenda());else viewAgenda();};
+  v.querySelectorAll('[data-ag]').forEach(b=>b.onclick=()=>{S.agView=b.dataset.ag;viewAgenda();});
   v.querySelector('[data-add]').onclick=()=>modalComp();
-  renderCalendar();renderAgList();
+  if(S.agView==='mes')renderCalendar();
+  renderAgSide();
 }
 function mudaMes(d){S.mes+=d;if(S.mes<0){S.mes=11;S.ano--}if(S.mes>11){S.mes=0;S.ano++}S.selDia=null;carregar().then(()=>viewAgenda());}
+function chipsDia(k,max){const ev=S.porDia[k]||{b:[],r:[],e:[]};const all=[...ev.e.map(c=>['g','R$ '+moneyN(c.valor)]),...ev.r.map(c=>['r','R$ '+moneyN(c.valor)]),...ev.b.map(c=>['b',(c.horario&&c.horario!=='00:00'?c.horario+' ':'')+c.titulo])];max=max||2;let s=all.slice(0,max).map(([cl,t])=>`<div class="dchip ${cl}">${esc(t)}</div>`).join('');if(all.length>max)s+=`<div class="dchip more">+${all.length-max} mais</div>`;return s;}
 function renderCalendar(){
-  const first=new Date(Date.UTC(S.ano,S.mes,1)).getUTCDay(),ndays=new Date(Date.UTC(S.ano,S.mes+1,0)).getUTCDate();
+  const grid=$('cal-grid');if(!grid)return;
+  const first=new Date(Date.UTC(S.ano,S.mes,1)).getUTCDay(),ndays=new Date(Date.UTC(S.ano,S.mes+1,0)).getUTCDate(),prevN=new Date(Date.UTC(S.ano,S.mes,0)).getUTCDate();
   const t=new Date(Date.now()-3*3600e3),isT=d=>t.getUTCFullYear()===S.ano&&t.getUTCMonth()===S.mes&&t.getUTCDate()===d;
-  let g='';for(let i=0;i<first;i++)g+='<div class="day out"></div>';
-  for(let d=1;d<=ndays;d++){const k=String(d).padStart(2,'0'),ev=S.porDia[k];let dots='';if(ev){if(ev.b.length)dots+='<i class="dt b"></i>';if(ev.r.length)dots+='<i class="dt r"></i>';if(ev.e&&ev.e.length)dots+='<i class="dt g"></i>';}
-    g+=`<div class="day${isT(d)?' today':''}${S.selDia===k?' sel':''}" data-d="${k}">${d}<div class="dots">${dots}</div></div>`;}
-  $('cal-grid').innerHTML=g;
-  $('cal-grid').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{S.selDia=S.selDia===e.dataset.d?null:e.dataset.d;renderCalendar();renderAgList();});
+  let g='';
+  for(let i=first-1;i>=0;i--)g+=`<div class="day out"><span class="dn">${prevN-i}</span></div>`;
+  for(let d=1;d<=ndays;d++){const k=String(d).padStart(2,'0');g+=`<div class="day${isT(d)?' today':''}${S.selDia===k?' sel':''}" data-d="${k}"><span class="dn">${d}</span><div class="daychips">${chipsDia(k,2)}</div></div>`;}
+  const rem=(7-((first+ndays)%7))%7;for(let d=1;d<=rem;d++)g+=`<div class="day out"><span class="dn">${d}</span></div>`;
+  grid.innerHTML=g;
+  grid.querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{S.selDia=S.selDia===e.dataset.d?null:e.dataset.d;renderCalendar();renderAgSide();});
 }
 function evLinha(c,tipo){const cor=tipo==='comp'?'var(--blue)':tipo==='desp'?'var(--rose)':'var(--green)';let txt;if(tipo==='comp'){const h=c.horario&&c.horario!=='00:00'?c.horario+' ':'';txt=h+esc(c.titulo);}else{txt='<b>'+money(c.valor)+'</b> '+esc(c.descricao);}return `<div class="ev"><span class="vdot" style="background:${cor}"></span><span>${txt}</span></div>`;}
 function eventosDia(dd){const ev=S.porDia[dd]||{b:[],r:[],e:[]};return [...ev.b.map(c=>evLinha(c,'comp')),...ev.r.map(c=>evLinha(c,'desp')),...(ev.e||[]).map(c=>evLinha(c,'rec'))];}
-function renderAgList(){
-  const box=$('ag-list'),hoje=new Date(Date.now()-3*3600e3);
-  if(S.selDia){const evs=eventosDia(S.selDia);box.innerHTML=`<div class="agpanel"><div class="ag-sec">Dia ${parseInt(S.selDia)} de ${MES[S.mes]}</div>${evs.length?evs.join(''):'<div class="agev"><span class="none">Nada nesse dia.</span></div>'}</div>`;return;}
+function renderAgSide(){
+  const box=$('ag-side');if(!box)return;
+  const hoje=new Date(Date.now()-3*3600e3);
   const mesAtual=hoje.getUTCFullYear()===S.ano&&hoje.getUTCMonth()===S.mes;
-  let html='<div class="agpanel">';
-  if(mesAtual){
-    const hd=String(hoje.getUTCDate()).padStart(2,'0'),evH=eventosDia(hd);
-    html+=`<div class="ag-sec">Hoje, ${hoje.getUTCDate()} de ${MES[S.mes]}</div>`+(evH.length?evH.join(''):'<div class="agev"><span class="none">Sem eventos hoje.</span></div>');
-    html+='<div class="ag-sec mt">Próximos 7 dias</div>';
-    for(let i=1;i<=7;i++){const d=new Date(Date.UTC(S.ano,S.mes,hoje.getUTCDate()+i)),dd=String(d.getUTCDate()).padStart(2,'0');const dentro=d.getUTCMonth()===S.mes&&d.getUTCFullYear()===S.ano;const evs=dentro?eventosDia(dd):[];html+=`<div class="agday"><div class="agcol"><div class="dd">${d.getUTCDate()}</div><div class="dw">${DOW[d.getUTCDay()]}</div></div><div class="agev">${evs.length?evs.join(''):'<span class="none">Nenhum compromisso</span>'}</div></div>`;}
-  }else{const todos=[];Object.keys(S.porDia).sort().forEach(k=>eventosDia(k).forEach(e=>todos.push(e)));html+=`<div class="ag-sec">Eventos de ${MES[S.mes]}</div>`+(todos.length?todos.join(''):'<div class="agev"><span class="none">Nada neste mês.</span></div>');}
-  html+='</div>';box.innerHTML=html;
+  const hd=String(hoje.getUTCDate()).padStart(2,'0');
+  const alvo=S.selDia||(mesAtual?hd:null);
+  const evA=alvo?eventosDia(alvo):[];
+  const tituloHoje=S.selDia?`Dia ${parseInt(S.selDia)} de ${MES[S.mes]}`:`Hoje, ${hoje.getUTCDate()} de ${MES[hoje.getUTCMonth()]}`;
+  let card=`<div class="aghoje"><div class="agh-t">${tituloHoje}</div>`;
+  card+=evA.length?evA.join(''):`<div class="empty-owl"><img src="coruja.png" alt=""><div class="et">Sem eventos ${S.selDia?'nesse dia':'hoje'}</div><div class="es">Aproveite o dia tranquilo 🦉</div></div>`;
+  card+='</div>';
+  const base=mesAtual?hoje.getUTCDate():0;
+  let prox=`<div class="prox7"><div class="agh-t">Próximos 7 dias</div>`;
+  for(let i=1;i<=7;i++){const d=new Date(Date.UTC(S.ano,S.mes,base+i));const dentro=d.getUTCMonth()===S.mes;const dd=String(d.getUTCDate()).padStart(2,'0');const ev=dentro?(S.porDia[dd]||{b:[],r:[],e:[]}):{b:[],r:[],e:[]};
+    const its=[...ev.e.map(c=>['green','+ '+money(c.valor),c.descricao]),...ev.r.map(c=>['rose','- '+money(c.valor),c.descricao]),...ev.b.map(c=>['blue',(c.horario&&c.horario!=='00:00'?c.horario:'•'),c.titulo])];
+    const evh=its.length?its.map(([cl,a,b])=>`<div class="p7ev"><span class="dot" style="background:var(--${cl})"></span><span><b>${esc(a)}</b> ${esc(b)}</span></div>`).join(''):`<div class="p7ev none">Sem compromissos</div>`;
+    prox+=`<div class="p7row"><div class="p7d">${d.getUTCDate()}<span class="dw">${DOW[d.getUTCDay()].toUpperCase()}</span></div><div style="flex:1;min-width:0">${evh}</div></div>`;}
+  prox+='</div>';
+  const nComp=S.comp.length,nDesp=S.contas.filter(c=>c.tipo!=='receita').length,nRec=S.contas.filter(c=>c.tipo==='receita').length;
+  const resumo=`<div class="resumo"><div class="rc"><div class="rn">${nComp}</div><div class="rl">📅 compromissos</div></div><div class="rc"><div class="rn">${nDesp}</div><div class="rl">⏰ despesas</div></div><div class="rc"><div class="rn">${nRec}</div><div class="rl">💰 receitas</div></div></div>`;
+  box.innerHTML=card+prox+resumo;
 }
 
 /* ---- CONTAS A PAGAR ---- */
