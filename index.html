@@ -148,6 +148,24 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .dots{display:flex;gap:3px;height:6px;margin-top:3px}
 .dt{width:5px;height:5px;border-radius:50%}.dt.b{background:var(--blue)}.dt.r{background:var(--rose)}.dt.g{background:var(--green)}
 .daydots{display:none}
+/* cards de conta (mobile) — igual mockup */
+.cardlist{display:none}
+.ccard{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--soft);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow-sm)}
+.ccard.vd{border-left-color:var(--rose)}.ccard.pe{border-left-color:#f59e0b}.ccard.pg{border-left-color:var(--green)}
+.cc-top{display:flex;align-items:flex-start;gap:11px;position:relative}
+.cc-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+.cc-main{flex:1;min-width:0}
+.cc-tt{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.25}
+.cc-sub{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-due{font-size:11.5px;font-weight:700;margin-top:4px;color:var(--soft)}
+.cc-due.vd{color:#b00930}.cc-due.pe{color:#92610f}
+.cc-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none;padding-right:16px}
+.cc-val{font-weight:800;font-size:15px;white-space:nowrap}
+.cc-badge{font-size:9px;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.03em;white-space:nowrap}
+.cc-badge.vd{background:var(--rose-l);color:#b00930}.cc-badge.pe{background:var(--amber-l);color:#92610f}.cc-badge.pg{background:var(--green-l);color:var(--green-d)}
+.cc-menu{position:absolute;top:-3px;right:-5px;color:var(--soft);font-size:18px;padding:2px 5px;background:none;line-height:1}
+.cc-pay{width:100%;margin-top:11px;padding:10px;border-radius:10px;font-weight:700;font-size:13.5px;background:var(--green);color:#fff}
+.cc-pay.vd{background:var(--rose)}
 .day.sel .dt.b{background:#bcd2ff}.day.sel .dt.r{background:#ffc2d2}
 .legend{display:flex;gap:18px;justify-content:center;margin-top:14px;font-size:12.5px;color:var(--muted)}
 .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
@@ -549,6 +567,10 @@ textarea.fld{resize:vertical;min-height:64px}
   .cal.v2 .day .dn{font-size:13.5px;margin-top:3px}
   .cal.v2 .daychips{display:none}
   .cal.v2 .daydots{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;align-items:center;min-height:6px;margin-top:auto;margin-bottom:4px}
+  /* contas: tabela vira CARDS no celular (igual mockup) */
+  .tblwrap{display:none}
+  .cardlist{display:flex;flex-direction:column;gap:11px}
+  .dicaright{display:none}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
   .kpi .kt{min-width:0;flex:1}
@@ -1247,7 +1269,31 @@ function linhaTabela(c,tipo){
 function contaTabela(lst,tipo){
   if(!lst.length)return emptyBox(tipo==='rec'?'💰':'🔍','Nenhuma conta com esse filtro.');
   const total=lst.reduce((s,c)=>s+Number(c.valor||0),0);
-  return `<div class="tblwrap"><table class="tbl"><thead><tr><th>Status</th><th>Descrição</th><th>Categoria</th><th>${tipo==='rec'?'Cliente':'Fornecedor'}</th><th>${tipo==='rec'?'Previsão':'Vencimento'}</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${lst.map(c=>linhaTabela(c,tipo)).join('')}</tbody></table><div class="tbl-foot"><span>Mostrando <b>1</b> a <b>${lst.length}</b> de <b>${lst.length}</b> · Total${tipo==='rec'?' a receber':''}: <b>${money(total)}</b></span><div class="pager"><button class="pg-btn" disabled>‹</button><button class="pg-btn on">1</button><button class="pg-btn" disabled>›</button></div></div></div>`;
+  return `<div class="tblwrap"><table class="tbl"><thead><tr><th>Status</th><th>Descrição</th><th>Categoria</th><th>${tipo==='rec'?'Cliente':'Fornecedor'}</th><th>${tipo==='rec'?'Previsão':'Vencimento'}</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${lst.map(c=>linhaTabela(c,tipo)).join('')}</tbody></table><div class="tbl-foot"><span>Mostrando <b>1</b> a <b>${lst.length}</b> de <b>${lst.length}</b> · Total${tipo==='rec'?' a receber':''}: <b>${money(total)}</b></span><div class="pager"><button class="pg-btn" disabled>‹</button><button class="pg-btn on">1</button><button class="pg-btn" disabled>›</button></div></div></div><div class="cardlist">${lst.map(c=>contaCard(c,tipo)).join('')}</div>`;
+}
+function contaCard(c,tipo){
+  const pago=c.status==='pago', venc=c.data_vencimento||'', hoje=hojeBRT(), rec=tipo==='rec';
+  let estado,badge,btn;
+  if(pago){estado='pg';badge='<span class="cc-badge pg">PAGA ✓</span>';btn='';}
+  else if(!rec&&venc<hoje){estado='vd';badge='<span class="cc-badge vd">VENCIDA</span>';btn=`<button class="cc-pay vd" data-pay="${c.id}">Pagar agora</button>`;}
+  else{estado='pe';badge='<span class="cc-badge pe">PENDENTE</span>';btn=`<button class="cc-pay" data-${rec?'recv':'pay'}="${c.id}">${rec?'Receber':'Pagar'}</button>`;}
+  const cat=S.cat.find(x=>x.id===c.categoria_id);const catNome=cat?cat.nome:'Sem categoria';const catCor=(cat&&cat.cor)?cat.cor:'#94a3b8';
+  const dias=venc?Math.round((new Date(venc+'T12:00:00Z')-new Date(hoje+'T12:00:00Z'))/86400000):null;
+  let due;
+  if(pago)due='Pago '+dBRc(venc);
+  else if(dias===null)due='';
+  else if(dias<0)due=`Venceu ${dBRc(venc)} · há ${Math.abs(dias)} dia${Math.abs(dias)===1?'':'s'}`;
+  else if(dias===0)due='Vence hoje';
+  else due=`${rec?'Previsto':'Vence'} ${dBRc(venc)} · em ${dias} dia${dias===1?'':'s'}`;
+  const forn=c.observacao?esc(c.observacao):'';
+  return `<div class="ccard ${estado}" data-conta="${c.id}">
+    <div class="cc-top">
+      <div class="cc-ic" style="background:${catCor}22;color:${catCor}">${rec?'💰':'💸'}</div>
+      <div class="cc-main"><div class="cc-tt">${esc(c.descricao)}</div><div class="cc-sub">${forn?forn+' · ':''}<span style="color:${catCor}">●</span> ${esc(catNome)}</div>${due?`<div class="cc-due ${estado}">${due}</div>`:''}</div>
+      <div class="cc-right">${badge}<div class="cc-val" style="color:${rec?'var(--green-d)':'var(--rose-dark)'}">${rec?'+':'−'} ${money(c.valor)}</div></div>
+      <button class="cc-menu" data-conta="${c.id}">⋮</button>
+    </div>${btn}
+  </div>`;
 }
 
 /* ---- ITEMS ---- */
