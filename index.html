@@ -591,6 +591,14 @@ textarea.fld{resize:vertical;min-height:64px}
   .ccard{max-width:100%;overflow:hidden}
   .cc-right{padding-right:14px}
   .cc-val{font-size:14px}
+  /* ENQUADRAMENTO 100%: nada pode estourar a largura da tela */
+  *{box-sizing:border-box}
+  .dash2>*,.cols2>*,.kpis>*{min-width:0;max-width:100%}
+  .panel,.minicards,.kpi,.aghoje,.prox7,.resumo{min-width:0;max-width:100%;overflow:hidden}
+  .item{max-width:100%}
+  .item .ss{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ph h1{font-size:23px}
+  .kpi .n{font-size:20px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
   .kpi .kt{min-width:0;flex:1}
