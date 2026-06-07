@@ -181,6 +181,11 @@ label.lb{display:block;font-size:13px;font-weight:600;margin:15px 0 6px;color:va
 .rs-v{font-family:var(--fdisp);font-weight:800;font-size:26px;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.1}
 .rs.g .rs-v{color:var(--green-d)}.rs.r .rs-v{color:#b00930}.rs.b .rs-v{color:var(--blue)}
 .rs-d{font-size:12px;font-weight:700;margin-top:4px}.rs-d.up{color:var(--green-d)}.rs-d.down{color:#b00930}
+/* M05 Fluxo: card de Saldo em gradiente azul→verde (igual mockup) */
+.kfx .kpi.b.fx{background:linear-gradient(135deg,#1f6fd6,#0e8a63);border:none;box-shadow:0 6px 18px rgba(15,90,120,.28)}
+.kfx .kpi.b.fx .l,.kfx .kpi.b.fx .n,.kfx .kpi.b.fx .ks,.kfx .kpi.b.fx .ksub2{color:#fff!important}
+.kfx .kpi.b.fx .ic{background:rgba(255,255,255,.22)}
+.kfx .kpi.b.fx .fxbadge{background:rgba(255,255,255,.2);color:#fff}
 /* PWA: banner instalar */
 .pwa-banner{position:fixed;left:12px;right:12px;bottom:86px;z-index:60;background:var(--card);border:1px solid var(--green-line);border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.20);padding:11px 12px;display:flex;align-items:center;gap:11px;animation:pwaup .3s ease}
 @keyframes pwaup{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
@@ -628,6 +633,9 @@ textarea.fld{resize:vertical;min-height:64px}
   .filterbar .chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .filterbar .chips::-webkit-scrollbar{display:none}
   .filterbar .fchip{flex:none}
+  /* M08 Categorias: 2 colunas no celular pra ler o nome inteiro */
+  .catgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+  .catchip2{font-size:12.5px;padding:10px 11px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
   .kpi .kt{min-width:0;flex:1}
