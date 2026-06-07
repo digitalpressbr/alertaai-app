@@ -608,6 +608,13 @@ textarea.fld{resize:vertical;min-height:64px}
   .r3 .kpi .ic{width:30px;height:30px;font-size:14px;margin:0}
   .r3 .kpi .n{font-size:13.5px;white-space:nowrap;line-height:1.1}
   .r3 .kpi .l{font-size:10px}
+  /* Contas a pagar igual mockup M03: busca+filtros antes dos cards, sem seletor, chips 1 linha */
+  .ct-sort{display:none}
+  .filterbar{display:block}
+  .filterbar .busca{width:100%;margin-bottom:10px}
+  .filterbar .chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .filterbar .chips::-webkit-scrollbar{display:none}
+  .filterbar .fchip{flex:none}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
   .kpi .kt{min-width:0;flex:1}
@@ -992,13 +999,13 @@ function viewContasPagar(){
   const chips=[['todas','Todas',ab.length+pg.length],['vencidas','Vencidas',venc.length],['avencer','A vencer',ab.length-venc.length],['pagas','Pagas',pg.length]];
   const f=S.filtroContas||'todas';
   let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill dr" data-add="despesa">＋ Nova despesa</button></div></div>
+  <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='vencidas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="ct-sort" class="ct-sort"><option value="venc"${S.sortContas==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortContas==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="minicards">
     <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Vencidas</div><div class="mv">${money(sum(venc))}</div><div class="ml">${venc.length} conta(s)</div></div></div>
     <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
     <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A vencer</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
     <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Pagas no mês</div><div class="mv">${money(sum(pg))}</div><div class="ml">${pg.length} conta(s)</div></div></div>
   </div>
-  <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='vencidas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="ct-sort" class="ct-sort"><option value="venc"${S.sortContas==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortContas==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="contaswrap"><div id="ct-list"></div><aside class="dicaright"><div class="dr-h"><span class="dic">💡</span> DICA</div><div class="dr-b">Categorize suas contas para ver insights por categoria no Dashboard e nos Relatórios.</div></aside></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'despesa');
