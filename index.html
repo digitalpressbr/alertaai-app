@@ -534,6 +534,25 @@ textarea.fld{resize:vertical;min-height:64px}
 .catnone{color:var(--soft);font-size:13px;padding:8px 2px;grid-column:1/-1}
 .protip{width:220px;flex:none;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:14px;padding:16px}
 .protip .pt-ic{font-size:22px}.protip .pt-t{font-weight:800;color:var(--amber-dark);margin:6px 0;font-size:14px}.protip .pt-s{font-size:12.5px;color:#7a6a3a;line-height:1.5}
+.kfx{grid-template-columns:repeat(3,1fr)}
+/* ===== ENCAIXE MOBILE (sem scroll horizontal) ===== */
+@media(max-width:560px){
+  html,body{overflow-x:hidden}
+  #screen-main,.main,.view{overflow-x:hidden;max-width:100vw}
+  .view{padding-left:14px;padding-right:14px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{min-width:0;padding:13px 12px;gap:9px;overflow:hidden}
+  .kpi .kt{min-width:0;flex:1}
+  .kpi .kt .n{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .kt .l{font-size:11.5px}
+  .kpi .ic{width:42px;height:42px;flex:none}.kpi .ic svg{width:19px;height:19px}
+  .kfx{grid-template-columns:1fr}
+  .kfx .kpi .kt .n{font-size:24px}
+  .kpi.fx .spk{width:90px}
+  .catcols{flex-direction:column}.catcols .protip{width:100%}
+  .fbar{flex-direction:column;align-items:stretch}.fbar .fcatsel,.fbar .sorttog,.fbar .viewtog{width:100%}
+  .pnh{flex-wrap:wrap}
+}
 .td-main{font-weight:600}
 .td-due{font-size:11px;font-weight:600;margin-top:2px}.td-due.vd{color:var(--rose)}.td-due.av{color:var(--amber-dark)}
 .td-vd{color:var(--rose);font-weight:600}
@@ -960,7 +979,7 @@ function viewFluxo(){
   const TR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg>';
   const h=`<div class="ph"><div><h1>Fluxo de caixa</h1><div class="d">${MES[S.mes]} de ${S.ano} · realizado e previsto</div></div>
     <div class="act"><div class="mnav"><button id="fx-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="fx-next">›</button></div><button class="bpill go" data-add="receita">＋ Receita</button><button class="bpill dr" data-add="despesa">＋ Despesa</button></div></div>
-  <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+  <div class="kpis kfx">
     <div class="kpi g fx"><div class="ic">${U}</div><div class="kt"><div class="l">RECEITAS</div><div class="n">${money(totR)}</div><div class="ksub2">${receitas.length} lançamento${receitas.length!==1?'s':''}</div></div><div class="spk">${spark(R6,'#16a34a')}</div></div>
     <div class="kpi r fx"><div class="ic">${Dn}</div><div class="kt"><div class="l">DESPESAS</div><div class="n">${money(totD)}</div><div class="ksub2">${despesas.length} lançamento${despesas.length!==1?'s':''}</div></div><div class="spk">${spark(D6,'#e11d48')}</div></div>
     <div class="kpi b fx"><div class="ic">${W}</div><div class="kt"><div class="l">SALDO DO MÊS</div><div class="n">${money(saldo)}</div><div class="ks ${saldo>=0?'up':'down'}">${saldo>=0?'✓ resultado positivo':'▼ resultado negativo'}</div></div><div class="fxbadge">${TR}</div></div>
