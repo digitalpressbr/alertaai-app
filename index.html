@@ -1143,7 +1143,7 @@ function viewAssinatura(){
     <div class="assbox"><ul class="benefits">${BEN.map(b=>`<li><span class="ck">✓</span>${esc(b)}</li>`).join('')}</ul></div>
     <div class="assbox">
       <div class="cupbox"><span class="cl">🎟️ Tem um cupom de desconto?</span><div class="cuprow"><input id="cup-in" class="fld" placeholder="CÓDIGO (ex: CONVIDADO)"><button class="btn" id="cup-go">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
-      <div class="paymethods"><span class="pmlogo">VISA</span><span class="pmlogo">MASTER</span><span class="pmlogo">ELO</span><span class="pmlogo">PIX</span></div>
+      <div class="paymethods"><span class="pmlogo">VISA</span><span class="pmlogo">MASTER</span><span class="pmlogo">AMEX</span><span class="pmlogo">ELO</span><span class="pmlogo">PIX</span></div>
       <div class="paynote">Pagamento seguro via <b>Mercado Pago</b>. O cartão é processado direto por eles — a gente nunca vê os seus dados. 🔒</div>
       <div class="faq">${FAQ.map(([q,a])=>`<details><summary>${esc(q)}</summary><div class="fa">${esc(a)}</div></details>`).join('')}</div>
     </div>
