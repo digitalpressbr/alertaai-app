@@ -871,13 +871,13 @@ function viewContasReceber(){
   const f=S.filtroRec||'todas';
   let h=`<div class="ph"><div><h1>Contas a receber</h1><div class="d">${money(sum(ab))} a receber · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill g" data-add="receita">＋ Nova receita</button></div></div>
   <div class="minicards">
-    <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length} conta(s)</div></div></div>
+    <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length?atr.length+' conta(s)':'Tudo em dia! 🎉'}</div></div></div>
     <div class="mc a"><div class="mic">⏰</div><div class="mcb"><div class="mt">Vence em 7 dias</div><div class="mv">${money(sum(sev))}</div><div class="ml">${sev.length} conta(s)</div></div></div>
-    <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A receber</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
+    <div class="mc n"><div class="mic">🗓️</div><div class="mcb"><div class="mt">A receber (mês)</div><div class="mv">${money(sum(fut))}</div><div class="ml">${fut.length} conta(s)</div></div></div>
     <div class="mc g"><div class="mic">✅</div><div class="mcb"><div class="mt">Recebido no mês</div><div class="mv">${money(sum(rb))}</div><div class="ml">${rb.length} conta(s)</div></div></div>
   </div>
   <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='atrasadas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="rc-sort" class="ct-sort"><option value="venc"${S.sortRec==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortRec==='valor'?' selected':''}>Maior valor</option></select></div>
-  <div class="contaswrap"><div id="rc-list"></div><aside class="dicaright wpp"><div class="dr-h"><span class="dic">💬</span> DICA</div><div class="dr-b">Perto do vencimento, mande um lembrete pro cliente no WhatsApp — recebimento em dia fica mais fácil.</div></aside></div>`;
+  <div class="contaswrap"><div id="rc-list"></div><aside class="dicaright wpp"><div class="dr-h"><span class="dic">💬</span> DICA</div><div class="dr-b">Envie lembretes automáticos pelo WhatsApp para clientes em atraso.</div><span style="color:var(--green-d);font-weight:700;font-size:12.5px;margin-top:11px;display:inline-block;cursor:pointer">Configurar lembretes →</span></aside></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'receita');
   v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroRec=b.dataset.f;viewContasReceber();});
@@ -1111,7 +1111,7 @@ function linhaTabela(c,tipo){
 function contaTabela(lst,tipo){
   if(!lst.length)return emptyBox(tipo==='rec'?'💰':'🔍','Nenhuma conta com esse filtro.');
   const total=lst.reduce((s,c)=>s+Number(c.valor||0),0);
-  return `<div class="tblwrap"><table class="tbl"><thead><tr><th>Status</th><th>Descrição</th><th>Categoria</th><th>${tipo==='rec'?'Cliente':'Fornecedor'}</th><th>Vencimento</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${lst.map(c=>linhaTabela(c,tipo)).join('')}</tbody></table><div class="tbl-foot"><span>Mostrando <b>${lst.length}</b> de <b>${lst.length}</b> · Total: <b>${money(total)}</b></span><div class="pager"><button class="pg-btn" disabled>‹</button><button class="pg-btn on">1</button><button class="pg-btn" disabled>›</button></div></div></div>`;
+  return `<div class="tblwrap"><table class="tbl"><thead><tr><th>Status</th><th>Descrição</th><th>Categoria</th><th>${tipo==='rec'?'Cliente':'Fornecedor'}</th><th>${tipo==='rec'?'Previsão':'Vencimento'}</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${lst.map(c=>linhaTabela(c,tipo)).join('')}</tbody></table><div class="tbl-foot"><span>Mostrando <b>1</b> a <b>${lst.length}</b> de <b>${lst.length}</b> · Total${tipo==='rec'?' a receber':''}: <b>${money(total)}</b></span><div class="pager"><button class="pg-btn" disabled>‹</button><button class="pg-btn on">1</button><button class="pg-btn" disabled>›</button></div></div></div>`;
 }
 
 /* ---- ITEMS ---- */
