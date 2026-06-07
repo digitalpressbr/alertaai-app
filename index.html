@@ -790,13 +790,13 @@ function viewInicio(){
   const barPct=totRec>0?Math.max(0,Math.min(100,Math.round(saldo/totRec*100))):0;
   const kpiN=v=>window.innerWidth<560?'R$ '+Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'):money(v);
   const h=`
-  <div class="ph"><div><h1>Dashboard</h1><div class="d">Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋 — ${DOW[d.getUTCDay()].toLowerCase()}, ${d.getUTCDate()} de ${MES[S.mes]} de ${S.ano}</div></div>
+  <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()].toLowerCase()}, ${d.getUTCDate()} de ${MES[S.mes]} · saldo <b style="color:${saldo>=0?'var(--green-d)':'var(--rose-dark)'}">${money(saldo)}</b></div></div>
     <div class="act"><button class="bpill g" data-add="receita">＋ Receita</button><button class="bpill" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis kpis4">
-    <div class="kpi g"><div class="ic">${IC_UP}</div><div class="kt"><div class="l">Receitas do mês</div><div class="n">${kpiN(totRec)}</div>${_vtxt(vR,false)}</div></div>
-    <div class="kpi r"><div class="ic">${IC_DOWN}</div><div class="kt"><div class="l">Despesas do mês</div><div class="n">${kpiN(totDes)}</div>${_vtxt(vD,true)}</div></div>
-    <div class="kpi b"><div class="ic">${IC_WAL}</div><div class="kt"><div class="l">Saldo do mês</div><div class="n">${kpiN(saldo)}</div><div class="kbar"><i style="width:${barPct}%"></i></div><div class="ksub">${barPct}% da receita guardado</div></div></div>
-    <div class="kpi a" data-go="pagar" style="cursor:pointer"><div class="ic">${IC_AL}</div><div class="kt"><div class="l">Contas vencidas</div><div class="n">${kpiN(tVenc)}</div><div class="ks down">⚠️ ${vencidas.length} conta(s) pendente(s)</div></div></div>
+    <div class="kpi g"><div class="ic">${IC_UP}</div><div class="kt"><div class="l">Receitas</div><div class="n">${kpiN(totRec)}</div>${_vtxt(vR,false)}</div></div>
+    <div class="kpi r"><div class="ic">${IC_DOWN}</div><div class="kt"><div class="l">Despesas</div><div class="n">${kpiN(totDes)}</div>${_vtxt(vD,true)}</div></div>
+    <div class="kpi b"><div class="ic">${IC_WAL}</div><div class="kt"><div class="l">Saldo</div><div class="n">${kpiN(saldo)}</div><div class="kbar"><i style="width:${barPct}%"></i></div><div class="ksub">${barPct}% da receita guardado</div></div></div>
+    <div class="kpi a" data-go="pagar" style="cursor:pointer"><div class="ic">${IC_AL}</div><div class="kt"><div class="l">Vencidas</div><div class="n">${kpiN(tVenc)}</div><div class="ks down">⚠️ ${vencidas.length} conta(s) pendente(s)</div></div></div>
   </div>
   <div class="dash2">
     <div class="panel"><h3>Fluxo de caixa <span class="sub2">últimos 6 meses</span></h3><div class="chart-wrap tall"><canvas id="ch1"></canvas></div></div>
@@ -1218,7 +1218,7 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
     <div class="kpi g"><div class="ic">💰</div><div class="n">${money(tR)}</div><div class="l">receitas</div></div>
     <div class="kpi r"><div class="ic">💸</div><div class="n">${money(tD)}</div><div class="l">despesas</div></div>
-    <div class="kpi ${tR-tD>=0?'b':'r'}"><div class="ic">${tR-tD>=0?'📈':'📉'}</div><div class="n">${money(tR-tD)}</div><div class="l">resultado do mês</div></div>
+    <div class="kpi ${tR-tD>=0?'b':'r'}"><div class="ic">${tR-tD>=0?'📈':'📉'}</div><div class="n">${money(tR-tD)}</div><div class="l">resultado</div></div>
   </div>
   <div class="cols2" style="margin-top:16px">
     <div class="panel"><h3>💸 Despesas por categoria</h3>${rowsD.length?rowsD.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)}</b></div>${bar(o.v,maxD,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem despesas este mês.')}</div>
