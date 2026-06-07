@@ -660,7 +660,7 @@ async function verAnexo(path){if(!path)return;const {data}=await supa.storage.fr
 function getToken(){const m=(location.hash||location.search||'').match(/token=([A-Za-z0-9_\-]+)/);return m?m[1]:'';}
 function getView(){const m=(location.hash||location.search||'').match(/[?#&]v=([a-z]+)/);return m?m[1]:'';}
 let _vIni='';
-async function init(){_vIni=getView();const tk=getToken();if(tk)return iniciarAcesso(tk);const {data:{session}}=await supa.auth.getSession();if(session)return abrirApp();show('screen-login');}
+async function init(){_vIni=getView();const tk=getToken();if(tk){try{const r=await api('login_token',{token:tk});if(r&&r.ok&&r.token_hash){const {error}=await supa.auth.verifyOtp({token_hash:r.token_hash,type:'magiclink'});if(!error){history.replaceState(null,'',location.pathname);return abrirApp();}}}catch(_e){}return iniciarAcesso(tk);}const {data:{session}}=await supa.auth.getSession();if(session)return abrirApp();show('screen-login');}
 
 /* LOGIN */
 $('lg-btn').onclick=async()=>{const email=$('lg-email').value.trim().toLowerCase(),senha=$('lg-senha').value;if(!email||!senha)return setMsg('lg-msg','Preencha e-mail e senha.','err');$('lg-btn').disabled=true;setMsg('lg-msg','Entrando...','ok');const {error}=await supa.auth.signInWithPassword({email,password:senha});$('lg-btn').disabled=false;if(error)return setMsg('lg-msg','E-mail ou senha incorretos.','err');abrirApp();};
