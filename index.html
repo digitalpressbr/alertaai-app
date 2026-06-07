@@ -520,6 +520,19 @@ textarea.fld{resize:vertical;min-height:64px}
 .eb-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .eb-cnpj{margin-top:15px;color:var(--muted);font-size:13.5px}.eb-cnpj a{color:var(--green);font-weight:700;cursor:pointer}
 .sabia{display:flex;align-items:center;gap:6px;justify-content:center;background:var(--amber-soft);border-radius:12px;padding:12px 16px;margin:14px auto 0;max-width:720px;font-size:13.5px;color:var(--amber-dark)}.sabia a{color:var(--green);font-weight:700;cursor:pointer;margin-left:4px}.sabia b{margin:0 3px}
+.cattabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.cattabs button{padding:9px 14px;font-size:13.5px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}.cattabs button.on{color:var(--green-d);border-bottom-color:var(--green)}
+.catcols{display:flex;gap:16px;align-items:flex-start}.catcols .panel{flex:1;min-width:0}
+.catcol-h{display:flex;align-items:center;gap:9px;margin-bottom:14px}.catcol-h h3{margin:0;font-size:15px;letter-spacing:.02em}
+.cch-ic{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px;flex:none}.cch-ic.d{background:var(--rose)}.cch-ic.r{background:var(--green-mid)}
+.cch-n{margin-left:auto;font-size:12.5px;color:var(--soft);font-weight:600}
+.catgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.catchip2{display:inline-flex;align-items:center;gap:6px;padding:9px 11px;border-radius:11px;color:#fff;font-weight:700;font-size:12px;cursor:default;min-width:0}.catchip2[data-edcat]{cursor:pointer}
+.catchip2 .cci{font-size:14px;flex:none}.catchip2 .ccn{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.catchip2 .cck{opacity:.85;font-size:10px;flex:none}
+.catadd{margin-top:12px;border:1.5px dashed var(--green);border-radius:11px;padding:11px;text-align:center;color:var(--green);font-weight:700;font-size:13px;cursor:pointer}.catadd:hover{background:var(--green-soft)}
+.catnone{color:var(--soft);font-size:13px;padding:8px 2px;grid-column:1/-1}
+.protip{width:220px;flex:none;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:14px;padding:16px}
+.protip .pt-ic{font-size:22px}.protip .pt-t{font-weight:800;color:var(--amber-dark);margin:6px 0;font-size:14px}.protip .pt-s{font-size:12.5px;color:#7a6a3a;line-height:1.5}
 .td-main{font-weight:600}
 .td-due{font-size:11px;font-weight:600;margin-top:2px}.td-due.vd{color:var(--rose)}.td-due.av{color:var(--amber-dark)}
 .td-vd{color:var(--rose);font-weight:600}
@@ -1131,13 +1144,26 @@ async function excluirPessoa(tipo,id,ov){if(!confirm('Excluir este cadastro?'))r
 /* ---- CATEGORIAS ---- */
 const EMOJIS=['🏠','🍽️','🚗','💊','📚','🎉','👔','💼','🌾','🐄','🚜','💳','🏦','🧾','📦','💰','🏢','📈','🎁','💵','🥛','🛒','⚡','📱','🏥','✈️'];
 const CORES=['#DC2626','#F59E0B','#16A34A','#2563EB','#8B5CF6','#EC4899','#06B6D4','#84CC16','#A16207','#64748B'];
-function viewCategorias(){const v=$('view');const desp=S.cat.filter(c=>(c.tipo||'despesa')==='despesa'),rec=S.cat.filter(c=>c.tipo==='receita');
-  const card=o=>`<div class="catchip" ${o.user_id?`data-edcat="${o.id}"`:''} style="border-color:${o.cor||'#e7e2d6'}55"><span class="cc-ic" style="background:${(o.cor||'#9aa39c')}1f;color:${o.cor||'#717f78'}">${o.icone||'🏷️'}</span><span class="cc-nm">${esc(o.nome)}</span>${o.user_id?'<span class="cc-ed">✏️</span>':'<span class="cc-g">padrão</span>'}</div>`;
-  v.innerHTML=`<div class="ph"><div><h1>Categorias</h1><div class="d">Organize suas receitas e despesas</div></div><div class="act"><button class="bpill" id="add-cat">＋ Nova categoria</button></div></div>
-  <div class="panel"><h3>💸 Despesas</h3><div class="catwrap">${desp.map(card).join('')||emptyBox('🏷️','Sem categorias de despesa.')}</div></div>
-  <div class="panel" style="margin-top:14px"><h3>💰 Receitas</h3><div class="catwrap">${rec.map(card).join('')||emptyBox('🏷️','Sem categorias de receita.')}</div></div>`;
-  $('add-cat').onclick=()=>modalCategoria();v.querySelectorAll('[data-edcat]').forEach(b=>b.onclick=()=>{const it=S.cat.find(x=>x.id===b.dataset.edcat);if(it)modalCategoria(it);});}
-function modalCategoria(c){const ed=!!c;c=c||{};
+function viewCategorias(){const v=$('view');const all=S.cat;const tab=S.catTab||'todas';
+  const isSys=c=>!!c.sistema;
+  const nAll=all.length,nD=all.filter(c=>(c.tipo||'despesa')==='despesa').length,nR=all.filter(c=>c.tipo==='receita').length,nS=all.filter(isSys).length,nP=all.filter(c=>!isSys(c)).length;
+  const fil=arr=>arr.filter(c=>tab==='sistema'?isSys(c):tab==='personalizadas'?!isSys(c):true);
+  const desp=fil(all.filter(c=>(c.tipo||'despesa')==='despesa')),rec=fil(all.filter(c=>c.tipo==='receita'));
+  const showD=tab!=='receitas',showR=tab!=='despesas';
+  const chip=o=>`<div class="catchip2" style="background:${o.cor||'#64748b'}" ${o.sistema?'':`data-edcat="${o.id}"`}><span class="cci">${o.icone||'🏷️'}</span><span class="ccn">${esc(o.nome)}</span><span class="cck">${o.sistema?'🔒':'✏️'}</span></div>`;
+  const TABS=[['todas','Todas',nAll],['despesas','Despesas',nD],['receitas','Receitas',nR],['sistema','Sistema',nS],['personalizadas','Personalizadas',nP]];
+  v.innerHTML=`<div class="ph"><div><h1>Categorias</h1><div class="d">Organize suas receitas e despesas em grupos · ${nAll} categorias</div></div><div class="act"><button class="bpill" id="add-cat">＋ Nova categoria</button></div></div>
+  <div class="cattabs">${TABS.map(([k,l,nn])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l} (${nn})</button>`).join('')}</div>
+  <div class="catcols">
+    ${showD?`<div class="panel"><div class="catcol-h"><span class="cch-ic d">↓</span><h3>DESPESAS</h3><span class="cch-n">${desp.length} categorias</span></div><div class="catgrid">${desp.map(chip).join('')||'<div class="catnone">Nenhuma aqui.</div>'}</div><div class="catadd" data-addcat="despesa">＋ Adicionar categoria personalizada</div></div>`:''}
+    ${showR?`<div class="panel"><div class="catcol-h"><span class="cch-ic r">↑</span><h3>RECEITAS</h3><span class="cch-n">${rec.length} categorias</span></div><div class="catgrid">${rec.map(chip).join('')||'<div class="catnone">Nenhuma aqui.</div>'}</div><div class="catadd" data-addcat="receita">＋ Adicionar categoria personalizada</div></div>`:''}
+    <div class="protip"><div class="pt-ic">💡</div><div class="pt-t">PRO TIP</div><div class="pt-s">Categorias personalizadas aparecem nas duas listas (despesa/receita) ao criar um lançamento.</div></div>
+  </div>`;
+  $('add-cat').onclick=()=>modalCategoria();
+  v.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.catTab=b.dataset.tab;viewCategorias();});
+  v.querySelectorAll('[data-edcat]').forEach(b=>b.onclick=()=>{const it=S.cat.find(x=>x.id===b.dataset.edcat);if(it)modalCategoria(it);});
+  v.querySelectorAll('[data-addcat]').forEach(b=>b.onclick=()=>modalCategoria({tipo:b.dataset.addcat}));}
+function modalCategoria(c){const ed=!!(c&&c.id);c=c||{};
   const ov=openModal(ed?'Editar categoria':'Nova categoria',`
   <div class="tipotog"><button type="button" class="tt-btn desp${(c.tipo||'despesa')==='despesa'?' on':''}" data-ct="despesa">💸 Despesa</button><button type="button" class="tt-btn rec${c.tipo==='receita'?' on':''}" data-ct="receita">💰 Receita</button></div><input type="hidden" id="ca-tipo" value="${esc(c.tipo||'despesa')}">
   <label class="lb">Nome *</label><input id="ca-nome" class="fld" placeholder="Ex: Combustível" value="${esc(c.nome||'')}">
