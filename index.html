@@ -764,7 +764,7 @@ async function init(){_vIni=getView();const tk=getToken();if(tk){try{const r=awa
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();_pwaPrompt=e;bannerInstalar(false);});
-window.addEventListener('appinstalled',()=>{const b=$('pwa-banner');if(b)b.remove();localStorage.setItem('pwa-ok','1');});
+window.addEventListener('appinstalled',()=>{const b=$('pwa-banner');if(b)b.remove();localStorage.setItem('pwa-installed','1');});
 function instrucoesIOS(){
   if($('ios-help'))return;
   const ov=el(`<div class="ov" id="ios-help"><div class="modal"><div class="modal-h"><div class="t">📲 Instalar o AlertaAí no iPhone</div><button class="cl" aria-label="fechar">✕</button></div><div class="modal-b">
@@ -776,19 +776,20 @@ function instrucoesIOS(){
   ov.querySelector('.cl').onclick=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)ov.remove();};
   $('modal-root').appendChild(ov);
 }
+function instalarApp(){
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(!ios&&_pwaPrompt){_pwaPrompt.prompt();_pwaPrompt.userChoice.then(()=>{_pwaPrompt=null;const b=$('pwa-banner');if(b)b.remove();});return;}
+  instrucoesIOS(); // iPhone (ou Android sem prompt nativo) → guia passo a passo
+}
 function bannerInstalar(ios){
-  if($('pwa-banner')||localStorage.getItem('pwa-ok'))return;
+  if($('pwa-banner')||localStorage.getItem('pwa-installed')||sessionStorage.getItem('pwa-hide'))return;
   if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)return;
-  const sub=ios?'Toque aqui pra ver como 📲':'Acesso rápido na tela do celular 📲';
+  const sub=ios?'Toque aqui pra instalar 📲':'Acesso rápido na tela do celular 📲';
   const b=el(`<div id="pwa-banner" class="pwa-banner"><img src="coruja.png" alt=""><div class="pb-t"><b>Instalar o AlertaAí</b><span>${sub}</span></div><button class="pb-i">Instalar</button><button class="pb-x" aria-label="fechar">✕</button></div>`);
-  const fazer=async()=>{
-    if(!ios&&_pwaPrompt){_pwaPrompt.prompt();const r=await _pwaPrompt.userChoice;_pwaPrompt=null;if(r&&r.outcome==='accepted')b.remove();return;}
-    instrucoesIOS(); // iOS (ou Android sem prompt nativo) → guia passo a passo
-  };
-  b.querySelector('.pb-i').onclick=fazer;
-  b.querySelector('.pb-t').onclick=fazer;
-  b.querySelector('img').onclick=fazer;
-  b.querySelector('.pb-x').onclick=(e)=>{e.stopPropagation();localStorage.setItem('pwa-ok','1');b.remove();};
+  b.querySelector('.pb-i').onclick=instalarApp;
+  b.querySelector('.pb-t').onclick=instalarApp;
+  b.querySelector('img').onclick=instalarApp;
+  b.querySelector('.pb-x').onclick=(e)=>{e.stopPropagation();sessionStorage.setItem('pwa-hide','1');b.remove();}; // só esconde nesta sessão — reaparece na próxima visita
   document.body.appendChild(b);
 }
 (function(){const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios)setTimeout(()=>bannerInstalar(true),2500);})();
@@ -1193,11 +1194,13 @@ function viewMais(){
   const links=[['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
   let h=`<div class="ph"><div><h1>Mais</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
+  ${(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)?'':`<button class="btn" id="mais-instalar" style="margin:4px 0 2px">📲 Instalar o app no celular</button>`}
   <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
   <div class="support">🛟 <b>Suporte AlertaAí</b><br>Deu algum problema ou tem uma sugestão? Fale com a gente — chega na hora pro nosso suporte.<br><button class="btn" onclick="abrirSuporte('Aberto pelo menu Mais')" style="margin:12px auto 0;max-width:280px">🆘 Falar com o suporte</button><br><span style="font-size:12px;color:var(--soft)">ou por e-mail: digitalpressbr@gmail.com</span></div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">AlertaAí · um produto Digital Press 🦉</div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
+  if($('mais-instalar'))$('mais-instalar').onclick=instalarApp;
 }
 function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="ed" data-ed="${o.id}" data-tipo="${tipo}" title="Editar">✏️</button><button class="rm" data-rm="${o.id}" data-tipo="${tipo}" title="Remover">🗑️</button></div>`;}
 
