@@ -362,6 +362,20 @@ textarea.fld{resize:vertical;min-height:64px}
 .ev.clk>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ev-x{flex:none;color:#b00930;background:rgba(225,29,72,.10);border-radius:7px;padding:1px 7px;font-size:11px;font-weight:700;cursor:pointer}
 .ev-x:hover{background:rgba(225,29,72,.22)}
+/* ---- exclusão em lote ---- */
+body:has(#lotebar) [data-conta]{cursor:pointer}
+.lsel{outline:2.5px solid #e11d48!important;outline-offset:-2px;border-radius:12px;position:relative;background:rgba(225,29,72,.05)!important}
+tr.lsel{outline-offset:-3px}
+.lsel::after{content:'✓';position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:#e11d48;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2}
+tr.lsel::after{content:none}
+.lotebar{position:fixed;left:12px;right:12px;bottom:84px;z-index:70;background:#15231b;color:#fff;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.30);padding:11px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;animation:pwaup .25s ease}
+.lotebar .lb-info{flex:1;font-size:13.5px;min-width:120px}
+.lotebar button{font-weight:700;font-size:12.5px;border-radius:10px;padding:8px 12px}
+.lotebar .lb-all{background:rgba(255,255,255,.14);color:#fff}
+.lotebar .lb-del{background:#e11d48;color:#fff}
+.lotebar .lb-del:disabled{opacity:.45}
+.lotebar .lb-x{background:none;color:#c9d3cc}
+@media(min-width:760px){.lotebar{left:auto;right:24px;bottom:24px;max-width:520px}}
 /* modal LARGO 2-colunas (mockup Genspark) */
 .modal.wide{max-width:860px}
 .modal.wide .modal-b{padding:20px 26px 26px}
@@ -863,6 +877,7 @@ function diasTrial(){
 function bloqueado(){const d=diasTrial();return d!==null&&d<=0;}
 function irPara(k){
   if(bloqueado()&&k!=='assinatura')k='assinatura';
+  if(S.tab!==k&&S.lote){S.lote=false;S.loteIds=new Set();const lb=$('lotebar');if(lb)lb.remove();} // trocar de tela sai do modo lote
   S.tab=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   (ROUTES[k]||viewInicio)();
   const d=diasTrial();
@@ -1047,7 +1062,7 @@ function viewContasPagar(){
   const sum=a=>a.reduce((s,c)=>s+Number(c.valor||0),0);
   const chips=[['todas','Todas',ab.length+pg.length],['vencidas','Vencidas',venc.length],['avencer','A vencer',ab.length-venc.length],['pagas','Pagas',pg.length]];
   const f=S.filtroContas||'todas';
-  let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill dr" data-add="despesa">＋ Nova despesa</button></div></div>
+  let h=`<div class="ph"><div><h1>Contas a pagar</h1><div class="d">${money(sum(ab))} em aberto · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill sec" id="lote-btn">${S.lote?'✕ Sair do modo seleção':'☑️ Excluir em lote'}</button><button class="bpill dr" data-add="despesa">＋ Nova despesa</button></div></div>
   <div class="filterbar"><input id="ct-busca" class="fld busca" placeholder="🔍 Buscar conta..." value="${esc(S.buscaContas||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='vencidas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="ct-sort" class="ct-sort"><option value="venc"${S.sortContas==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortContas==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="minicards">
     <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Vencidas</div><div class="mv">${money(sum(venc))}</div><div class="ml">${venc.length} conta(s)</div></div></div>
@@ -1058,6 +1073,7 @@ function viewContasPagar(){
   <div class="contaswrap"><div id="ct-list"></div><aside class="dicaright"><div class="dr-h"><span class="dic">💡</span> DICA</div><div class="dr-b">Categorize suas contas para ver insights por categoria no Dashboard e nos Relatórios.</div></aside></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'despesa');
+  $('lote-btn').onclick=()=>toggleLote(viewContasPagar);
   v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroContas=b.dataset.f;viewContasPagar();});
   const bu=$('ct-busca');bu.oninput=()=>{S.buscaContas=bu.value;renderCt();};
   $('ct-sort').onchange=()=>{S.sortContas=$('ct-sort').value;renderCt();};
@@ -1083,7 +1099,7 @@ function viewContasReceber(){
   const sum=a=>a.reduce((s,c)=>s+Number(c.valor||0),0);
   const chips=[['todas','Todas',ab.length+rb.length],['areceber','A receber',ab.length-atr.length],['atrasadas','Atrasadas',atr.length],['recebidas','Recebidas',rb.length]];
   const f=S.filtroRec||'todas';
-  let h=`<div class="ph"><div><h1>Contas a receber</h1><div class="d">${money(sum(ab))} a receber · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill g" data-add="receita">＋ Nova receita</button></div></div>
+  let h=`<div class="ph"><div><h1>Contas a receber</h1><div class="d">${money(sum(ab))} a receber · ${ab.length} conta${ab.length===1?'':'s'} pendente${ab.length===1?'':'s'}</div></div><div class="act"><button class="bpill sec" id="lote-btn">${S.lote?'✕ Sair do modo seleção':'☑️ Excluir em lote'}</button><button class="bpill g" data-add="receita">＋ Nova receita</button></div></div>
   <div class="filterbar"><input id="rc-busca" class="fld busca" placeholder="🔍 Buscar receita..." value="${esc(S.buscaRec||'')}"><div class="chips">${chips.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}${k==='atrasadas'?' vd':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div><select id="rc-sort" class="ct-sort"><option value="venc"${S.sortRec==='valor'?'':' selected'}>Por vencimento ↑</option><option value="valor"${S.sortRec==='valor'?' selected':''}>Maior valor</option></select></div>
   <div class="minicards">
     <div class="mc r"><div class="mic">⚠️</div><div class="mcb"><div class="mt">Atrasadas</div><div class="mv">${money(sum(atr))}</div><div class="ml">${atr.length?atr.length+' conta(s)':'Tudo em dia! 🎉'}</div></div></div>
@@ -1094,6 +1110,7 @@ function viewContasReceber(){
   <div class="contaswrap"><div id="rc-list"></div><aside class="dicaright wpp"><div class="dr-h"><span class="dic">💬</span> DICA</div><div class="dr-b">Envie lembretes automáticos pelo WhatsApp para clientes em atraso.</div><span style="color:var(--green-d);font-weight:700;font-size:12.5px;margin-top:11px;display:inline-block;cursor:pointer">Configurar lembretes →</span></aside></div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelector('[data-add]').onclick=()=>modalConta(null,'receita');
+  $('lote-btn').onclick=()=>toggleLote(viewContasReceber);
   v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filtroRec=b.dataset.f;viewContasReceber();});
   const bu=$('rc-busca');bu.oninput=()=>{S.buscaRec=bu.value;renderRc();};
   $('rc-sort').onchange=()=>{S.sortRec=$('rc-sort').value;renderRc();};
@@ -1431,10 +1448,45 @@ function itemConta(c){
   const pay=pago?'':`<button class="qpay" data-pay="${c.id}" title="Marcar como paga">✓</button>`;
   return `<div class="item ${cls}" data-conta="${c.id}"><span class="di">💸</span><div class="bd"><div class="tt">${esc(c.descricao)}${pago?'<span class="chip pg">pago</span>':chip}</div><div class="ss">Vence ${dBRc(venc)}${c.observacao?' · '+esc(c.observacao):''}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv">− ${money(c.valor)}</div>${pay}</div>`;
 }
+/* ---- EXCLUSÃO EM LOTE (contas) ---- */
+function toggleLote(reRender){
+  S.lote=!S.lote;S.loteIds=new Set();S.loteRender=reRender;
+  const bar=$('lotebar');if(bar)bar.remove();
+  reRender();
+  if(S.lote){toast('Toque nas contas para selecionar ☑️');atualizaLotebar();}
+}
+function atualizaLotebar(){
+  let bar=$('lotebar');
+  if(!S.lote){if(bar)bar.remove();return;}
+  const ids=[...(S.loteIds||new Set())];
+  const todas=[...S.contas,...S.abertas,...S.aberRec];
+  const tot=ids.reduce((s,id)=>{const c=todas.find(x=>x.id===id);return s+(c?Number(c.valor||0):0);},0);
+  const html=`<div class="lb-info"><b>${ids.length}</b> selecionada${ids.length===1?'':'s'}${ids.length?' · '+money(tot):''}</div>
+    <button class="lb-all" id="lb-all">Selecionar todas</button>
+    <button class="lb-del" id="lb-del" ${ids.length?'':'disabled'}>🗑️ Excluir (${ids.length})</button>
+    <button class="lb-x" id="lb-cancel">Cancelar</button>`;
+  if(!bar){bar=el('<div class="lotebar" id="lotebar"></div>');document.body.appendChild(bar);}
+  bar.innerHTML=html;
+  $('lb-cancel').onclick=()=>toggleLote(S.loteRender);
+  $('lb-all').onclick=()=>{document.querySelectorAll('#view [data-conta]').forEach(e=>{if(e.dataset.conta){S.loteIds.add(e.dataset.conta);e.classList.add('lsel');}});atualizaLotebar();};
+  $('lb-del').onclick=excluirLote;
+}
+async function excluirLote(){
+  const ids=[...(S.loteIds||new Set())];if(!ids.length)return;
+  if(!confirm(`Excluir ${ids.length} conta${ids.length===1?'':'s'} de uma vez? (dá pra restaurar pelo suporte)`))return;
+  $('lb-del').disabled=true;$('lb-del').textContent='Excluindo...';
+  await supa.from('contas').update({status:'cancelado'}).in('id',ids);
+  await supa.from('reminders').delete().in('conta_id',ids).eq('status','pending');
+  toast(`${ids.length} conta${ids.length===1?'':'s'} excluída${ids.length===1?'':'s'} ✓`);
+  S.lote=false;S.loteIds=new Set();const bar=$('lotebar');if(bar)bar.remove();
+  await carregar();irPara(S.tab);
+}
 function bindItems(root){root.querySelectorAll('[data-comp]').forEach(e=>e.onclick=()=>{const c=S.comp.find(x=>x.id===e.dataset.comp);if(c)modalComp(c);});
-  root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{const c=[...S.contas,...S.abertas,...S.aberRec].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
-  root.querySelectorAll('[data-pay]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();e.disabled=true;const id=e.dataset.pay;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');toast('Conta paga ✓');await carregar();irPara(S.tab);});
-  root.querySelectorAll('[data-recv]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();e.disabled=true;const id=e.dataset.recv;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);toast('Receita recebida ✓');await carregar();irPara(S.tab);});
+  root.querySelectorAll('[data-conta]').forEach(e=>e.onclick=()=>{
+    if(S.lote){const id=e.dataset.conta;if(S.loteIds.has(id)){S.loteIds.delete(id);e.classList.remove('lsel');}else{S.loteIds.add(id);e.classList.add('lsel');}atualizaLotebar();return;}
+    const c=[...S.contas,...S.abertas,...S.aberRec].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
+  root.querySelectorAll('[data-pay]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();if(S.lote)return;e.disabled=true;const id=e.dataset.pay;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');toast('Conta paga ✓');await carregar();irPara(S.tab);});
+  root.querySelectorAll('[data-recv]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();if(S.lote)return;e.disabled=true;const id=e.dataset.recv;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);toast('Receita recebida ✓');await carregar();irPara(S.tab);});
   // ✕ vermelho: cancela/exclui NA HORA (regra Rodrigo: dinâmico, fácil e simples)
   root.querySelectorAll('.ev-x').forEach(x=>x.onclick=async(ev)=>{ev.stopPropagation();
     const linha=x.closest('[data-comp],[data-conta]');if(!linha)return;
