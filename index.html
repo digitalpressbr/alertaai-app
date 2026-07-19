@@ -690,6 +690,162 @@ tr.lsel::after{content:none}
 .dicaright .dr-h .dic{width:30px;height:30px;border-radius:50%;background:var(--amber-soft);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
 .dicaright.wpp .dr-h{color:var(--green-d)}.dicaright.wpp .dr-h .dic{background:var(--green-soft)}
 .dicaright .dr-b{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+/* ===== RESTYLE v3 NEUTRO (19/07/2026) — auditoria UX: paleta neutra, 1 cor de acao, hierarquia limpa ===== */
+:root{
+  --bg:#FAFAF7; --ink:#1C1B1A; --muted:#57534E; --soft:#8C8880;
+  --green:#2F6F4E; --green-d:#275C41; --green-l:#E7EFEA;
+  --blue:#3E6A88; --blue-l:#E4ECF2; --blue-soft:#E4ECF2;
+  --rose:#B4443A; --rose-l:#F5E4E2; --rose-dark:#93382F; --rose-soft:#F5E4E2; --rose-grad-1:#B4443A; --rose-grad-2:#93382F;
+  --amber:#A87A2C; --amber-l:#F5EBD6; --amber-dark:#8A6524; --amber-soft:#F5EBD6;
+  --line:#E5E3DE; --line-light:#EFEDE8; --bg-alt:#FCFCFA;
+  --green-dark:#275C41; --green-soft:#E7EFEA; --green-mid:#3D7A5A;
+  --shadow:0 1px 2px rgba(28,27,26,.04),0 4px 12px rgba(28,27,26,.06);
+  --shadow-sm:0 1px 2px rgba(28,27,26,.04),0 2px 8px rgba(28,27,26,.04);
+  --shadow-lg:0 12px 32px rgba(28,27,26,.14);
+}
+body{background-image:none}
+/* sidebar clara — item ativo neutro com barra accent */
+@media(min-width:900px){.side{background:#F4F3EF;color:var(--ink);border-right:1px solid var(--line)}}
+.side .bn{color:var(--green-d)}
+.side .bs{color:var(--muted);opacity:1}
+.side .navgroup{color:var(--soft)}
+.side nav button{color:var(--muted)}
+.side nav button:hover{background:#ECEBE6;color:var(--ink)}
+.side nav button.on{background:#ECEBE6;color:var(--ink);box-shadow:inset 3px 0 0 var(--green)}
+.side .user{background:#ECEBE6}
+.side .user .av{background:var(--green-l);color:var(--green-d)}
+.side .logout{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.side .logout:hover{background:#ECEBE6;color:var(--ink)}
+/* topbar mobile clara */
+.topbar{background:#fff;color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.topbar .sub{color:var(--muted);opacity:1}
+.iconbtn{background:#F1F0EC;color:var(--ink)}
+/* UMA cor de acao: "+ Despesa" deixa de ser vermelho */
+.bpill{box-shadow:none}
+.bpill.dr{background:var(--green);box-shadow:none}
+.bpill.dr:hover{background:var(--green-d)}
+.btn{box-shadow:none}
+/* KPI: o numero e o heroi — icone monocromatico discreto */
+.kpi .ic{background:#F1F0EC!important;color:#57534E!important}
+.kpi.g .ic,.kpi.r .ic,.kpi.b .ic,.kpi.a .ic{background:#F1F0EC!important;color:#57534E!important}
+.kfx .kpi.b.fx{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.kfx .kpi.b.fx .l,.kfx .kpi.b.fx .ks,.kfx .kpi.b.fx .ksub2{color:var(--muted)!important}
+.kfx .kpi.b.fx .n{color:var(--ink)!important}
+.kfx .kpi.b.fx .ic{background:#F1F0EC!important}
+.kfx .kpi.b.fx .fxbadge{background:#F1F0EC;color:var(--muted)}
+/* chips de categoria neutros (cor viva so nos graficos) */
+.catpill{background:#F1F0EC!important;color:#45423E!important}
+.catpill.none{background:#F1F0EC!important;color:var(--soft)!important}
+/* segmented control neutro */
+.viewtog .vt.on{background:#ECEBE6;color:var(--ink)}
+/* dicas discretas */
+.dicacard{background:var(--bg-alt);border:1px solid var(--line);color:var(--muted)}
+.dicaright .dr-h{color:var(--muted)}
+.dicaright .dr-h .dic{background:#F1F0EC}
+.dicaright.wpp .dr-h{color:var(--muted)}.dicaright.wpp .dr-h .dic{background:#F1F0EC}
+/* tabela de contas: sem gritaria — valor charcoal, data neutra, Pagar outline */
+.tb-val{color:var(--ink)}.tb-val.rec{color:var(--green-d)}
+.td-vd{color:var(--muted);font-weight:600}
+.td-due.vd{color:var(--rose-dark)}
+.tb-act{background:transparent;border:1.5px solid var(--green);color:var(--green-d)}
+.tb-act:hover{background:var(--green-l)}
+.tb-act.vd{background:transparent;border:1.5px solid var(--green);color:var(--green-d)}
+.tb-act.vd:hover{background:var(--green-l)}
+.tb-act.done{border:0}
+.fchip.vd:not(.on){color:var(--muted);border-color:var(--line)}
+.fchip.on{background:#ECEBE6;color:var(--ink);border-color:var(--line)}
+.cc-pay.vd{background:var(--green)}
+.cc-due.vd{color:var(--rose-dark)}
+.bpill.go,.bpill.g{background:var(--green);color:#fff;border:0;box-shadow:none}
+.bpill.go:hover,.bpill.g:hover{background:var(--green-d)}
+/* FAB no accent, sem gradiente */
+.fab{background:var(--green);box-shadow:0 8px 22px rgba(47,111,78,.35)}
+.fab:hover{background:var(--green-d)}
+/* === Onda B estrutural === */
+/* KPIs duplicados das telas de contas: as abas já filtram e contam */
+.minicards{display:none}
+/* dica lateral vira coluna única (popover fica pra proxima fase) */
+.dicaright{display:none}
+.contaswrap{grid-template-columns:1fr!important}
+/* dashboard: painel vazio colapsa */
+body[data-view="inicio"] .panel:has(.empty){display:none}
+/* estado vazio: só texto, sem emoji grande */
+.empty .e{display:none}
+.empty-owl img{width:64px;height:64px}
+/* legenda de grafico neutra */
+.leg .g{color:var(--ink)}.leg .r{color:var(--muted)}
+/* mobile: acao pelo FAB, dashboard com 2 KPIs (Saldo + Vencidas) */
+@media(max-width:899px){
+  .ph .act .bpill[data-add]{display:none}
+  body[data-view="inicio"] .kpi.g,body[data-view="inicio"] .kpi.r{display:none}
+  body[data-view="inicio"] .kpi{min-height:112px}
+  .kpis{align-items:stretch}
+}
+/* === polish pos-revisao Genspark === */
+/* KPIs do Inicio uniformes (Vencidas sem peso extra) */
+.kpi,.kpi.a,.kpi.g,.kpi.r,.kpi.b{background:var(--card)}
+/* dot vermelho antes do chip VENCIDA e redundante */
+.tb-dot{display:none}
+/* rotulos de grupo da sidebar mais discretos */
+.side .navgroup{font-size:11px;letter-spacing:.06em;color:var(--soft);font-weight:500}
+/* hint do saldo em cinza medio (contraste AA) */
+.kpi .ksub{color:var(--muted)}
+/* respiro entre descricao e "ha X dias" na tabela de contas */
+.td-due{line-height:1.4;margin-top:4px;color:var(--muted)}
+.td-due.vd{color:var(--rose-dark)}
+/* bottom nav mobile: rotulo sempre legivel pro publico leigo */
+.tabs button{font-size:11px;color:var(--muted)}
+.tabs button.on{color:var(--green-d);font-weight:700}
+/* fornecedores: avatar neutro (sem cor por letra) */
+.sc-av{background:#F1F0EC!important;color:var(--ink)!important}
+/* banner SABIA? discreto */
+.sabia{background:var(--bg-alt);border:1px solid var(--line);color:var(--muted)}
+/* KPIs de Relatorios neutros */
+.rs{border-left:1px solid var(--line)}
+.rs.g,.rs.r,.rs.b{border-left-color:var(--line)}
+.rs.g .rs-l,.rs.r .rs-l,.rs.b .rs-l{color:var(--muted)}
+.rs.g .rs-v,.rs.r .rs-v,.rs.b .rs-v{color:var(--ink)}
+/* sparkline discreta do Saldo */
+.kpi .spksm{margin-top:6px}
+.kpi .spksm svg{width:112px;height:24px;display:block}
+/* segmented control da Agenda neutro */
+.agtoggle button.on{background:#ECEBE6!important;color:var(--ink)!important}
+/* caixa Adicionar via CNPJ discreta */
+.cnpjbox{background:var(--bg-alt)!important;border:1px solid var(--line)!important}
+.cnpjbox .cnpj-ic{background:#F1F0EC!important;color:var(--muted)!important}
+/* Relatorios: painel vazio colapsa como no dashboard */
+body[data-view="relat"] .panel:has(.empty){display:none}
+
+/* ===== RESTYLE v3 dos MODAIS/FORMULARIOS (rodada 2 Genspark) ===== */
+/* headers de modal sem gradiente saturado */
+.modal.tp-desp .modal-h.hero,.modal.tp-rec .modal-h.hero{background:var(--card)!important}
+.modal.tp-desp .herobanner,.modal.tp-rec .herobanner{background:var(--surface-2,#F4F3EF)!important;border:1px solid var(--line)}
+.herobanner .hb-t,.herobanner .hb-s{color:var(--ink)!important}
+.herobanner .hb-s{color:var(--muted)!important}
+.modal.tp-rec .mh-circ,.modal.tp-desp .mh-circ{background:#F1F0EC!important;color:var(--ink)!important}
+.herobanner .hb-ic{filter:grayscale(1);opacity:.85}
+.hb-dec,.modal.tp-rec .hb-dec{display:none!important}
+/* select de categoria neutro (era vermelho/verde) */
+.modal.tp-rec #f-cat,.modal.tp-rec #f-cat:focus,.modal.tp-desp #f-cat,.modal.tp-desp #f-cat:focus{background-color:var(--card)!important;color:var(--ink)!important;border-color:var(--line)!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2357534E' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E")!important}
+/* area de anexo neutra (era rosa/verde) */
+.dropz{border-color:var(--line)!important;background:var(--bg-alt)!important}
+.modal.tp-desp .dropz{border-color:var(--line)!important;background:var(--bg-alt)!important}
+.modal.tp-desp .dropz:hover,.modal.tp-desp .dropz.drag,.dropz:hover,.dropz.drag{border-color:var(--green)!important;background:var(--green-l)!important}
+.dz-ic{filter:grayscale(1);opacity:.7}
+/* forma de pagamento: opcao ativa no verde de acao, nao vermelho */
+.modal.tp-desp .formapg.radio .fp.on{background:var(--green-l)!important;border-color:var(--green)!important;color:var(--green-d)!important}
+.modal.tp-desp .formapg.radio .fp.on .rc{border-color:var(--green)!important}
+.modal.tp-desp .formapg.radio .fp.on .rc::after{background:var(--green)!important}
+/* link "+ Adicionar novo" discreto */
+.addlink{color:var(--muted)!important;text-decoration:underline}
+/* botao salvar sempre no verde de acao (era vermelho na despesa) */
+.modal #f-save,.modal #f-save.tdesp,.modal #f-save.trec{background:var(--green)!important;color:#fff!important;box-shadow:none!important}
+.modal #f-save:hover{background:var(--green-d)!important}
+/* banner de trial vencido neutro-alerta (era gradiente vermelho forte) */
+.assbanner{background:var(--rose-soft)!important;box-shadow:none!important;border:1px solid #E8C9C4;color:var(--rose-dark)}
+.assbanner .ab-t,.assbanner .ab-s{color:var(--rose-dark)!important}
+.btn-assinar{background:var(--green)!important;box-shadow:none!important}
+.btn-assinar:hover{background:var(--green-d)!important}
 </style>
 </head>
 <body>
@@ -829,12 +985,12 @@ $('ac-b-senha').onclick=async()=>{const s=$('ac-senha').value,s2=$('ac-senha2').
 
 /* APP */
 const NAV_GROUPS=[
- ['Visão geral',[['inicio','🏠','Dashboard'],['agenda','📅','Agenda']]],
- ['Financeiro',[['pagar','💸','Contas a pagar'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa']]],
- ['Cadastros',[['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias']]],
- ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Mais']]],
+ ['Visão geral',[['inicio','🏠','Início'],['agenda','📅','Agenda']]],
+ ['Contas',[['pagar','💸','A pagar'],['receber','💰','A receber'],['fluxo','📊','Movimentações']]],
+ ['Contatos',[['cli','👥','Clientes'],['forn','🏢','Fornecedores']]],
+ ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
-const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Financeiro'],['mais','⚙️','Mais']];
+const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
 const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar};
 async function abrirApp(){
   show('screen-main');
@@ -878,7 +1034,7 @@ function bloqueado(){const d=diasTrial();return d!==null&&d<=0;}
 function irPara(k){
   if(bloqueado()&&k!=='assinatura')k='assinatura';
   if(S.tab!==k&&S.lote){S.lote=false;S.loteIds=new Set();const lb=$('lotebar');if(lb)lb.remove();} // trocar de tela sai do modo lote
-  S.tab=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  S.tab=k;document.body.dataset.view=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   (ROUTES[k]||viewInicio)();
   const d=diasTrial();
   if(!bloqueado()&&d!==null&&d>0&&d<=15&&k!=='assinatura'){
@@ -910,6 +1066,7 @@ async function carregar(){
 }
 
 /* ---- INÍCIO (dashboard) ---- */
+function saldo6m(){const out=[];for(let i=5;i>=0;i--){const d=new Date(Date.UTC(S.ano,S.mes-i,1)),y=d.getUTCFullYear(),m=d.getUTCMonth();let r=0,ds=0;(S.serie||[]).forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===y&&(+dt.slice(5,7)-1)===m){if(c.tipo==='receita')r+=Number(c.valor||0);else ds+=Number(c.valor||0);}});out.push(r-ds);}return out;}
 function viewInicio(){
   const hoje=hojeBRT();
   const desM=S.contas.filter(c=>c.tipo!=='receita'),recM=S.contas.filter(c=>c.tipo==='receita');
@@ -934,12 +1091,12 @@ function viewInicio(){
   const barPct=totRec>0?Math.max(0,Math.min(100,Math.round(saldo/totRec*100))):0;
   const kpiN=v=>window.innerWidth<560?'R$ '+Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'):money(v);
   const h=`
-  <div class="ph"><div><h1>Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')}! 👋</h1><div class="d">${DOW[d.getUTCDay()].toLowerCase()}, ${d.getUTCDate()} de ${MES[S.mes]} · saldo <b style="color:${saldo>=0?'var(--green-d)':'var(--rose-dark)'}">${money(saldo)}</b></div></div>
+  <div class="ph"><div><h1>Início</h1><div class="d">Olá, ${esc(S.nome?S.nome.split(' ')[0]:'')} · ${DOW[d.getUTCDay()].toLowerCase()}, ${d.getUTCDate()} de ${MES[S.mes]}</div></div>
     <div class="act"><button class="bpill g" data-add="receita">＋ Receita</button><button class="bpill" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis kpis4">
     <div class="kpi g"><div class="ic">${IC_UP}</div><div class="kt"><div class="l">Receitas</div><div class="n">${kpiN(totRec)}</div>${_vtxt(vR,false)}</div></div>
     <div class="kpi r"><div class="ic">${IC_DOWN}</div><div class="kt"><div class="l">Despesas</div><div class="n">${kpiN(totDes)}</div>${_vtxt(vD,true)}</div></div>
-    <div class="kpi b"><div class="ic">${IC_WAL}</div><div class="kt"><div class="l">Saldo</div><div class="n">${kpiN(saldo)}</div><div class="kbar"><i style="width:${barPct}%"></i></div><div class="ksub">${barPct}% da receita guardado</div></div></div>
+    <div class="kpi b"><div class="ic">${IC_WAL}</div><div class="kt"><div class="l">Saldo</div><div class="n">${kpiN(saldo)}</div><div class="spksm">${spark(saldo6m(),'#8C8880')}</div>${totRec>0?`<div class="ksub">${barPct}% da receita guardado</div>`:''}</div></div>
     <div class="kpi a" data-go="pagar" style="cursor:pointer"><div class="ic">${IC_AL}</div><div class="kt"><div class="l">Vencidas</div><div class="n">${kpiN(tVenc)}</div><div class="ks down">⚠️ ${vencidas.length} conta(s) pendente(s)</div></div></div>
   </div>
   <div class="dash2">
@@ -963,8 +1120,8 @@ function desenharSerie(){
   const labels=[],rec=[],des=[];
   for(let i=5;i>=0;i--){const dd=new Date(Date.UTC(S.ano,S.mes-i,1)),y=dd.getUTCFullYear(),m=dd.getUTCMonth();labels.push(MES[m].slice(0,3));let r=0,p=0;S.serie.forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===y&&(+dt.slice(5,7)-1)===m){if(c.tipo==='receita')r+=Number(c.valor||0);else p+=Number(c.valor||0);}});rec.push(r);des.push(p);}
   chart=new Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'Receitas',data:rec,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.13)',fill:true,tension:.35,borderWidth:2,pointRadius:3,pointBackgroundColor:'#16a34a'},
-    {label:'Despesas',data:des,borderColor:'#e11d48',backgroundColor:'rgba(225,29,72,.10)',fill:true,tension:.35,borderWidth:2,pointRadius:3,pointBackgroundColor:'#e11d48'}]},
+    {label:'Receitas',data:rec,borderColor:'#33302C',fill:false,tension:.35,borderWidth:1.8,pointRadius:2.5,pointBackgroundColor:'#33302C'},
+    {label:'Despesas',data:des,borderColor:'#57534E',fill:false,tension:.35,borderWidth:1.6,pointRadius:2.5,pointBackgroundColor:'#57534E',borderDash:[5,4]}]},
     options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{family:'Plus Jakarta Sans',size:12},padding:14}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>moneyK(v)}}}}});
 }
 function desenharCategorias(){
@@ -990,7 +1147,7 @@ function viewAgenda(){
       <div class="cal-h"><button id="pmes">‹</button><div class="m">${MES[S.mes]} ${S.ano}</div><button id="nmes">›</button><button class="hojebtn" id="hojebtn">Hoje</button></div>
       <div class="grid hd">${DOW.map(x=>`<div class="dow">${x.toUpperCase()}</div>`).join('')}</div>
       <div class="grid calg" id="cal-grid"></div>
-      <div class="legend"><span><i style="background:var(--green)"></i>Receitas</span><span><i style="background:var(--rose)"></i>Despesas</span><span><i style="background:var(--blue)"></i>Compromissos</span></div>
+      ${Object.keys(S.porDia||{}).length?`<div class="legend"><span><i style="background:var(--green)"></i>Receitas</span><span><i style="background:var(--rose)"></i>Despesas</span><span><i style="background:var(--blue)"></i>Compromissos</span></div>`:''}
     </div>`;
   }else{
     const hj=new Date(Date.now()-3*3600e3);
@@ -1040,14 +1197,16 @@ function renderAgSide(){
   card+=evA.length?evA.join(''):`<div class="empty-owl"><img src="coruja.png" alt=""><div class="et">Sem eventos ${S.selDia?'nesse dia':'hoje'}</div><div class="es">Aproveite o dia tranquilo 🦉</div></div>`;
   card+='</div>';
   const base=mesAtual?hoje.getUTCDate():0;
-  let prox=`<div class="prox7"><div class="agh-t">Próximos 7 dias</div>`;
+  let prox=`<div class="prox7"><div class="agh-t">Próximos 7 dias</div>`,p7n=0;
   for(let i=1;i<=7;i++){const d=new Date(Date.UTC(S.ano,S.mes,base+i));const dentro=d.getUTCMonth()===S.mes;const dd=String(d.getUTCDate()).padStart(2,'0');const ev=dentro?(S.porDia[dd]||{b:[],r:[],e:[]}):{b:[],r:[],e:[]};
     const its=[...ev.e.map(c=>['green','+ '+money(c.valor),c.descricao]),...ev.r.map(c=>['rose','- '+money(c.valor),c.descricao]),...ev.b.map(c=>['blue',(c.horario&&c.horario!=='00:00'?c.horario:'•'),c.titulo])];
-    const evh=its.length?its.map(([cl,a,b])=>`<div class="p7ev"><span class="dot" style="background:var(--${cl})"></span><span><b>${esc(a)}</b> ${esc(b)}</span></div>`).join(''):`<div class="p7ev none">Sem compromissos</div>`;
+    if(!its.length)continue; // dia sem evento não vira linha — estado vazio único abaixo
+    p7n++;
+    const evh=its.map(([cl,a,b])=>`<div class="p7ev"><span class="dot" style="background:var(--${cl})"></span><span><b>${esc(a)}</b> ${esc(b)}</span></div>`).join('');
     prox+=`<div class="p7row"><div class="p7d">${d.getUTCDate()}<span class="dw">${DOW[d.getUTCDay()].toUpperCase()}</span></div><div style="flex:1;min-width:0">${evh}</div></div>`;}
-  prox+='</div>';
+  prox+=p7n?'</div>':`<div class="p7ev none" style="padding:4px 2px">Nada agendado nos próximos 7 dias.</div></div>`;
   const nComp=S.comp.length,nDesp=S.contas.filter(c=>c.tipo!=='receita').length,nRec=S.contas.filter(c=>c.tipo==='receita').length;
-  const resumo=`<div class="resumo"><div class="rc"><div class="rn">${nComp}</div><div class="rl">📅 compromissos</div></div><div class="rc"><div class="rn">${nDesp}</div><div class="rl">⏰ despesas</div></div><div class="rc"><div class="rn">${nRec}</div><div class="rl">💰 receitas</div></div></div>`;
+  const resumo=(nComp||nDesp||nRec)?`<div class="resumo"><div class="rc"><div class="rn">${nComp}</div><div class="rl">📅 compromissos</div></div><div class="rc"><div class="rn">${nDesp}</div><div class="rl">⏰ despesas</div></div><div class="rc"><div class="rn">${nRec}</div><div class="rl">💰 receitas</div></div></div>`:'';
   box.innerHTML=card+prox+resumo;
   bindItems(box); // compromissos/contas do dia clicáveis → abre modal (com botão de cancelar/excluir)
 }
@@ -1140,8 +1299,8 @@ function viewFluxo(){
   const h=`<div class="ph"><div><h1>Fluxo de caixa</h1><div class="d">${MES[S.mes]} de ${S.ano} · realizado e previsto</div></div>
     <div class="act"><div class="mnav"><button id="fx-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="fx-next">›</button></div><button class="bpill go" data-add="receita">＋ Receita</button><button class="bpill dr" data-add="despesa">＋ Despesa</button></div></div>
   <div class="kpis kfx">
-    <div class="kpi g fx"><div class="ic">${U}</div><div class="kt"><div class="l">RECEITAS</div><div class="n">${money(totR)}</div><div class="ksub2">${receitas.length} lançamento${receitas.length!==1?'s':''}</div></div><div class="spk">${spark(R6,'#16a34a')}</div></div>
-    <div class="kpi r fx"><div class="ic">${Dn}</div><div class="kt"><div class="l">DESPESAS</div><div class="n">${money(totD)}</div><div class="ksub2">${despesas.length} lançamento${despesas.length!==1?'s':''}</div></div><div class="spk">${spark(D6,'#e11d48')}</div></div>
+    <div class="kpi g fx"><div class="ic">${U}</div><div class="kt"><div class="l">RECEITAS</div><div class="n">${money(totR)}</div><div class="ksub2">${receitas.length} lançamento${receitas.length!==1?'s':''}</div></div><div class="spk">${spark(R6,'#8C8880')}</div></div>
+    <div class="kpi r fx"><div class="ic">${Dn}</div><div class="kt"><div class="l">DESPESAS</div><div class="n">${money(totD)}</div><div class="ksub2">${despesas.length} lançamento${despesas.length!==1?'s':''}</div></div><div class="spk">${spark(D6,'#8C8880')}</div></div>
     <div class="kpi b fx"><div class="ic">${W}</div><div class="kt"><div class="l">SALDO DO MÊS</div><div class="n">${money(saldo)}</div><div class="ks ${saldo>=0?'up':'down'}">${saldo>=0?'✓ resultado positivo':'▼ resultado negativo'}</div></div><div class="fxbadge">${TR}</div></div>
   </div>
   <div class="panel"><div class="pnh"><h3>Receitas × Despesas <span class="sub2">— Últimos 6 meses</span></h3><div class="leg"><span class="g">● Receitas</span><span class="r">● Despesas</span></div></div><div class="chart-wrap tall"><canvas id="ch2"></canvas></div></div>
@@ -1167,7 +1326,7 @@ function fxRow(c,tipo){const isR=tipo==='rec';const hoje=hojeBRT();let pill,cls,
 function desenharFluxo6(labels,rec,des){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)return;if(window._fxc)window._fxc.destroy();
   const fmt=v=>'R$ '+Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   const lab={id:'barlab',afterDatasetsDraw(ch){const g=ch.ctx;g.save();g.font='700 10.5px "Plus Jakarta Sans"';g.textAlign='center';ch.data.datasets.forEach((ds,di)=>{const m=ch.getDatasetMeta(di);m.data.forEach((bar,i)=>{const v=ds.data[i];if(!v)return;g.fillStyle=di===0?'#0b6b3a':'#b91c1c';g.fillText(fmt(v),bar.x,bar.y-6);});});g.restore();}};
-  window._fxc=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Receitas',data:rec,backgroundColor:'#16a34a',borderRadius:6,maxBarThickness:32},{label:'Despesas',data:des,backgroundColor:'#e11d48',borderRadius:6,maxBarThickness:32}]},options:{maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,suggestedMax:8000,ticks:{stepSize:2000,callback:v=>v?'R$'+(v/1000)+'k':'R$0'},grid:{color:'#eef0ee'}}}},plugins:[lab]});}
+  window._fxc=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Receitas',data:rec,backgroundColor:'#57534E',borderRadius:6,maxBarThickness:32},{label:'Despesas',data:des,backgroundColor:'#C9C6C0',borderRadius:6,maxBarThickness:32}]},options:{maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,suggestedMax:8000,ticks:{stepSize:2000,callback:v=>v?'R$'+(v/1000)+'k':'R$0'},grid:{color:'#eef0ee'}}}},plugins:[lab]});}
 function itemReceita(c){const rec=c.status==='pago';const btn=rec?'':`<button class="qpay g" data-recv="${c.id}" title="Marcar como recebida">✓</button>`;return `<div class="item rcv${rec?' done':''}" data-conta="${c.id}"><span class="di">💰</span><div class="bd"><div class="tt">${esc(c.descricao)}${rec?'<span class="chip pg">recebido</span>':''}</div><div class="ss">Previsto ${dBRc(c.data_vencimento)}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv rec">+ ${money(c.valor)}</div>${btn}</div>`;}
 
 /* ---- ASSINATURA ---- */
@@ -1215,7 +1374,7 @@ function viewAssinatura(){
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
   const links=[['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
-  let h=`<div class="ph"><div><h1>Mais</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
+  let h=`<div class="ph"><div><h1>Ajustes</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   ${(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)?'':`<button class="btn" id="mais-instalar" style="margin:4px 0 2px">📲 Instalar o app no celular</button>`}
   <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
@@ -1375,9 +1534,9 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   const pctD=(x)=>tD?Math.round(x/tD*100):0,pctR=(x)=>tR?Math.round(x/tR*100):0;
   v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><div class="mnav"><button id="rl-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="rl-next">›</button></div><button class="bpill" id="exp-csv">⬇️ CSV</button></div></div>
   <div class="rsum">
-    <div class="rs g"><div class="rs-info"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(R6,'#16a34a')}</div></div>
-    <div class="rs r"><div class="rs-info"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(D6,'#e11d48')}</div></div>
-    <div class="rs b"><div class="rs-info"><div class="rs-l">RESULTADO</div><div class="rs-v">${money(res)}</div><div class="rs-d ${res>=0?'up':'down'}">${res>=0?'✓ lucro positivo':'resultado negativo'}</div></div><div class="rs-spk">${spark(S6,'#2563eb')}</div></div>
+    <div class="rs g"><div class="rs-info"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(R6,'#8C8880')}</div></div>
+    <div class="rs r"><div class="rs-info"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(D6,'#8C8880')}</div></div>
+    <div class="rs b"><div class="rs-info"><div class="rs-l">RESULTADO</div><div class="rs-v">${money(res)}</div><div class="rs-d ${res>=0?'up':'down'}">${res>=0?'✓ lucro positivo':'resultado negativo'}</div></div><div class="rs-spk">${spark(S6,'#8C8880')}</div></div>
   </div>
   <div class="cols2" style="margin-top:16px">
     <div class="panel"><h3>💸 Despesas por categoria</h3>${rowsD.length?rowsD.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)} <small>(${pctD(o.v)}%)</small></b></div>${bar(o.v,maxD,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem despesas este mês.')}</div>
