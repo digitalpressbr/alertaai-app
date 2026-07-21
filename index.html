@@ -846,6 +846,19 @@ body[data-view="relat"] .panel:has(.empty){display:none}
 .assbanner .ab-t,.assbanner .ab-s{color:var(--rose-dark)!important}
 .btn-assinar{background:var(--green)!important;box-shadow:none!important}
 .btn-assinar:hover{background:var(--green-d)!important}
+/* resumo da agenda clicável + lista do mês (21/07) */
+.resumo .rc{cursor:pointer;border-radius:12px;padding:6px 4px;transition:background .12s}
+.resumo .rc:hover{background:var(--bg-alt,#fcfbf7)}
+.rslist{display:flex;flex-direction:column}
+.rsrow{display:flex;gap:10px;align-items:baseline;padding:7px 2px;border-bottom:1px solid var(--line-light,#f0ebe0);font-size:13.5px}
+.rsrow:last-child{border-bottom:none}
+.rsrow.tot{border-top:1.5px solid var(--line);margin-top:4px}
+.rsd{flex:none;width:88px;color:var(--muted);font-size:11.5px;font-weight:600}
+.rsh{flex:none;width:44px;font-weight:700;font-variant-numeric:tabular-nums}
+.rst{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rst small{color:var(--muted)}
+.rsv{flex:none;font-weight:700;font-variant-numeric:tabular-nums}
+.rsv.ok{color:var(--green)}
 /* anexos compactos lado a lado (despesa) */
 .anx2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .anx2 .dropz{padding:8px 6px;min-height:0}
@@ -1239,9 +1252,33 @@ function renderAgSide(){
     prox+=`<div class="p7row"><div class="p7d">${d.getUTCDate()}<span class="dw">${DOW[d.getUTCDay()].toUpperCase()}</span></div><div style="flex:1;min-width:0">${evh}</div></div>`;}
   prox+=p7n?'</div>':`<div class="p7ev none" style="padding:4px 2px">Nada agendado nos próximos 7 dias.</div></div>`;
   const nComp=S.comp.length,nDesp=S.contas.filter(c=>c.tipo!=='receita').length,nRec=S.contas.filter(c=>c.tipo==='receita').length;
-  const resumo=(nComp||nDesp||nRec)?`<div class="resumo"><div class="rc"><div class="rn">${nComp}</div><div class="rl">📅 compromissos</div></div><div class="rc"><div class="rn">${nDesp}</div><div class="rl">⏰ despesas</div></div><div class="rc"><div class="rn">${nRec}</div><div class="rl">💰 receitas</div></div></div>`:'';
+  const resumo=(nComp||nDesp||nRec)?`<div class="resumo"><div class="rc" data-rs="comp" title="Ver a lista completa"><div class="rn">${nComp}</div><div class="rl">📅 compromissos</div></div><div class="rc" data-rs="desp" title="Ver a lista completa"><div class="rn">${nDesp}</div><div class="rl">⏰ despesas</div></div><div class="rc" data-rs="rec" title="Ver a lista completa"><div class="rn">${nRec}</div><div class="rl">💰 receitas</div></div></div>`:'';
   box.innerHTML=card+prox+resumo;
   bindItems(box); // compromissos/contas do dia clicáveis → abre modal (com botão de cancelar/excluir)
+  box.querySelectorAll('[data-rs]').forEach(c=>c.onclick=()=>resumoLista(c.dataset.rs)); // 21/07: card do resumo abre a lista do mês
+}
+
+/* Lista completa do mês ao clicar num card do resumo (pedido Rodrigo 21/07) */
+function resumoLista(tp){
+  const mesNome=MES[S.mes]+' de '+S.ano;
+  const dcurta=iso=>{if(!iso)return '';const [y,m,d]=iso.split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')} · ${DOW[dt.getUTCDay()].toLowerCase()}`;};
+  let titulo,linhas='';
+  if(tp==='comp'){
+    titulo='📅 Compromissos de '+mesNome;
+    const arr=S.comp.slice().sort((a,b)=>((a.data||'')+(a.horario||''))<((b.data||'')+(b.horario||''))?-1:1);
+    linhas=arr.map(c=>`<div class="rsrow"><span class="rsd">${dcurta(c.data)}</span><span class="rsh">${c.horario&&c.horario!=='00:00'?esc(c.horario):''}</span><span class="rst">${esc(c.titulo)}${c.local?` <small>(${esc(c.local)})</small>`:''}</span></div>`).join('');
+  }else{
+    const isRec=tp==='rec';
+    titulo=(isRec?'💰 Receitas':'⏰ Despesas')+' de '+mesNome;
+    const arr=S.contas.filter(c=>isRec?c.tipo==='receita':c.tipo!=='receita').slice().sort((a,b)=>String(a.data_vencimento).localeCompare(String(b.data_vencimento)));
+    let tot=0;
+    linhas=arr.map(c=>{tot+=Number(c.valor||0);return `<div class="rsrow"><span class="rsd">${dcurta(c.data_vencimento)}</span><span class="rst">${esc(c.descricao)}</span><span class="rsv ${c.status==='pago'?'ok':''}">${money(c.valor)}${c.status==='pago'?' ✓':''}</span></div>`;}).join('');
+    if(arr.length)linhas+=`<div class="rsrow tot"><span class="rsd"></span><span class="rst"><b>Total (${arr.length})</b></span><span class="rsv"><b>${money(tot)}</b></span></div>`;
+  }
+  if(!linhas)linhas='<div class="rsrow" style="color:var(--muted)">Nada neste mês. 🌤️</div>';
+  const ov=el(`<div class="ov"><div class="modal"><div class="modal-h"><div class="t">${titulo}</div><button class="cl" aria-label="fechar">✕</button></div><div class="modal-b rslist">${linhas}</div></div></div>`);
+  ov.querySelector('.cl').onclick=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  $('modal-root').appendChild(ov);
 }
 
 /* ---- CONTAS A PAGAR ---- */
@@ -1571,7 +1608,7 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   const fmap={};desp.forEach(c=>{const nm=(c.observacao||'').trim();if(nm)fmap[nm]=(fmap[nm]||0)+Number(c.valor||0);});
   const topF=Object.entries(fmap).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const pctD=(x)=>tD?Math.round(x/tD*100):0,pctR=(x)=>tR?Math.round(x/tR*100):0;
-  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><div class="mnav"><button id="rl-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="rl-next">›</button></div><button class="bpill" id="imp-rel" title="Relatório em PDF (A4)">🖨️ PDF</button><button class="bpill" id="exp-csv">⬇️ CSV</button></div></div>
+  v.innerHTML=`<div class="ph"><div><h1>Relatórios</h1><div class="d">${MES[S.mes]} de ${S.ano} · análise financeira</div></div><div class="act"><div class="mnav"><button id="rl-prev">‹</button><span>${MES[S.mes]} ${S.ano}</span><button id="rl-next">›</button></div><button class="bpill" id="imp-rel" title="Relatório em PDF (A4)">🖨️ PDF</button><button class="bpill" id="exp-csv">⬇️ Excel</button></div></div>
   <div class="rsum">
     <div class="rs g"><div class="rs-info"><div class="rs-l">RECEITAS</div><div class="rs-v">${money(tR)}</div>${vpR!==null?`<div class="rs-d up">${vpR>=0?'+':''}${vpR}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(R6,'#8C8880')}</div></div>
     <div class="rs r"><div class="rs-info"><div class="rs-l">DESPESAS</div><div class="rs-v">${money(tD)}</div>${vpD!==null?`<div class="rs-d ${vpD<=0?'up':'down'}">${vpD>=0?'+':''}${vpD}% vs ${MES[pMR].slice(0,3)}</div>`:''}</div><div class="rs-spk">${spark(D6,'#8C8880')}</div></div>
@@ -1582,9 +1619,71 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
     <div class="panel"><h3>💰 Receitas por categoria</h3>${rowsR.length?rowsR.map(([n,o])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(o.v)} <small>(${pctR(o.v)}%)</small></b></div>${bar(o.v,maxR,o.cor)}</div>`).join(''):emptyBox('🗂️','Sem receitas este mês.')}</div>
   </div>
   ${topF.length?`<div class="panel" style="margin-top:14px"><h3>🏢 Top fornecedores</h3>${topF.map(([n,vv])=>`<div class="relrow"><div class="rl"><span>${esc(n)}</span><b>${money(vv)}</b></div>${bar(vv,topF[0][1],'#475569')}</div>`).join('')}</div>`:''}`;
-  $('exp-csv').onclick=exportCSV;
+  $('exp-csv').onclick=exportarExcel;
   if($('rl-prev'))$('rl-prev').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes-1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};
   if($('rl-next'))$('rl-next').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes+1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};}
+/* Excel FORMATADO (pedido Rodrigo 14+21/07): sem linhas de grade, cabeçalho verde, zebra, moeda, congela cabeçalho; aba 2 por categoria com barra. ExcelJS via CDN sob demanda; se falhar → CSV. */
+async function exportarExcel(){
+  const btn=$('exp-csv');
+  try{
+    if(!window.ExcelJS){
+      if(btn){btn.disabled=true;btn.textContent='⏳ Gerando...';}
+      await new Promise((ok,err)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';sc.onload=ok;sc.onerror=err;document.head.appendChild(sc);});
+    }
+    const mesNome=MES[S.mes].charAt(0).toUpperCase()+MES[S.mes].slice(1)+' de '+S.ano;
+    const VERDE='FF065F46',INK='FF26332B',MUT='FF8A8A85',ZEBRA='FFF4F7F5',LINHA='FFDFE6E1';
+    const catN=id=>{const c=S.cat.find(x=>x.id===id);return c?c.nome:'Sem categoria';};
+    const desp=S.contas.filter(c=>c.tipo!=='receita'),rec=S.contas.filter(c=>c.tipo==='receita');
+    const tD=desp.reduce((a,c)=>a+Number(c.valor||0),0),tR=rec.reduce((a,c)=>a+Number(c.valor||0),0);
+    const wb=new ExcelJS.Workbook();wb.creator='AlertaAí';
+    const ws=wb.addWorksheet('Movimentações',{views:[{showGridLines:false,state:'frozen',ySplit:6}]});
+    ws.columns=[{width:13},{width:48},{width:11},{width:24},{width:11},{width:17}];
+    ws.mergeCells('A1:F1');const t1=ws.getCell('A1');t1.value='AlertaAí — Relatório Financeiro';t1.font={bold:true,size:15,color:{argb:VERDE}};ws.getRow(1).height=24;
+    ws.mergeCells('A2:F2');const t2=ws.getCell('A2');t2.value='Competência: '+mesNome+'  ·  gerado pelo app';t2.font={size:9.5,color:{argb:MUT}};
+    const R4=ws.getRow(4);
+    [['Receitas',tR,'FF0A7A4B'],['Despesas',tD,'FFB03030'],['Resultado',tR-tD,(tR-tD>=0?'FF0A7A4B':'FFB03030')]].forEach((kv,i)=>{
+      const c1=R4.getCell(1+i*2);c1.value=kv[0];c1.font={bold:true,size:10,color:{argb:MUT}};
+      const c2=R4.getCell(2+i*2);c2.value=kv[1];c2.numFmt='"R$" #,##0.00';c2.font={bold:true,size:12,color:{argb:kv[2]}};c2.alignment={horizontal:'left'};});
+    const hr=ws.getRow(6);
+    ['Data','Descrição','Tipo','Categoria','Status','Valor'].forEach((h,i)=>{const c=hr.getCell(i+1);c.value=h;c.font={bold:true,color:{argb:'FFFFFFFF'},size:10.5};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:VERDE}};c.alignment={horizontal:i===5?'right':'left',vertical:'middle'};});
+    hr.height=19;
+    const dados=S.contas.slice().sort((a,b)=>String(a.data_vencimento).localeCompare(String(b.data_vencimento)));
+    let r=7;
+    dados.forEach((c,ix)=>{const row=ws.getRow(r++);
+      const p=(c.data_vencimento||'').split('-').map(Number);
+      row.getCell(1).value=p[0]?new Date(Date.UTC(p[0],p[1]-1,p[2])):'';row.getCell(1).numFmt='dd/mm/yyyy';
+      row.getCell(2).value=c.descricao||'';
+      row.getCell(3).value=c.tipo==='receita'?'Receita':'Despesa';
+      row.getCell(4).value=catN(c.categoria_id);
+      row.getCell(5).value=c.status==='pago'?'Pago':'Pendente';
+      const v=row.getCell(6);v.value=(c.tipo==='receita'?1:-1)*Number(c.valor||0);v.numFmt='"R$" #,##0.00;[Red]-"R$" #,##0.00';v.alignment={horizontal:'right'};
+      for(let i=1;i<=6;i++){const cc=row.getCell(i);if(!cc.font)cc.font={size:10.5,color:{argb:INK}};
+        if(ix%2)cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:ZEBRA}};
+        cc.border={bottom:{style:'hair',color:{argb:LINHA}}};}
+    });
+    const tot=ws.getRow(r);tot.getCell(2).value='TOTAL DO MÊS';tot.getCell(2).font={bold:true,size:10.5,color:{argb:INK}};
+    const tv=tot.getCell(6);tv.value=tR-tD;tv.numFmt='"R$" #,##0.00;[Red]-"R$" #,##0.00';tv.font={bold:true,size:11};tv.alignment={horizontal:'right'};
+    for(let i=1;i<=6;i++)tot.getCell(i).border={top:{style:'medium',color:{argb:VERDE}}};
+    const ws2=wb.addWorksheet('Por categoria',{views:[{showGridLines:false}]});
+    ws2.columns=[{width:32},{width:17},{width:24}];
+    ws2.mergeCells('A1:C1');const u1=ws2.getCell('A1');u1.value='Despesas por categoria — '+mesNome;u1.font={bold:true,size:13,color:{argb:VERDE}};ws2.getRow(1).height=22;
+    const h2=ws2.getRow(3);
+    ['Categoria','Total','Participação'].forEach((h,i)=>{const c=h2.getCell(i+1);c.value=h;c.font={bold:true,color:{argb:'FFFFFFFF'},size:10.5};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:VERDE}};c.alignment={horizontal:i===1?'right':'left'};});
+    const mm={};desp.forEach(c=>{const n=catN(c.categoria_id);mm[n]=(mm[n]||0)+Number(c.valor||0);});
+    const cats=Object.entries(mm).sort((a,b)=>b[1]-a[1]);let r2=4;
+    cats.forEach((kv,ix)=>{const row=ws2.getRow(r2++);
+      row.getCell(1).value=kv[0];
+      const cv=row.getCell(2);cv.value=kv[1];cv.numFmt='"R$" #,##0.00';cv.alignment={horizontal:'right'};
+      const cp=row.getCell(3);cp.value=tD?kv[1]/tD:0;cp.numFmt='0.0%';
+      for(let i=1;i<=3;i++){const cc=row.getCell(i);cc.font=cc.font||{size:10.5,color:{argb:INK}};if(ix%2)cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:ZEBRA}};cc.border={bottom:{style:'hair',color:{argb:LINHA}}};}});
+    try{if(cats.length)ws2.addConditionalFormatting({ref:`C4:C${r2-1}`,rules:[{priority:1,type:'dataBar',cfvo:[{type:'num',value:0},{type:'num',value:1}],color:{argb:'FF7FB8A0'}}]});}catch(_e){/* barra é enfeite */}
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`AlertaAi_${MES[S.mes]}_${S.ano}.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('Excel gerado ✅');
+  }catch(e){console.warn('excel falhou, caindo pro CSV',e);toast('Não consegui gerar o Excel — baixei em CSV.',true);exportCSV();}
+  finally{if(btn){btn.disabled=false;btn.textContent='⬇️ Excel';}}
+}
 function exportCSV(){const rows=[['Tipo','Descrição','Valor','Vencimento','Status','Categoria']];const catN=id=>{const c=S.cat.find(x=>x.id===id);return c?c.nome:'';};
   S.contas.forEach(c=>rows.push([c.tipo==='receita'?'Receita':'Despesa',(c.descricao||'').replace(/;/g,','),moneyN(c.valor),c.data_vencimento||'',c.status||'',catN(c.categoria_id)]));
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`alertaai_${S.ano}_${String(S.mes+1).padStart(2,'0')}.csv`;a.click();toast('CSV exportado ✅');}
