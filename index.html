@@ -1636,7 +1636,7 @@ async function exportarExcel(){
     const desp=S.contas.filter(c=>c.tipo!=='receita'),rec=S.contas.filter(c=>c.tipo==='receita');
     const tD=desp.reduce((a,c)=>a+Number(c.valor||0),0),tR=rec.reduce((a,c)=>a+Number(c.valor||0),0);
     const wb=new ExcelJS.Workbook();wb.creator='AlertaAí';
-    const ws=wb.addWorksheet('Movimentações',{views:[{showGridLines:false,state:'frozen',ySplit:6}]});
+    const ws=wb.addWorksheet('Movimentações',{views:[{showGridLines:false,state:'frozen',ySplit:6}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,paperSize:9,margins:{left:0.35,right:0.35,top:0.5,bottom:0.5,header:0.2,footer:0.2}}});
     ws.columns=[{width:13},{width:48},{width:11},{width:24},{width:11},{width:17}];
     ws.mergeCells('A1:F1');const t1=ws.getCell('A1');t1.value='AlertaAí — Relatório Financeiro';t1.font={bold:true,size:15,color:{argb:VERDE}};ws.getRow(1).height=24;
     ws.mergeCells('A2:F2');const t2=ws.getCell('A2');t2.value='Competência: '+mesNome+'  ·  gerado pelo app';t2.font={size:9.5,color:{argb:MUT}};
@@ -1652,7 +1652,7 @@ async function exportarExcel(){
     dados.forEach((c,ix)=>{const row=ws.getRow(r++);
       const p=(c.data_vencimento||'').split('-').map(Number);
       row.getCell(1).value=p[0]?new Date(Date.UTC(p[0],p[1]-1,p[2])):'';row.getCell(1).numFmt='dd/mm/yyyy';
-      row.getCell(2).value=c.descricao||'';
+      const _dsc=String(c.descricao||'');row.getCell(2).value=_dsc.length>70?_dsc.slice(0,69)+'…':_dsc;
       row.getCell(3).value=c.tipo==='receita'?'Receita':'Despesa';
       row.getCell(4).value=catN(c.categoria_id);
       row.getCell(5).value=c.status==='pago'?'Pago':'Pendente';
@@ -1664,7 +1664,7 @@ async function exportarExcel(){
     const tot=ws.getRow(r);tot.getCell(2).value='TOTAL DO MÊS';tot.getCell(2).font={bold:true,size:10.5,color:{argb:INK}};
     const tv=tot.getCell(6);tv.value=tR-tD;tv.numFmt='"R$" #,##0.00;[Red]-"R$" #,##0.00';tv.font={bold:true,size:11};tv.alignment={horizontal:'right'};
     for(let i=1;i<=6;i++)tot.getCell(i).border={top:{style:'medium',color:{argb:VERDE}}};
-    const ws2=wb.addWorksheet('Por categoria',{views:[{showGridLines:false}]});
+    const ws2=wb.addWorksheet('Por categoria',{views:[{showGridLines:false}],pageSetup:{orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,paperSize:9,margins:{left:0.6,right:0.6,top:0.6,bottom:0.6,header:0.2,footer:0.2}}});
     ws2.columns=[{width:32},{width:17},{width:24}];
     ws2.mergeCells('A1:C1');const u1=ws2.getCell('A1');u1.value='Despesas por categoria — '+mesNome;u1.font={bold:true,size:13,color:{argb:VERDE}};ws2.getRow(1).height=22;
     const h2=ws2.getRow(3);
