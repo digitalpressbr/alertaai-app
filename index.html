@@ -1769,9 +1769,6 @@ function ofereceSuporte(err){if(!S.uid)return;const now=Date.now();if(now-_supTs
 window.addEventListener('error',e=>{const m=(e&&e.message)||'';if(!m||/ResizeObserver|Script error/i.test(m))return;ofereceSuporte(m);});
 window.addEventListener('unhandledrejection',e=>{let m='';try{m=(e&&e.reason&&(e.reason.message||e.reason))||'';}catch(_e){}ofereceSuporte('Falha: '+String(m).slice(0,140));});
 init();
-</script>
-<div id="printarea"></div>
-<script>
 /* ---- impressão profissional (Rodrigo 14/07): contas do mês em PAISAGEM (margens 0,3/0,6cm) e relatório A4 ---- */
 function _printPage(html,landscape){const pa=document.getElementById('printarea');pa.innerHTML=html;const st=document.createElement('style');st.textContent=landscape?'@page{size:A4 landscape;margin:0.3cm 0.6cm}':'@page{size:A4 portrait;margin:1cm}';document.head.appendChild(st);const done=()=>{st.remove();window.removeEventListener('afterprint',done);};window.addEventListener('afterprint',done);window.print();}
 function _abrev(s,n){s=String(s||'').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
@@ -1813,5 +1810,6 @@ function imprimirRelatorio(){
 }
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#imp-ctm'))imprimirContas();if(e.target.closest&&e.target.closest('#imp-rel'))imprimirRelatorio();});
 </script>
+<div id="printarea"></div>
 </body>
 </html>
