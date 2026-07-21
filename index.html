@@ -1451,6 +1451,11 @@ function viewAssinatura(){
       <div class="plan-annual">${plano==='equipe'?'✅ Seu plano atual':'uma agenda só, várias pessoas'}</div>
       ${cortesia||plano==='equipe'?'':`<button class="btn-assinar" id="btn-assinar-eq">👥 Assinar Equipe — R$ ${moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))}/mês</button><div class="plan-foot">No WhatsApp: "adicionar número" inclui os números extras</div>`}
     </div>
+    <div class="assbox" id="box-hist">
+      <div style="font-weight:800;margin-bottom:6px">🧾 Histórico de pagamentos</div>
+      <div id="hist-lista" style="font-size:13px;color:var(--muted)">Carregando...</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:10px">🔒 Seu cartão fica guardado no <b>Mercado Pago</b>, não no app — a gente nunca vê os seus dados. Pra trocar o cartão ou cancelar: app do Mercado Pago → Assinaturas.</div>
+    </div>
     <div class="assbox" id="box-numeros">
       <div style="font-weight:800;margin-bottom:6px">📱 Números da conta</div>
       ${(plano==='equipe'||cortesia)?`
@@ -1472,6 +1477,18 @@ function viewAssinatura(){
   <div class="support" style="margin-top:16px;text-align:center">Dúvidas sobre a assinatura? Fale com a gente: <b>digitalpressbr@gmail.com</b> ou pelo 🆘 na aba Mais.</div>`;
   $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
   const _assinar=async(btn,planoPg,rotulo)=>{btn.disabled=true;btn.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({plano:planoPg})}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');btn.disabled=false;btn.textContent=rotulo;}catch(_e){toast('Falha de rede.');btn.disabled=false;btn.textContent=rotulo;}};
+  (async()=>{const hl=$('hist-lista');if(!hl)return;
+    try{const {data:{session}}=await supa.auth.getSession();
+      const r=await fetch(FN+'?action=historico_pagamentos',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
+      if(!(r&&r.ok)){hl.textContent='Não consegui carregar o histórico agora.';return;}
+      const pgs=r.pagamentos||[];
+      if(!pgs.length){hl.innerHTML=cortesia?'Sua conta é cortesia — sem cobranças. 💚':(ativo?'Assinatura ativa — a primeira cobrança aparece aqui assim que for processada.':'Nenhum pagamento ainda — você está no período de teste. 💚');return;}
+      const stTxt=s=>s==='approved'?'<span style="color:var(--green);font-weight:700">✓ pago</span>':s==='refunded'?'<span style="color:#b36b00;font-weight:700">↩ estornado</span>':/reject|cancel/.test(s)?'<span style="color:var(--rose,#c00);font-weight:700">✕ recusado</span>':'<span style="color:var(--muted)">⏳ processando</span>';
+      hl.innerHTML=pgs.map(p=>{const d=(p.criado_em||'').slice(0,10).split('-').reverse().join('/');const cheio=p.plano==='equipe'?34.9:19.9;const teveDesc=Number(p.valor)<cheio-0.01;
+        return `<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line-light,#f0ebe0);color:var(--ink,#222)"><span style="flex:none;width:74px;color:var(--muted);font-size:11.5px">${d}</span><span style="flex:1;min-width:0">${p.plano==='equipe'?'Plano Equipe':'Plano Completo'}${teveDesc?` <small style="color:var(--green)">(com desconto)</small>`:''}</span><span style="flex:none;font-weight:700">${money(p.valor)}</span><span style="flex:none;width:86px;text-align:right;font-size:12px">${stTxt(p.status||'')}</span></div>`;}).join('');
+      if(r.desconto_pct>0&&r.desconto_pct<100)hl.innerHTML+=`<div style="margin-top:8px;font-size:12.5px;color:var(--green)">🏷️ Seu desconto atual: <b>${r.desconto_pct}%</b> (aplicado nas próximas cobranças)</div>`;
+    }catch(_e){hl.textContent='Não consegui carregar o histórico agora.';}
+  })();
   const _numsSalvar=async(novos)=>{const nm=$('num-msg');if(nm){nm.textContent='Salvando...';nm.style.color='var(--muted)';}
     try{const {data:{session}}=await supa.auth.getSession();
       const r=await fetch(FN+'?action=numeros_set',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({numeros:novos})}).then(x=>x.json());
