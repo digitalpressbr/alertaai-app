@@ -1182,8 +1182,8 @@ function desenharSerie(){
   const labels=[],rec=[],des=[];
   for(let i=5;i>=0;i--){const dd=new Date(Date.UTC(S.ano,S.mes-i,1)),y=dd.getUTCFullYear(),m=dd.getUTCMonth();labels.push(MES[m].slice(0,3));let r=0,p=0;S.serie.forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===y&&(+dt.slice(5,7)-1)===m){if(c.tipo==='receita')r+=Number(c.valor||0);else p+=Number(c.valor||0);}});rec.push(r);des.push(p);}
   chart=new Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'Receitas',data:rec,borderColor:'#33302C',fill:false,tension:.35,borderWidth:1.8,pointRadius:2.5,pointBackgroundColor:'#33302C'},
-    {label:'Despesas',data:des,borderColor:'#57534E',fill:false,tension:.35,borderWidth:1.6,pointRadius:2.5,pointBackgroundColor:'#57534E',borderDash:[5,4]}]},
+    {label:'Receitas',data:rec,borderColor:'#0A7A4B',backgroundColor:'rgba(10,122,75,.10)',fill:true,tension:.35,borderWidth:2.2,pointRadius:3,pointBackgroundColor:'#0A7A4B'},
+    {label:'Despesas',data:des,borderColor:'#DC2626',backgroundColor:'rgba(220,38,38,.08)',fill:true,tension:.35,borderWidth:2,pointRadius:3,pointBackgroundColor:'#DC2626',borderDash:[6,4]}]},
     options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{family:'Plus Jakarta Sans',size:12},padding:14}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>moneyK(v)}}}}});
 }
 function desenharCategorias(){
@@ -1412,7 +1412,7 @@ function fxRow(c,tipo){const isR=tipo==='rec';const hoje=hojeBRT();let pill,cls,
 function desenharFluxo6(labels,rec,des){if(!window.Chart)return;const ctx=$('ch2');if(!ctx)return;if(window._fxc)window._fxc.destroy();
   const fmt=v=>'R$ '+Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   const lab={id:'barlab',afterDatasetsDraw(ch){const g=ch.ctx;g.save();g.font='700 10.5px "Plus Jakarta Sans"';g.textAlign='center';ch.data.datasets.forEach((ds,di)=>{const m=ch.getDatasetMeta(di);m.data.forEach((bar,i)=>{const v=ds.data[i];if(!v)return;g.fillStyle=di===0?'#0b6b3a':'#b91c1c';g.fillText(fmt(v),bar.x,bar.y-6);});});g.restore();}};
-  window._fxc=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Receitas',data:rec,backgroundColor:'#57534E',borderRadius:6,maxBarThickness:32},{label:'Despesas',data:des,backgroundColor:'#C9C6C0',borderRadius:6,maxBarThickness:32}]},options:{maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,suggestedMax:8000,ticks:{stepSize:2000,callback:v=>v?'R$'+(v/1000)+'k':'R$0'},grid:{color:'#eef0ee'}}}},plugins:[lab]});}
+  window._fxc=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Receitas',data:rec,backgroundColor:'#0A7A4B',borderRadius:6,maxBarThickness:32},{label:'Despesas',data:des,backgroundColor:'#DC2626',borderRadius:6,maxBarThickness:32}]},options:{maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,suggestedMax:8000,ticks:{stepSize:2000,callback:v=>v?'R$'+(v/1000)+'k':'R$0'},grid:{color:'#eef0ee'}}}},plugins:[lab]});}
 function itemReceita(c){const rec=c.status==='pago';const btn=rec?'':`<button class="qpay g" data-recv="${c.id}" title="Marcar como recebida">✓</button>`;return `<div class="item rcv${rec?' done':''}" data-conta="${c.id}"><span class="di">💰</span><div class="bd"><div class="tt">${esc(c.descricao)}${rec?'<span class="chip pg">recebido</span>':''}</div><div class="ss">Previsto ${dBRc(c.data_vencimento)}${(c.boleto_path||c.comprovante_path)?' · 📎':''}</div></div><div class="vv rec">+ ${money(c.valor)}</div>${btn}</div>`;}
 
 /* ---- ASSINATURA ---- */
