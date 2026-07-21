@@ -1404,7 +1404,7 @@ function viewAssinatura(){
   const v=$('view');const plano=S.plano||'teste';const desc=Number(S.desconto||0);
   const dDMY=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4):'';
   const cortesia=(plano==='cortesia'||desc>=100);
-  const ativo=['ativo','mensal','anual'].includes(plano);
+  const ativo=['ativo','mensal','anual','equipe'].includes(plano);
   let dias=null;if(plano==='teste'&&S.assinAte)dias=Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);
   const precoNum=(desc>0&&desc<100)?19.9*(1-desc/100):19.9;
   const precoTxt=cortesia?'Grátis':moneyN(precoNum);
@@ -1420,12 +1420,20 @@ function viewAssinatura(){
   ${banner}
   <div class="assgrid">
     <div class="assbox">
-      <span class="plan-badge">● Plano único</span>
+      <span class="plan-badge">● Completo</span>
       <div class="plan-name">Plano AlertaAí</div>
       <div class="plan-desc">Tudo o que você precisa pra gerenciar sua agenda e suas finanças num lugar só.</div>
       <div class="plan-price">${desc>0&&desc<100?'<span class="pl-old">R$ 19,90</span>':''}<span class="pp">R$ ${precoTxt}</span><span class="pm">/mês</span></div>
-      <div class="plan-annual">${cortesia?'Você está com acesso cortesia 💚':'ou <b>R$ 199</b> no plano anual (economiza ~16%)'}</div>
+      <div class="plan-annual">${cortesia?'Você está com acesso cortesia 💚':'menos de 70 centavos por dia'}</div>
       ${cortesia?'':`<button class="btn-assinar" id="btn-assinar">🔒 Assinar agora — R$ ${precoTxt}/mês</button><div class="plan-foot">Pagamento mensal · Cancele quando quiser · sem multa</div>`}
+    </div>
+    <div class="assbox">
+      <span class="plan-badge">👥 Equipe</span>
+      <div class="plan-name">Plano Equipe</div>
+      <div class="plan-desc">Tudo do Completo + até <b>3 números de WhatsApp</b> na mesma conta: todos recebem os avisos e qualquer um agenda. Ideal pra casal, empresa + produtor ou você + secretária.</div>
+      <div class="plan-price">${desc>0&&desc<100?'<span class="pl-old">R$ 34,90</span>':''}<span class="pp">R$ ${cortesia?'Grátis':moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))}</span><span class="pm">/mês</span></div>
+      <div class="plan-annual">${plano==='equipe'?'✅ Seu plano atual':'uma agenda só, várias pessoas'}</div>
+      ${cortesia||plano==='equipe'?'':`<button class="btn-assinar" id="btn-assinar-eq">👥 Assinar Equipe — R$ ${moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))}/mês</button><div class="plan-foot">No WhatsApp: "adicionar número" inclui os números extras</div>`}
     </div>
     <div class="assbox"><ul class="benefits">${BEN.map(b=>`<li><span class="ck">✓</span>${esc(b)}</li>`).join('')}</ul></div>
     <div class="assbox">
@@ -1437,7 +1445,9 @@ function viewAssinatura(){
   </div>
   <div class="support" style="margin-top:16px;text-align:center">Dúvidas sobre a assinatura? Fale com a gente: <b>digitalpressbr@gmail.com</b> ou pelo 🆘 na aba Mais.</div>`;
   $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
-  const ba=$('btn-assinar');if(ba)ba.onclick=async()=>{ba.disabled=true;ba.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');ba.disabled=false;ba.textContent='🔒 Assinar agora — R$ '+precoTxt+'/mês';}catch(_e){toast('Falha de rede.');ba.disabled=false;ba.textContent='🔒 Assinar agora — R$ '+precoTxt+'/mês';}};
+  const _assinar=async(btn,planoPg,rotulo)=>{btn.disabled=true;btn.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({plano:planoPg})}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');btn.disabled=false;btn.textContent=rotulo;}catch(_e){toast('Falha de rede.');btn.disabled=false;btn.textContent=rotulo;}};
+  const ba=$('btn-assinar');if(ba)ba.onclick=()=>_assinar(ba,'mensal','🔒 Assinar agora — R$ '+precoTxt+'/mês');
+  const be=$('btn-assinar-eq');if(be)be.onclick=()=>_assinar(be,'equipe','👥 Assinar Equipe — R$ '+moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))+'/mês');
 }
 
 /* ---- MAIS (hub) ---- */
