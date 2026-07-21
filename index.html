@@ -1679,7 +1679,7 @@ async function exportarExcel(){
     try{if(cats.length)ws2.addConditionalFormatting({ref:`C4:C${r2-1}`,rules:[{priority:1,type:'dataBar',cfvo:[{type:'num',value:0},{type:'num',value:1}],color:{argb:'FF7FB8A0'}}]});}catch(_e){/* barra é enfeite */}
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`AlertaAi_${MES[S.mes]}_${S.ano}.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`AlertaAí - Relatório Financeiro - ${MES[S.mes].charAt(0).toUpperCase()+MES[S.mes].slice(1)} ${S.ano}.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     toast('Excel gerado ✅');
   }catch(e){console.warn('excel falhou, caindo pro CSV',e);toast('Não consegui gerar o Excel — baixei em CSV.',true);exportCSV();}
   finally{if(btn){btn.disabled=false;btn.textContent='⬇️ Excel';}}
@@ -1869,7 +1869,7 @@ window.addEventListener('error',e=>{const m=(e&&e.message)||'';if(!m||/ResizeObs
 window.addEventListener('unhandledrejection',e=>{let m='';try{m=(e&&e.reason&&(e.reason.message||e.reason))||'';}catch(_e){}ofereceSuporte('Falha: '+String(m).slice(0,140));});
 init();
 /* ---- impressão profissional (Rodrigo 14/07): contas do mês em PAISAGEM (margens 0,3/0,6cm) e relatório A4 ---- */
-function _printPage(html,landscape){const pa=document.getElementById('printarea');pa.innerHTML=html;const st=document.createElement('style');st.textContent=landscape?'@page{size:A4 landscape;margin:0.3cm 0.6cm}':'@page{size:A4 portrait;margin:1cm}';document.head.appendChild(st);const done=()=>{st.remove();window.removeEventListener('afterprint',done);};window.addEventListener('afterprint',done);window.print();}
+function _printPage(html,landscape,docTitle){const pa=document.getElementById('printarea');pa.innerHTML=html;const st=document.createElement('style');st.textContent=landscape?'@page{size:A4 landscape;margin:0.3cm 0.6cm}':'@page{size:A4 portrait;margin:1cm}';document.head.appendChild(st);const t0=document.title;if(docTitle)document.title=docTitle;const done=()=>{st.remove();document.title=t0;window.removeEventListener('afterprint',done);};window.addEventListener('afterprint',done);window.print();setTimeout(()=>{document.title=t0;},4000);}
 function _abrev(s,n){s=String(s||'').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 function _hoje(){const d=new Date();return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR').slice(0,5);}
 function _prHead(titulo,sub){return `<div class="pr-head"><div class="pr-brand"><img src="coruja.png" onerror="this.style.display='none'"><b>AlertaAí</b></div><div class="pr-title">${titulo}</div><div class="pr-meta">${sub}<br>gerado em ${_hoje()}</div></div>`;}
@@ -1890,7 +1890,8 @@ function imprimirContas(){
     <tr class="tot"><td colspan="6">Total pendente</td><td class="num">${money(tPend)}</td></tr>
     <tr class="tot"><td colspan="6">Total pago no mês</td><td class="num">${money(tPago)}</td></tr>
     <tr class="tot"><td colspan="6">TOTAL GERAL</td><td class="num">${money(tPend+tPago)}</td></tr></tbody></table>`+_prFoot();
-  _printPage(html,true);
+  const _mc=MES[m].charAt(0).toUpperCase()+MES[m].slice(1);
+  _printPage(html,true,`AlertaAí - Contas a Pagar - ${_mc} ${y}`);
 }
 function imprimirRelatorio(){
   const y=S.ano,m=S.mes;const mesNome=(typeof MES!=='undefined'?MES[m]:'')+' de '+y;
@@ -1905,7 +1906,8 @@ function imprimirRelatorio(){
      <div class="pr-sec">💸 Despesas por categoria</div>${catHtml}
      <div class="pr-sec">📋 Movimentações do mês</div>
      <table class="pr"><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Status</th><th class="num">Valor</th></tr></thead><tbody>${movs}</tbody></table>`+_prFoot();
-  _printPage(html,false);
+  const _mc2=MES[m].charAt(0).toUpperCase()+MES[m].slice(1);
+  _printPage(html,false,`AlertaAí - Relatório Financeiro - ${_mc2} ${y}`);
 }
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#imp-ctm'))imprimirContas();if(e.target.closest&&e.target.closest('#imp-rel'))imprimirRelatorio();});
 </script>
