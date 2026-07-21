@@ -1116,7 +1116,7 @@ function viewInicio(){
   let prevR=0,prevD=0;S.serie.forEach(c=>{const dt=c.data_vencimento||'';if(+dt.slice(0,4)===pY&&(+dt.slice(5,7)-1)===pM){if(c.tipo==='receita')prevR+=Number(c.valor||0);else prevD+=Number(c.valor||0);}});
   const _vp=(cur,prev)=>prev?Math.round((cur-prev)/prev*100):null;
   const vR=_vp(totRec,prevR),vD=_vp(totDes,prevD);
-  const _vtxt=(p,inv)=>p===null?'':`<div class="ks ${((p>=0)!==!!inv)?'up':'down'}">${p>=0?'▲ +':'▼ '}${Math.abs(p)}% vs mês passado</div>`;
+  const _vtxt=(p,inv)=>p===null?'':`<div class="ks ${((p>=0)!==!!inv)?'up':'down'}">${p>=0?'▲ ':'▼ '}${Math.abs(p)>999?String(Math.round((Math.abs(p)+100)/10)/10).replace('.',',')+'× o mês passado':(p>=0?'+':'')+Math.abs(p)+'% vs mês passado'}</div>`;
   const IC_UP='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg>';
   const IC_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M16 17h5v-5"/></svg>';
   const IC_WAL='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/><circle cx="16.5" cy="14" r="1.3" fill="#fff" stroke="none"/></svg>';
