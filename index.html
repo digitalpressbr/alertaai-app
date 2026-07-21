@@ -851,6 +851,15 @@ body[data-view="relat"] .panel:has(.empty){display:none}
 .numtel{flex:1;font-weight:600;font-variant-numeric:tabular-nums}
 .numtag{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg-alt,#f4f1e8);border-radius:8px;padding:2px 8px}
 .numdel{border:none;background:none;color:var(--rose,#c00);cursor:pointer;font-size:14px;padding:2px 6px}
+/* 📱 enquadramento mobile (21/07): nada dita largura além da tela */
+.agwrap>*{min-width:0}
+.sairbtn{width:auto!important;min-width:0;border-radius:14px;padding:7px 13px;font-size:13px;font-weight:800;letter-spacing:.01em}
+@media(max-width:640px){
+  .view{overflow-x:hidden}
+  .kpi .kt .n{font-size:15px;letter-spacing:-.01em}
+  .cal-h .m{font-size:15px}
+  .resumo .rc .rn{font-size:18px}
+}
 /* resumo da agenda clicável + lista do mês (21/07) */
 .resumo .rc{cursor:pointer;border-radius:12px;padding:6px 4px;transition:background .12s}
 .resumo .rc:hover{background:var(--bg-alt,#fcfbf7)}
@@ -935,7 +944,7 @@ body[data-view="relat"] .panel:has(.empty){display:none}
     </div>
   </aside>
   <div class="main">
-    <div class="topbar"><div class="ow"><img src="coruja.png" alt=""></div><div><div class="ttl">AlertaAí</div><div class="sub" id="hd-nome">—</div></div><div class="sp"></div><button class="iconbtn" id="sair-m">⏻</button></div>
+    <div class="topbar"><div class="ow"><img src="coruja.png" alt=""></div><div><div class="ttl">AlertaAí</div><div class="sub" id="hd-nome">—</div></div><div class="sp"></div><button class="iconbtn sairbtn" id="sair-m" title="Sair do aplicativo">Sair</button></div>
     <div class="tabs" id="navm"></div>
     <div class="view" id="view"><div class="spin"></div></div>
   </div>
