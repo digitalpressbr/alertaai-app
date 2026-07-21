@@ -846,6 +846,11 @@ body[data-view="relat"] .panel:has(.empty){display:none}
 .assbanner .ab-t,.assbanner .ab-s{color:var(--rose-dark)!important}
 .btn-assinar{background:var(--green)!important;box-shadow:none!important}
 .btn-assinar:hover{background:var(--green-d)!important}
+.numrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-light,#f0ebe0);font-size:14px}
+.numrow:last-of-type{border-bottom:none}
+.numtel{flex:1;font-weight:600;font-variant-numeric:tabular-nums}
+.numtag{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg-alt,#f4f1e8);border-radius:8px;padding:2px 8px}
+.numdel{border:none;background:none;color:var(--rose,#c00);cursor:pointer;font-size:14px;padding:2px 6px}
 /* resumo da agenda clicável + lista do mês (21/07) */
 .resumo .rc{cursor:pointer;border-radius:12px;padding:6px 4px;transition:background .12s}
 .resumo .rc:hover{background:var(--bg-alt,#fcfbf7)}
@@ -1041,8 +1046,19 @@ const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);}
+  if(/[?&]pago=1/.test(location.search)){history.replaceState(null,'',location.pathname);(async()=>{
+    toast('Confirmando seu pagamento... ⏳');
+    for(const espera of [1500,3000,5000,8000,12000,18000]){
+      try{const {data:{session}}=await supa.auth.getSession();
+        const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({acao:'verificar'})}).then(x=>x.json());
+        if(r&&r.ativo){S.plano=r.plano||'ativo';toast('🎉 Assinatura confirmada — tudo liberado!');if(S.tab==='assinatura')viewAssinatura();return;}
+      }catch(_e){}
+      await new Promise(rs=>setTimeout(rs,espera));
+    }
+    toast('Pagamento em processamento — libero assim que o banco confirmar. 💚');
+  })();}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
   renderNav();await carregar();irPara((_vIni&&ROUTES[_vIni])?_vIni:'inicio');_vIni='';
@@ -1435,6 +1451,16 @@ function viewAssinatura(){
       <div class="plan-annual">${plano==='equipe'?'✅ Seu plano atual':'uma agenda só, várias pessoas'}</div>
       ${cortesia||plano==='equipe'?'':`<button class="btn-assinar" id="btn-assinar-eq">👥 Assinar Equipe — R$ ${moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))}/mês</button><div class="plan-foot">No WhatsApp: "adicionar número" inclui os números extras</div>`}
     </div>
+    <div class="assbox" id="box-numeros">
+      <div style="font-weight:800;margin-bottom:6px">📱 Números da conta</div>
+      ${(plano==='equipe'||cortesia)?`
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Todos recebem os avisos; qualquer um agenda na mesma conta.</div>
+        <div class="numrow"><span class="numtel">${esc(S.telPrincipal||'—')}</span><span class="numtag">principal</span></div>
+        ${(S.telExtras||[]).map((t,i)=>`<div class="numrow"><span class="numtel">${esc(t)}</span><button class="numdel" data-deln="${i}" title="Remover">✕</button></div>`).join('')}
+        ${(S.telExtras||[]).length<2?`<div style="display:flex;gap:8px;margin-top:10px"><input id="num-novo" class="fld" placeholder="DDD + número (ex: 64 99999-9999)" style="flex:1"><button class="bpill" id="num-add">＋ Incluir</button></div>`:'<div style="font-size:12px;color:var(--muted);margin-top:8px">Limite do plano: 3 números no total.</div>'}
+        <div id="num-msg" style="font-size:12.5px;margin-top:8px"></div>`
+      :`<div style="font-size:13px;color:var(--muted)">🔒 Incluir até <b>3 números</b> na mesma conta faz parte do <b>Plano Equipe</b>. Assine ao lado pra liberar — depois é só incluir aqui ou pelo WhatsApp ("adicionar número").</div>`}
+    </div>
     <div class="assbox"><ul class="benefits">${BEN.map(b=>`<li><span class="ck">✓</span>${esc(b)}</li>`).join('')}</ul></div>
     <div class="assbox">
       <div class="cupbox"><span class="cl">🎟️ Tem um cupom de desconto?</span><div class="cuprow"><input id="cup-in" class="fld" placeholder="CÓDIGO (ex: CONVIDADO)"><button class="btn" id="cup-go">Aplicar</button></div><div id="cup-msg" class="msg"></div></div>
@@ -1446,6 +1472,14 @@ function viewAssinatura(){
   <div class="support" style="margin-top:16px;text-align:center">Dúvidas sobre a assinatura? Fale com a gente: <b>digitalpressbr@gmail.com</b> ou pelo 🆘 na aba Mais.</div>`;
   $('cup-go').onclick=async()=>{const c=$('cup-in').value.trim();if(!c)return setMsg('cup-msg','Digite o cupom.','err');$('cup-go').disabled=true;setMsg('cup-msg','Validando...','ok');try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_ASSIN+'?action=aplicar_cupom',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({action:'aplicar_cupom',codigo:c})}).then(x=>x.json());if(r&&r.ok){S.plano=r.plano;S.desconto=Number(r.desconto_pct||0);if(r.desconto_pct>=100)S.assinAte='2099-12-31';toast('Cupom aplicado! 🎉');viewAssinatura();}else{setMsg('cup-msg',(r&&r.error)||'Não consegui aplicar.','err');$('cup-go').disabled=false;}}catch(_e){setMsg('cup-msg','Falha de rede.','err');$('cup-go').disabled=false;}};
   const _assinar=async(btn,planoPg,rotulo)=>{btn.disabled=true;btn.textContent='Abrindo...';try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_PAG,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({plano:planoPg})}).then(x=>x.json());if(r&&r.url){location.href=r.url;return;}if(r&&r.cortesia){toast('Seu acesso já é cortesia 💚');return;}toast((r&&r.error)||'Não consegui abrir o pagamento.');btn.disabled=false;btn.textContent=rotulo;}catch(_e){toast('Falha de rede.');btn.disabled=false;btn.textContent=rotulo;}};
+  const _numsSalvar=async(novos)=>{const nm=$('num-msg');if(nm){nm.textContent='Salvando...';nm.style.color='var(--muted)';}
+    try{const {data:{session}}=await supa.auth.getSession();
+      const r=await fetch(FN+'?action=numeros_set',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({numeros:novos})}).then(x=>x.json());
+      if(r&&r.ok){S.telExtras=r.extras||[];toast('Números atualizados ✅');viewAssinatura();}
+      else if(nm){nm.textContent=(r&&r.error)||'Não consegui salvar.';nm.style.color='var(--rose,#c00)';}
+    }catch(_e){if(nm){nm.textContent='Falha de rede.';nm.style.color='var(--rose,#c00)';}}};
+  const na=$('num-add');if(na)na.onclick=()=>{const v=($('num-novo')&&$('num-novo').value.trim())||'';if(!v)return;_numsSalvar([...(S.telExtras||[]),v]);};
+  document.querySelectorAll('[data-deln]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.deln);const novos=(S.telExtras||[]).filter((_,k)=>k!==i);_numsSalvar(novos);});
   const ba=$('btn-assinar');if(ba)ba.onclick=()=>_assinar(ba,'mensal','🔒 Assinar agora — R$ '+precoTxt+'/mês');
   const be=$('btn-assinar-eq');if(be)be.onclick=()=>_assinar(be,'equipe','👥 Assinar Equipe — R$ '+moneyN(34.9*(desc>0&&desc<100?(1-desc/100):1))+'/mês');
 }
