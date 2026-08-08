@@ -1057,7 +1057,7 @@ async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
   const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);}
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};}
   if(/[?&]pago=1/.test(location.search)){history.replaceState(null,'',location.pathname);(async()=>{
     toast('Confirmando seu pagamento... ⏳');
     for(const espera of [1500,3000,5000,8000,12000,18000]){
@@ -1117,6 +1117,18 @@ function irPara(k){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+/* 👥 AGENDAS DA CONTA (08/08): o principal é a âncora; cada extra é "junta" (sincronizado)
+   ou "separada" (individual). O filtro aqui é só VISUAL — quem manda de verdade é o servidor. */
+function pessoasDaConta(){
+  const out=[{tel:S.telPrincipal,nome:((S.nome||'').split(' ')[0]||'Principal'),modo:'principal'}];
+  (S.telExtras||[]).forEach(t=>{const m=(S.numMeta||{})[t]||{};
+    out.push({tel:t,nome:m.nome||('•••'+String(t).slice(-4)),modo:m.modo==='individual'?'individual':'sincronizado'});});
+  return out;
+}
+function filtraPessoa(arr){
+  if(!S.pessoa)return arr;
+  return (arr||[]).filter(x=>(x.dono_telefone||S.telPrincipal)===S.pessoa);
+}
 async function carregar(){
   const ini=`${S.ano}-${String(S.mes+1).padStart(2,'0')}-01`;
   const fim=`${S.ano}-${String(S.mes+1).padStart(2,'0')}-${String(new Date(Date.UTC(S.ano,S.mes+1,0)).getUTCDate()).padStart(2,'0')}`;
@@ -1131,7 +1143,7 @@ async function carregar(){
     supa.from('clientes').select('*').order('nome'),
     supa.from('contas').select('tipo,valor,data_vencimento,categoria_id,status').neq('status','cancelado').gte('data_vencimento',ini6).lte('data_vencimento',fim),
   ]);
-  S.comp=c1.data||[];S.contas=c2.data||[];S.forn=c3.data||[];S.cat=c4.data||[];S.abertas=c5.data||[];S.aberRec=c6.data||[];S.cli=c7.data||[];S.serie=c8.data||[];
+  S.comp=filtraPessoa(c1.data||[]);S.contas=filtraPessoa(c2.data||[]);S.forn=c3.data||[];S.cat=c4.data||[];S.abertas=filtraPessoa(c5.data||[]);S.aberRec=filtraPessoa(c6.data||[]);S.cli=c7.data||[];S.serie=c8.data||[];
   S.porDia={};
   S.comp.forEach(c=>{const d=(c.data||'').slice(8,10);(S.porDia[d]=S.porDia[d]||{b:[],r:[],e:[]}).b.push(c);});
   S.contas.forEach(c=>{const d=(c.data_vencimento||'').slice(8,10);const s=(S.porDia[d]=S.porDia[d]||{b:[],r:[],e:[]});(c.tipo==='receita'?s.e:s.r).push(c);});
@@ -1210,6 +1222,24 @@ function desenharCategorias(){
 function emptyBox(e,t){return `<div class="empty"><span class="e">${e}</span>${esc(t)}</div>`;}
 
 /* ---- AGENDA ---- */
+/* 👥 filtro de pessoa: só aparece em conta com mais de um número (plano Equipe) */
+function barraPessoas(){
+  const ps=pessoasDaConta();
+  if(ps.length<2)return '';
+  const chip=(tel,nome,ic)=>`<button class="fchip${S.pessoa===tel?' on':''}" data-pess="${tel||''}">${ic?ic+' ':''}${esc(nome)}</button>`;
+  return `<div class="filterbar" style="margin-top:-4px">
+    <span style="font-size:12.5px;color:var(--muted);font-weight:600">Agenda de:</span>
+    <div class="chips">${chip('','Todos','👥')}${ps.map(p=>chip(p.tel,p.nome,p.modo==='individual'?'🔒':'')).join('')}</div>
+  </div>`;
+}
+function ligarBarraPessoas(){
+  document.querySelectorAll('[data-pess]').forEach(b=>b.onclick=()=>{
+    const t=b.dataset.pess||null;
+    if(S.pessoa===t)return;
+    S.pessoa=t;
+    carregar().then(()=>{ if(S.tab==='agenda')viewAgenda(); else irPara(S.tab); });
+  });
+}
 function viewAgenda(){
   if(!S.agView)S.agView='mes';
   const TB=[['mes','Mês'],['semana','Semana'],['dia','Dia']];
@@ -1231,8 +1261,10 @@ function viewAgenda(){
   }
   const h=`<div class="ph"><div><h1>Agenda</h1><div class="d">${MES[S.mes]} de ${S.ano}</div></div>
     <div class="act"><div class="agtoggle">${TB.map(([k,l])=>`<button data-ag="${k}" class="${S.agView===k?'on':''}">${l}</button>`).join('')}</div><button class="bpill" data-add="comp">＋ Novo compromisso</button></div></div>
+  ${barraPessoas()}
   <div class="agwrap">${left}<div id="ag-side"></div></div>`;
   const v=$('view');v.innerHTML=h;
+  ligarBarraPessoas();
   if($('pmes'))$('pmes').onclick=()=>mudaMes(-1);
   if($('nmes'))$('nmes').onclick=()=>mudaMes(1);
   if($('hojebtn'))$('hojebtn').onclick=()=>{const t=new Date(Date.now()-3*3600e3);const fora=(t.getUTCFullYear()!==S.ano||t.getUTCMonth()!==S.mes);S.ano=t.getUTCFullYear();S.mes=t.getUTCMonth();S.selDia=null;if(fora)carregar().then(()=>viewAgenda());else viewAgenda();};
