@@ -1579,7 +1579,9 @@ async function viewRecorrentes(){
   if(!series.length){
     h+=`<div class="support">🔁 <b>Nada se repete por aqui ainda</b><br>Quando você criar algo contínuo — uma aula toda terça, o aluguel todo dia 5 — a série aparece aqui pra você desligar de uma vez quando quiser.</div>`;
   }else{
-    h+=series.map(s=>`<div class="item"><div class="di">${s.tipo==='conta'?'💸':'🔁'}</div><div class="bd"><b>${esc(s.titulo)}</b><div class="d">🔁 ${esc(s.rotulo)} · ${s.n}x até ${dBRc(s.ate)}</div></div><button class="qpay" title="Desligar a série inteira" data-off="${s.tipo}:${s.chave}" style="background:#fdeaee;color:#c02a4b">✕</button></div>`).join('');
+    /* série perpétua (mensal/anual) tem UMA linha que rola sozinha → "1x até" confundia; mostra a próxima */
+    const quando=s=>s.n===1?`próxima ${dBRc(s.prox)}`:`${s.n}x até ${dBRc(s.ate)}`;
+    h+=series.map(s=>`<div class="item"><div class="di">${s.tipo==='conta'?'💸':'🔁'}</div><div class="bd"><b>${esc(s.titulo)}</b><div class="d">🔁 ${esc(s.rotulo)} · ${quando(s)}</div></div><button class="qpay" title="Desligar a série inteira" data-off="${s.tipo}:${s.chave}" style="background:#fdeaee;color:#c02a4b">✕</button></div>`).join('');
     h+=`<div class="d" style="text-align:center;margin-top:10px">O ✕ desliga a <b>série inteira</b> (o que já passou fica no histórico).</div>`;
   }
   v.innerHTML=h;
