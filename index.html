@@ -2017,11 +2017,26 @@ function modalSimples(tipo,item){const ed=!!item;item=item||{};const tit=(ed?'Ed
 async function removerCad(tipo,id){if(!confirm('Remover?'))return;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).delete().eq('id',id);toast('Removido');await carregar();renderMng();}
 /* ---- SUPORTE TÉCNICO (gatilho de erro → WhatsApp do Rodrigo) ---- */
 async function enviarSuporte(descricao,contexto){try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_SUP,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({descricao,contexto})});return await r.json().catch(()=>({ok:false}));}catch(_e){return {ok:false};}}
+/* 🆘 SUPORTE EM 1 TOQUE (regra Rodrigo 09/08): a pessoa NÃO precisa escrever redação. Toca no motivo
+   e o chamado já vai com a tela em que ela estava e o histórico dela. Escrever é opcional. */
 function modalSuporte(contexto){const ov=openModal('🛟 Falar com o suporte',`
-  <p class="step-tip" style="margin-top:0">Conta o que aconteceu que a gente resolve. Seu relato vai direto pro suporte. 🦉</p>
-  <label class="lb">Descreva o ocorrido</label><textarea id="sp-desc" class="fld" style="min-height:120px" placeholder="Ex: tentei salvar uma despesa e apareceu um erro..."></textarea>
+  <p class="step-tip" style="margin-top:0">Toque no que aconteceu — o chamado já vai com o seu histórico. Você <b>não precisa explicar nada</b>. 🦉</p>
+  <button class="btn sec" data-mot="Não entendeu o que eu mandei (texto ou áudio)" style="margin-top:4px">🎙️ Não entendeu o que eu mandei</button>
+  <button class="btn sec" data-mot="Não recebi um aviso/lembrete">🔔 Não recebi um aviso</button>
+  <button class="btn sec" data-mot="Anotou errado (data, hora ou assunto)">📅 Anotou errado</button>
+  <button class="btn sec" data-mot="Erro ou travamento no aplicativo">📱 Deu erro no app</button>
+  <label class="lb" style="margin-top:16px">Quer detalhar? <span style="font-weight:400;color:var(--soft)">(opcional)</span></label>
+  <textarea id="sp-desc" class="fld" style="min-height:80px" placeholder="Ex: mandei o boleto da escola e não apareceu..."></textarea>
   <button class="btn mt18" id="sp-send">Enviar para o suporte</button><div id="sp-msg" class="msg"></div>`);
-  ov.querySelector('#sp-send').onclick=async()=>{const d=ov.querySelector('#sp-desc').value.trim();if(d.length<5)return setMsg('sp-msg','Conta um pouquinho mais do que aconteceu 🙂','err');ov.querySelector('#sp-send').disabled=true;setMsg('sp-msg','Enviando...','ok');const ctx='Tela: '+(S.tab||'-')+(contexto?' · '+contexto:'')+' · '+navigator.userAgent.slice(0,90);const r=await enviarSuporte(d,ctx);if(r&&r.ok){ov.querySelector('.modal-b').innerHTML='<div style="text-align:center;padding:22px 8px"><div style="font-size:44px">✅</div><h3 style="margin:10px 0 6px;font-family:var(--fdisp)">Relato enviado!</h3><p style="color:var(--muted)">O suporte já recebeu e vai te retornar. Obrigado! 🦉</p><button class="btn mt18" id="sp-ok">Fechar</button></div>';ov.querySelector('#sp-ok').onclick=()=>ov.remove();}else{setMsg('sp-msg','Não consegui enviar agora. Tente de novo em instantes.','err');ov.querySelector('#sp-send').disabled=false;}};}
+  const enviar=async(motivo)=>{const d=(ov.querySelector('#sp-desc').value||'').trim();
+    const desc=(motivo?motivo:'Aberto pelo botão de suporte')+(d?(' — relato: '+d):' — sem relato. Diagnosticar pelo histórico.');
+    setMsg('sp-msg','Enviando...','ok');
+    const ctx='Tela: '+(S.tab||'-')+(contexto?' · '+contexto:'')+' · '+navigator.userAgent.slice(0,90);
+    const r=await enviarSuporte(desc,ctx);
+    if(r&&r.ok){ov.querySelector('.modal-b').innerHTML='<div style="text-align:center;padding:22px 8px"><div style="font-size:44px">✅</div><h3 style="margin:10px 0 6px;font-family:var(--fdisp)">Já estamos olhando!</h3><p style="color:var(--muted)">O suporte recebeu junto com o seu histórico. A gente te retorna. 🦉</p><button class="btn mt18" id="sp-ok">Fechar</button></div>';ov.querySelector('#sp-ok').onclick=()=>ov.remove();}
+    else setMsg('sp-msg','Não consegui enviar agora. Tente de novo em instantes.','err');};
+  ov.querySelectorAll('[data-mot]').forEach(b=>b.onclick=()=>{ov.querySelectorAll('.btn').forEach(x=>x.disabled=true);enviar(b.dataset.mot);});
+  ov.querySelector('#sp-send').onclick=async()=>{const d=ov.querySelector('#sp-desc').value.trim();if(d.length<5)return setMsg('sp-msg','Toque num dos motivos acima, ou conta um pouquinho mais 🙂','err');ov.querySelector('#sp-send').disabled=true;setMsg('sp-msg','Enviando...','ok');const ctx='Tela: '+(S.tab||'-')+(contexto?' · '+contexto:'')+' · '+navigator.userAgent.slice(0,90);const r=await enviarSuporte(d,ctx);if(r&&r.ok){ov.querySelector('.modal-b').innerHTML='<div style="text-align:center;padding:22px 8px"><div style="font-size:44px">✅</div><h3 style="margin:10px 0 6px;font-family:var(--fdisp)">Relato enviado!</h3><p style="color:var(--muted)">O suporte já recebeu e vai te retornar. Obrigado! 🦉</p><button class="btn mt18" id="sp-ok">Fechar</button></div>';ov.querySelector('#sp-ok').onclick=()=>ov.remove();}else{setMsg('sp-msg','Não consegui enviar agora. Tente de novo em instantes.','err');ov.querySelector('#sp-send').disabled=false;}};}
 window.abrirSuporte=(ctx)=>modalSuporte(ctx||'Aberto pelo usuário');
 let _supTs=0;
 function ofereceSuporte(err){if(!S.uid)return;const now=Date.now();if(now-_supTs<300000)return;_supTs=now;if(document.querySelector('.ov'))return;const ov=openModal('⚠️ Ops, algo deu errado',`
