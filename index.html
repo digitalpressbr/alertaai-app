@@ -1052,7 +1052,7 @@ const NAV_GROUPS=[
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
@@ -1544,9 +1544,67 @@ function viewAssinatura(){
 }
 
 /* ---- MAIS (hub) ---- */
+/* 🔁 O QUE SE REPETE — mesma função do WhatsApp, agora no app (pedido Rodrigo 08/08: "o aplicativo tem
+   que ter as mesmas funções, de igual pra mais completo"). Uma linha por SÉRIE (não por ocorrência) e
+   um botão que desliga a série inteira. Caso das 3 séries de bateria da Isabela. */
+const DIA_CURTO_APP=['dom','seg','ter','qua','qui','sex','sáb'];
+function rotuloSerieApp(freq,dias,hora,prox){
+  const h=(hora&&hora!=='00:00')?` às ${hora.slice(0,5)}`:'';
+  if(freq==='anual')return `todo ano em ${prox.slice(8,10)}/${prox.slice(5,7)}`;
+  if(freq==='mensal')return `todo dia ${Number(prox.slice(8,10))}`;
+  const u=[...new Set(dias)].sort((a,b)=>a-b);
+  if(u.length>=7)return `todo dia${h}`;
+  if(!u.length)return `se repete${h}`;
+  const n=u.map(d=>DIA_CURTO_APP[d]);
+  return `toda ${n.length>1?n.slice(0,-1).join(', ')+' e '+n[n.length-1]:n[0]}${h}`;
+}
+async function viewRecorrentes(){
+  const v=$('view');
+  v.innerHTML=`<div class="ph"><div><h1>O que se repete</h1><div class="d">Suas rotinas — ligue e desligue quando quiser</div></div></div><div class="d" style="padding:8px 2px">Carregando...</div>`;
+  const hoje=new Date(Date.now()-3*3600e3).toISOString().slice(0,10);
+  const [rc,rb]=await Promise.all([
+    supa.from('compromissos').select('id,titulo,data,horario,recorrencia_id,recorrencia_freq').eq('cancelado',false).gte('data',hoje).not('recorrencia_id','is',null).order('data').limit(800),
+    supa.from('contas').select('id,descricao,valor,data_vencimento,parcela_grupo_id,recorrencia_freq').eq('status','pendente').gte('data_vencimento',hoje).not('parcela_grupo_id','is',null).order('data_vencimento').limit(800),
+  ]);
+  const series=[];
+  const gc=new Map();
+  for(const c of filtraPessoa(rc.data||[])){const k=String(c.recorrencia_id);const g=gc.get(k)||{titulo:c.titulo,freq:c.recorrencia_freq,hora:c.horario,dias:[],n:0,prox:c.data,ate:c.data};g.n++;g.dias.push(new Date(c.data+'T12:00:00Z').getUTCDay());g.ate=c.data;gc.set(k,g);}
+  for(const [k,g] of gc)series.push({tipo:'comp',chave:k,titulo:g.titulo||'Compromisso',rotulo:rotuloSerieApp(g.freq,g.dias,g.hora,g.prox),n:g.n,prox:g.prox,ate:g.ate});
+  const gb=new Map();
+  for(const c of filtraPessoa(rb.data||[])){const k=String(c.parcela_grupo_id);const g=gb.get(k)||{titulo:c.descricao,valor:c.valor,freq:c.recorrencia_freq,n:0,prox:c.data_vencimento,ate:c.data_vencimento};g.n++;g.ate=c.data_vencimento;gb.set(k,g);}
+  for(const [k,g] of gb){const nome=String(g.titulo||'Conta').replace(/\s*\(?\d+\s*\/\s*\d+\)?\s*$/,'').trim()||'Conta';
+    series.push({tipo:'conta',chave:k,titulo:nome,rotulo:`${g.freq==='mensal'?'todo mês':g.n+' parcela'+(g.n>1?'s':'')}${g.valor?' de '+money(g.valor):''}`,n:g.n,prox:g.prox,ate:g.ate});}
+  series.sort((a,b)=>a.prox.localeCompare(b.prox));
+  let h=`<div class="ph"><div><h1>O que se repete</h1><div class="d">Suas rotinas — ligue e desligue quando quiser</div></div></div>`;
+  if(!series.length){
+    h+=`<div class="support">🔁 <b>Nada se repete por aqui ainda</b><br>Quando você criar algo contínuo — uma aula toda terça, o aluguel todo dia 5 — a série aparece aqui pra você desligar de uma vez quando quiser.</div>`;
+  }else{
+    h+=series.map(s=>`<div class="item"><div class="di">${s.tipo==='conta'?'💸':'🔁'}</div><div class="bd"><b>${esc(s.titulo)}</b><div class="d">🔁 ${esc(s.rotulo)} · ${s.n}x até ${dBRc(s.ate)}</div></div><button class="qpay" title="Desligar a série inteira" data-off="${s.tipo}:${s.chave}" style="background:#fdeaee;color:#c02a4b">✕</button></div>`).join('');
+    h+=`<div class="d" style="text-align:center;margin-top:10px">O ✕ desliga a <b>série inteira</b> (o que já passou fica no histórico).</div>`;
+  }
+  v.innerHTML=h;
+  v.querySelectorAll('[data-off]').forEach(b=>b.onclick=async()=>{
+    const [tp,chave]=b.dataset.off.split(':');
+    const s=series.find(x=>x.chave===chave);
+    if(!confirm(`Desligar "${s.titulo}"?\n\n${s.rotulo}\n\nVou cancelar as ${s.n} próximas de uma vez. O que já passou fica no histórico.`))return;
+    b.disabled=true;
+    if(tp==='comp'){
+      const {data:alvos}=await supa.from('compromissos').select('id').eq('recorrencia_id',chave).eq('cancelado',false).gte('data',hoje);
+      const ids=(alvos||[]).map(x=>x.id);
+      if(ids.length){await supa.from('compromissos').update({cancelado:true}).in('id',ids);await supa.from('reminders').delete().in('compromisso_id',ids).eq('status','pending');}
+      toast(`Série desligada — ${ids.length} datas canceladas ✓`);
+    }else{
+      const {data:alvos}=await supa.from('contas').select('id').eq('parcela_grupo_id',chave).eq('status','pendente').gte('data_vencimento',hoje);
+      const ids=(alvos||[]).map(x=>x.id);
+      if(ids.length){await supa.from('contas').update({status:'cancelado'}).in('id',ids);await supa.from('reminders').delete().in('conta_id',ids).eq('status','pending');}
+      toast(`Série desligada — ${ids.length} parcelas canceladas ✓`);
+    }
+    await carregar();viewRecorrentes();
+  });
+}
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
-  const links=[['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
+  const links=[['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
   let h=`<div class="ph"><div><h1>Ajustes</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   ${(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)?'':`<button class="btn" id="mais-instalar" style="margin:4px 0 2px">📲 Instalar o app no celular</button>`}
