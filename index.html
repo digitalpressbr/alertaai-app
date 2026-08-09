@@ -1316,7 +1316,7 @@ function renderAgSide(){
   box.querySelectorAll('[data-rs]').forEach(c=>c.onclick=()=>resumoLista(c.dataset.rs)); // 21/07: card do resumo abre a lista do mês
 }
 
-/* Lista completa do mês ao clicar num card do resumo (pedido Rodrigo 21/07) */
+/* Lista completa do mês ao clicar num card do resumo (pedido 21/07) */
 function resumoLista(tp){
   const mesNome=MES[S.mes]+' de '+S.ano;
   const dcurta=iso=>{if(!iso)return '';const [y,m,d]=iso.split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')} · ${DOW[dt.getUTCDay()].toLowerCase()}`;};
@@ -1544,9 +1544,9 @@ function viewAssinatura(){
 }
 
 /* ---- MAIS (hub) ---- */
-/* 🔁 O QUE SE REPETE — mesma função do WhatsApp, agora no app (pedido Rodrigo 08/08: "o aplicativo tem
+/* 🔁 O QUE SE REPETE — mesma função do WhatsApp, agora no app (pedido 08/08: "o aplicativo tem
    que ter as mesmas funções, de igual pra mais completo"). Uma linha por SÉRIE (não por ocorrência) e
-   um botão que desliga a série inteira. Caso das 3 séries de bateria da Isabela. */
+   um botão que desliga a série inteira. Caso real: 3 séries de bateria repetidas. */
 const DIA_CURTO_APP=['dom','seg','ter','qua','qui','sex','sáb'];
 function rotuloSerieApp(freq,dias,hora,prox){
   const h=(hora&&hora!=='00:00')?` às ${hora.slice(0,5)}`:'';
@@ -1714,7 +1714,7 @@ async function salvarPessoa(tipo,id,ov){const nome=ov.querySelector('#p-nome').v
   const base={user_id:S.uid,nome,tipo_pessoa:ov.querySelector('#p-tipopessoa').value,telefone:ov.querySelector('#p-tel').value.trim()||null,email:ov.querySelector('#p-email').value.trim()||null,cep:ov.querySelector('#p-cep').value.trim()||null,endereco:ov.querySelector('#p-end').value.trim()||null,cidade:ov.querySelector('#p-cidade').value.trim()||null,uf:ov.querySelector('#p-uf').value.trim().toUpperCase()||null,categoria:ov.querySelector('#p-cat').value.trim()||null,observacao:ov.querySelector('#p-obs').value.trim()||null};
   const reg=isF?{...base,cnpj:doc,razao_social:nome,nome_fantasia:(ov.querySelector('#p-fant')?ov.querySelector('#p-fant').value.trim()||null:null)}:{...base,cpf_cnpj:doc};
   const tbl=isF?'fornecedores':'clientes';
-  /* 🛡️ antiduplicidade (regra Rodrigo 14/07): nome/razão EXATOS ou documento igual = bloqueia; tel/e-mail podem repetir */
+  /* 🛡️ antiduplicidade (regra 14/07): nome/razão EXATOS ou documento igual = bloqueia; tel/e-mail podem repetir */
   const _nrm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
   const {data:_exis}=await supa.from(tbl).select(isF?'id,nome,cnpj,razao_social':'id,nome,cpf_cnpj');
   const _dup=(_exis||[]).find(x=>String(x.id)!==String(id||'')&&(_nrm(x.nome)===_nrm(nome)||(isF&&x.razao_social&&_nrm(x.razao_social)===_nrm(nome))||(doc&&soDig(x.cnpj||x.cpf_cnpj||'')===doc)));
@@ -1785,7 +1785,7 @@ function viewRelatorios(){const v=$('view');const desp=S.contas.filter(c=>c.tipo
   $('exp-csv').onclick=exportarExcel;
   if($('rl-prev'))$('rl-prev').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes-1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};
   if($('rl-next'))$('rl-next').onclick=()=>{const dd=new Date(Date.UTC(S.ano,S.mes+1,1));S.ano=dd.getUTCFullYear();S.mes=dd.getUTCMonth();carregar().then(viewRelatorios);};}
-/* Excel FORMATADO (pedido Rodrigo 14+21/07): sem linhas de grade, cabeçalho verde, zebra, moeda, congela cabeçalho; aba 2 por categoria com barra. ExcelJS via CDN sob demanda; se falhar → CSV. */
+/* Excel FORMATADO (pedido 14+21/07): sem linhas de grade, cabeçalho verde, zebra, moeda, congela cabeçalho; aba 2 por categoria com barra. ExcelJS via CDN sob demanda; se falhar → CSV. */
 async function exportarExcel(){
   const btn=$('exp-csv');
   try{
@@ -1947,7 +1947,7 @@ function bindItems(root){root.querySelectorAll('[data-comp]').forEach(e=>e.oncli
     const c=[...S.contas,...S.abertas,...S.aberRec].find(x=>x.id===e.dataset.conta);if(c)modalConta(c);});
   root.querySelectorAll('[data-pay]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();if(S.lote)return;e.disabled=true;const id=e.dataset.pay;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');toast('Conta paga ✓');await carregar();irPara(S.tab);});
   root.querySelectorAll('[data-recv]').forEach(e=>e.onclick=async(ev)=>{ev.stopPropagation();if(S.lote)return;e.disabled=true;const id=e.dataset.recv;await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);toast('Receita recebida ✓');await carregar();irPara(S.tab);});
-  // ✕ vermelho: cancela/exclui NA HORA (regra Rodrigo: dinâmico, fácil e simples)
+  // ✕ vermelho: cancela/exclui NA HORA (regra: dinâmico, fácil e simples)
   root.querySelectorAll('.ev-x').forEach(x=>x.onclick=async(ev)=>{ev.stopPropagation();
     const linha=x.closest('[data-comp],[data-conta]');if(!linha)return;
     if(linha.dataset.comp){const c=S.comp.find(y=>y.id===linha.dataset.comp);if(!c)return;
@@ -2010,14 +2010,14 @@ function modalConta(c,tipoNovo){const ed=!!c;c=c||{};const tp=ed?(c.tipo||'despe
   ov.querySelectorAll('[data-fp]').forEach(b=>b.onclick=()=>{const f=ov.querySelector('#f-forma');const sel=f.value===b.dataset.fp;f.value=sel?'':b.dataset.fp;ov.querySelectorAll('[data-fp]').forEach(x=>x.classList.remove('on'));if(!sel)b.classList.add('on');const pw=ov.querySelector('#f-pixwrap');if(pw)pw.style.display=(/pix/i.test(f.value)||(ov.querySelector('#f-pix')&&ov.querySelector('#f-pix').value))?'block':'none';});
   /* anexos: 'ver atual' tratado em wireDrops */
   ov.querySelector('#f-save').onclick=()=>salvarConta(ed?c.id:null,ov);if(ed&&c.status!=='pago')ov.querySelector('#f-pago').onclick=()=>marcarPago(c.id,ov);if(ed)ov.querySelector('#f-del').onclick=()=>excluirConta(c.id,ov);}
-async function salvarConta(id,ov){const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;if(!descricao)return setMsg('f-msg','Dá uma descrição.','err');if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');/* 💸 portão da completude (regra Rodrigo 08/08): nada nasce sem valor — o bot já exige, o app salvava com 0 */if(!(valor>0))return setMsg('f-msg','Falta o valor — quanto é?','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const tipo=($('f-tipo')?$('f-tipo').value:'despesa');const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:(tipo!=='receita'&&$('f-forn'))?($('f-forn').value||null):null,cliente_id:(tipo==='receita'&&$('f-cli'))?($('f-cli').value||null):null,categoria_id:$('f-cat')?($('f-cat').value||null):null,forma_pagamento:$('f-forma')?($('f-forma').value||null):null,observacao:$('f-obs').value.trim()||null,pix:($('f-pix')&&$('f-pix').value.trim())||null,recorrente:$('f-rec').checked,tipo};if($('f-japago')&&$('f-japago').checked){reg.status='pago';reg.pago_em=new Date().toISOString();}let cid=id;if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}else{if(!reg.status)reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}/* 💰 RECEITA TAMBÉM AVISA (regra Rodrigo 08/08): tudo que é cadastrado gera lembrete no WhatsApp — só o texto muda conforme o tipo */if(reg.status!=='pago')await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:reg.tipo==='receita'?'a receber hoje':'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});const fb=$('f-boleto')&&$('f-boleto').files[0],fc=$('f-comprov')&&$('f-comprov').files[0];if(fb||fc){setMsg('f-msg','Enviando anexos...','ok');const up={};if(fb){const p=await uploadAnexo(fb,cid,'boleto');if(p)up.boleto_path=p;}if(fc){const p=await uploadAnexo(fc,cid,'comprovante');if(p)up.comprovante_path=p;}if(Object.keys(up).length)await supa.from('contas').update(up).eq('id',cid);}ov.remove();const _tl=reg.tipo==='receita'?'Receita':'Conta';toast(id?_tl+' atualizada ✅':_tl+' criada ✅');await carregar();irPara(S.tab);}
+async function salvarConta(id,ov){const descricao=$('f-desc').value.trim(),venc=$('f-venc').value;const valor=parseFloat(($('f-valor').value||'').replace(/\./g,'').replace(',','.'))||0;if(!descricao)return setMsg('f-msg','Dá uma descrição.','err');if(!venc)return setMsg('f-msg','Escolhe o vencimento.','err');/* 💸 portão da completude (regra 08/08): nada nasce sem valor — o bot já exige, o app salvava com 0 */if(!(valor>0))return setMsg('f-msg','Falta o valor — quanto é?','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const tipo=($('f-tipo')?$('f-tipo').value:'despesa');const reg={user_id:S.uid,descricao,valor,data_vencimento:venc,fornecedor_id:(tipo!=='receita'&&$('f-forn'))?($('f-forn').value||null):null,cliente_id:(tipo==='receita'&&$('f-cli'))?($('f-cli').value||null):null,categoria_id:$('f-cat')?($('f-cat').value||null):null,forma_pagamento:$('f-forma')?($('f-forma').value||null):null,observacao:$('f-obs').value.trim()||null,pix:($('f-pix')&&$('f-pix').value.trim())||null,recorrente:$('f-rec').checked,tipo};if($('f-japago')&&$('f-japago').checked){reg.status='pago';reg.pago_em=new Date().toISOString();}let cid=id;if(id){await supa.from('contas').update(reg).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');}else{if(!reg.status)reg.status='pendente';const {data:n,error}=await supa.from('contas').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}/* 💰 RECEITA TAMBÉM AVISA (regra 08/08): tudo que é cadastrado gera lembrete no WhatsApp — só o texto muda conforme o tipo */if(reg.status!=='pago')await supa.from('reminders').insert({user_id:S.uid,conta_id:cid,label:reg.tipo==='receita'?'a receber hoje':'vence hoje',reminder_time:brtUtc(venc,'08:00'),titulo:descricao,status:'pending'});const fb=$('f-boleto')&&$('f-boleto').files[0],fc=$('f-comprov')&&$('f-comprov').files[0];if(fb||fc){setMsg('f-msg','Enviando anexos...','ok');const up={};if(fb){const p=await uploadAnexo(fb,cid,'boleto');if(p)up.boleto_path=p;}if(fc){const p=await uploadAnexo(fc,cid,'comprovante');if(p)up.comprovante_path=p;}if(Object.keys(up).length)await supa.from('contas').update(up).eq('id',cid);}ov.remove();const _tl=reg.tipo==='receita'?'Receita':'Conta';toast(id?_tl+' atualizada ✅':_tl+' criada ✅');await carregar();irPara(S.tab);}
 async function marcarPago(id,ov){await supa.from('contas').update({status:'pago',pago_em:new Date().toISOString()}).eq('id',id);await supa.from('reminders').delete().eq('conta_id',id).eq('status','pending');ov.remove();toast('Conta marcada como paga ✅');await carregar();irPara(S.tab);}
 async function excluirConta(id,ov){if(!confirm('Excluir esta conta?'))return;await supa.from('contas').delete().eq('id',id);ov.remove();toast('Conta excluída');await carregar();irPara(S.tab);}
 function modalSimples(tipo,item){const ed=!!item;item=item||{};const tit=(ed?'Editar ':(tipo==='forn'?'Novo ':'Nova '))+(tipo==='forn'?'fornecedor':'categoria');const ov=openModal(tit,`<label class="lb">Nome *</label><input id="f-nome" class="fld" value="${esc(item.nome||'')}" placeholder="${tipo==='forn'?'Ex: Energisa':'Ex: Moradia'}"><button class="btn mt18" id="f-save">${ed?'Salvar':'Adicionar'}</button><div id="f-msg" class="msg"></div>`);ov.querySelector('#f-save').onclick=async()=>{const nome=$('f-nome').value.trim();if(!nome)return setMsg('f-msg','Digite o nome.','err');$('f-save').disabled=true;const tbl=tipo==='forn'?'fornecedores':'categorias';if(ed)await supa.from(tbl).update({nome}).eq('id',item.id);else await supa.from(tbl).insert({user_id:S.uid,nome});ov.remove();toast(ed?'Atualizado ✅':'Adicionado ✅');await carregar();viewMais();};setTimeout(()=>$('f-nome').focus(),100);}
 async function removerCad(tipo,id){if(!confirm('Remover?'))return;const tbl=tipo==='forn'?'fornecedores':'categorias';await supa.from(tbl).delete().eq('id',id);toast('Removido');await carregar();renderMng();}
-/* ---- SUPORTE TÉCNICO (gatilho de erro → WhatsApp do Rodrigo) ---- */
+/* ---- SUPORTE TÉCNICO (gatilho de erro → WhatsApp do suporte) ---- */
 async function enviarSuporte(descricao,contexto){try{const {data:{session}}=await supa.auth.getSession();const r=await fetch(FN_SUP,{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:JSON.stringify({descricao,contexto})});return await r.json().catch(()=>({ok:false}));}catch(_e){return {ok:false};}}
-/* 🆘 SUPORTE EM 1 TOQUE (regra Rodrigo 09/08): a pessoa NÃO precisa escrever redação. Toca no motivo
+/* 🆘 SUPORTE EM 1 TOQUE (regra 09/08): a pessoa NÃO precisa escrever redação. Toca no motivo
    e o chamado já vai com a tela em que ela estava e o histórico dela. Escrever é opcional. */
 function modalSuporte(contexto){const ov=openModal('🛟 Falar com o suporte',`
   <p class="step-tip" style="margin-top:0">Toque no que aconteceu — o chamado já vai com o seu histórico. Você <b>não precisa explicar nada</b>. 🦉</p>
@@ -2046,7 +2046,7 @@ function ofereceSuporte(err){if(!S.uid)return;const now=Date.now();if(now-_supTs
 window.addEventListener('error',e=>{const m=(e&&e.message)||'';if(!m||/ResizeObserver|Script error/i.test(m))return;ofereceSuporte(m);});
 window.addEventListener('unhandledrejection',e=>{let m='';try{m=(e&&e.reason&&(e.reason.message||e.reason))||'';}catch(_e){}ofereceSuporte('Falha: '+String(m).slice(0,140));});
 init();
-/* ---- impressão profissional (Rodrigo 14/07): contas do mês em PAISAGEM (margens 0,3/0,6cm) e relatório A4 ---- */
+/* ---- impressão profissional (14/07): contas do mês em PAISAGEM (margens 0,3/0,6cm) e relatório A4 ---- */
 function _printPage(html,landscape,docTitle){const pa=document.getElementById('printarea');pa.innerHTML=html;const st=document.createElement('style');st.textContent=landscape?'@page{size:A4 landscape;margin:0.3cm 0.6cm}':'@page{size:A4 portrait;margin:1cm}';document.head.appendChild(st);const t0=document.title;if(docTitle)document.title=docTitle;const done=()=>{st.remove();document.title=t0;window.removeEventListener('afterprint',done);};window.addEventListener('afterprint',done);window.print();setTimeout(()=>{document.title=t0;},4000);}
 function _abrev(s,n){s=String(s||'').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 function _hoje(){const d=new Date();return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR').slice(0,5);}
