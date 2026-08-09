@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AlertaAí — seu assistente pessoal no WhatsApp</title>
+
+<!-- 🔗 PREVIEW: quando este link é colado no WhatsApp/Instagram/Facebook, aparece um CARD COM A ARTE
+     e o card inteiro é clicável. É isso que resolve o "não dá pra clicar na imagem". -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AlertaAí">
+<meta property="og:title" content="AlertaAí — seu assistente pessoal no WhatsApp">
+<meta property="og:description" content="Agenda, contas e lembretes, só conversando. 1 semana pra experimentar, sem cadastrar cartão.">
+<meta property="og:image" content="https://digitalpressbr.github.io/alertaai-app/vem.png">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1350">
+<meta property="og:url" content="https://digitalpressbr.github.io/alertaai-app/vem.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1E397E">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#fff;min-height:100dvh;
+  background:linear-gradient(158deg,#1E397E 0%,#1E397E 46%,#2F77DD 46.5%,#2F77DD 100%);
+  display:flex;align-items:center;justify-content:center;padding:26px}
+.box{width:100%;max-width:430px;text-align:center}
+.badge{width:132px;height:132px;margin:0 auto;border-radius:50%;background:#fff;border:5px solid #fff;
+  overflow:hidden;box-shadow:0 0 0 7px rgba(255,255,255,.16),0 14px 34px rgba(0,0,0,.4)}
+.badge img{width:100%;height:100%;object-fit:cover;display:block}
+h1{font-size:40px;font-weight:800;letter-spacing:-1px;margin-top:16px}
+h1 em{font-style:normal;color:#FFD24A}
+.tag{font-size:17px;color:#DCE7FA;margin-top:6px}
+.card{background:#fff;color:#3C4A60;border-radius:20px;padding:18px 20px;margin-top:22px;text-align:left;
+  box-shadow:0 16px 40px rgba(0,0,0,.3);font-size:16px;line-height:1.5}
+.card b{color:#12224A}
+.card div + div{margin-top:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:22px;padding:20px 18px;
+  border-radius:18px;background:#25D366;color:#0B3D22;font-size:21px;font-weight:800;text-decoration:none;
+  box-shadow:0 14px 34px rgba(0,0,0,.34)}
+.btn:active{transform:translateY(1px)}
+.alt{display:block;margin-top:14px;color:#DCE7FA;font-size:15px;text-decoration:none}
+.alt b{color:#fff}
+.of{font-size:14px;color:#C6D6F2;margin-top:20px;line-height:1.5}
+.of b{color:#fff}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="badge"><img src="coruja.png" alt="AlertaAí"></div>
+  <h1>Alerta<em>Aí</em></h1>
+  <div class="tag">Seu assistente pessoal no WhatsApp</div>
+
+  <div class="card">
+    <div>🎙️ <b>Fale ou escreva</b> — "reunião amanhã às 14h", pronto, agendado</div>
+    <div>🔔 <b>Nunca mais esqueça</b> — eu te aviso antes de cada compromisso</div>
+    <div>💸 <b>Contas em dia</b> — lembro o vencimento dos seus boletos</div>
+    <div>☀️ <b>Resumo do dia</b> — toda manhã, o que você tem pela frente</div>
+  </div>
+
+  <!-- o href é o wa.me (funciona em qualquer lugar); o script tenta o app ANTES, pra não passar
+       pela página intermediária "Continuar para o chat" do WhatsApp -->
+  <a class="btn" id="ir" href="https://wa.me/556223980362?text=Oi!%20Quero%20criar%20minha%20conta%20no%20AlertaA%C3%AD%20%F0%9F%A6%89">
+    💬 Falar no WhatsApp agora
+  </a>
+  <a class="alt" href="tel:+556223980362">ou salve o número: <b>(62) 2398-0362</b></a>
+
+  <div class="of"><b>1 semana pra experimentar</b>, sem cadastrar cartão.<br>
+    Cadastrou? Ganha <b>+30 dias</b> — cancela quando quiser.</div>
+</div>
+
+<script>
+// 📱 ABRE O APP DIRETO: o wa.me passa por uma página intermediária ("Continuar para o chat"), que foi
+// exatamente o que o Rodrigo sentiu. O esquema whatsapp:// abre o aplicativo na hora. Se não houver
+// app (desktop sem WhatsApp), o clique no botão segue pelo wa.me normalmente.
+(function () {
+  var TXT = 'Oi! Quero criar minha conta no AlertaAí 🦉';
+  var deep = 'whatsapp://send?phone=556223980362&text=' + encodeURIComponent(TXT);
+  var ehCelular = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (ehCelular) { setTimeout(function () { window.location.href = deep; }, 350); }
+  document.getElementById('ir').addEventListener('click', function (e) {
+    if (!ehCelular) return;               // desktop: deixa o wa.me abrir o WhatsApp Web
+    e.preventDefault();
+    window.location.href = deep;
+    setTimeout(function () { window.location.href = e.currentTarget ? e.currentTarget.href : 'https://wa.me/556223980362'; }, 1200);
+  });
+})();
+</script>
+</body>
+</html>
