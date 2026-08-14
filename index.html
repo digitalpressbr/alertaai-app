@@ -1641,8 +1641,11 @@ function viewPainelDono(){
     :'<span style="background:#E8A33D;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">TESTE</span>';
   const linha=c=>{
     const uso=`${c.compromissos} compromisso${c.compromissos===1?'':'s'} · ${c.contas} conta${c.contas===1?'':'s'}`;
+    // 🏷️ "parado há 0d" confundia quem entrou ontem e não usou. Quem tem ZERO item nunca "parou" — nunca começou.
     const status=c.ativo?'<b style="color:#0A7A4B">🟢 usando</b>'
-      :(c.parado_ha===null?'<b style="color:#b33">🔴 nunca mandou nada</b>':`<b style="color:#b33">😴 parado há ${c.parado_ha}d</b>`);
+      :(c.parado_ha===null?'<b style="color:#b33">🔴 nunca mandou nada</b>'
+      :(c.compromissos+c.contas===0?'<b style="color:#b33">🔴 ainda não usou</b>'
+      :`<b style="color:#b33">😴 parado há ${c.parado_ha}d</b>`));
     const pg=c.pagou?`<b style="color:#0A7A4B">✅ R$ ${c.total_pago.toFixed(2).replace('.',',')}</b> <span style="color:var(--soft)">(${c.n_pagamentos}× · últ. ${dBR(c.ultimo_pagamento)})</span>`
       :'<span style="color:var(--soft)">⚪ nunca pagou</span>';
     const eq=c.equipe?`<div style="margin-top:4px;font-size:12.5px">👥 <b>Equipe:</b> ${c.numeros_extras.map(n=>`${esc(n.nome||('•••'+String(n.tel).slice(-4)))} <span style="color:var(--soft)">(${n.modo==='individual'?'agenda separada':'agenda junta'})</span>`).join(' · ')}</div>`:'';
