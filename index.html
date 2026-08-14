@@ -1058,7 +1058,9 @@ async function abrirApp(){
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
   const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras').limit(1);
   if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};}
-  carregarPainelDono();   // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto)
+  // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto). Se a resposta chegar
+  //    depois da tela "Ajustes" já ter sido desenhada, redesenha — senão o atalho não aparece.
+  carregarPainelDono().then(()=>{ if(S.dono&&S.tab==='mais')viewMais(); });
   if(/[?&]pago=1/.test(location.search)){history.replaceState(null,'',location.pathname);(async()=>{
     toast('Confirmando seu pagamento... ⏳');
     for(const espera of [1500,3000,5000,8000,12000,18000]){
@@ -1614,6 +1616,9 @@ async function viewRecorrentes(){
    ============================================================================ */
 async function carregarPainelDono(){
   try{
+    // ⚠️ `session` NÃO é global neste app (cada chamada pega a sua) — foi o que me derrubou na 1ª tentativa:
+    //    a referência solta virava ReferenceError, o catch engolia e o painel simplesmente não aparecia.
+    const {data:{session}}=await supa.auth.getSession();
     const r=await fetch(FN+'?action=admin_painel',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
     if(r&&r.ok){S.dono=true;S.donoDados=r;return r;}
   }catch(e){/* sem acesso = simplesmente não existe pra essa conta */}
