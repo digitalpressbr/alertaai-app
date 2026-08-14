@@ -1052,12 +1052,13 @@ const NAV_GROUPS=[
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
   const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras').limit(1);
   if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};}
+  carregarPainelDono();   // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto)
   if(/[?&]pago=1/.test(location.search)){history.replaceState(null,'',location.pathname);(async()=>{
     toast('Confirmando seu pagamento... ⏳');
     for(const espera of [1500,3000,5000,8000,12000,18000]){
@@ -1604,9 +1605,74 @@ async function viewRecorrentes(){
     await carregar();viewRecorrentes();
   });
 }
+/* ============================================================================
+   👑 PAINEL DO DONO (14/08) — a base inteira numa tela só, SÓ pro Rodrigo.
+   🔒 Quem autoriza é o SERVIDOR (web-auth?action=admin_painel confere o telefone
+      contra SUPORTE_WHATSAPP e devolve 403 pra qualquer outro). Aqui em baixo é
+      só desenho: se o servidor não liberar, `S.dono` nunca fica true e o atalho
+      nem aparece. Mesma doutrina do filtro de agendas: a tela não guarda segredo.
+   ============================================================================ */
+async function carregarPainelDono(){
+  try{
+    const r=await fetch(FN+'?action=admin_painel',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
+    if(r&&r.ok){S.dono=true;S.donoDados=r;return r;}
+  }catch(e){/* sem acesso = simplesmente não existe pra essa conta */}
+  S.dono=false;return null;
+}
+function viewPainelDono(){
+  const v=$('view');
+  if(!S.donoDados){v.innerHTML='<div class="ph"><div><h1>Painel</h1><div class="d">Carregando…</div></div></div>';
+    carregarPainelDono().then(()=>{if(S.tab==='dono')viewPainelDono();});return;}
+  const {resumo:R,clientes:CL}=S.donoDados;
+  const f=S.donoFiltro||'todos';
+  const filtros=[['todos','Todos',CL.length],['ativos','🟢 Ativos',R.ativos],['parados','😴 Parados',CL.filter(c=>!c.ativo).length],
+    ['pagantes','💚 Pagantes',R.pagantes],['teste','🎁 Em teste',R.em_teste],['equipe','👥 Equipe',R.equipes],['cortesia','🤝 Cortesia',R.cortesia]];
+  const passa=c=>f==='todos'||(f==='ativos'&&c.ativo)||(f==='parados'&&!c.ativo)||(f==='pagantes'&&['ativo','equipe'].includes(c.plano))
+    ||(f==='teste'&&c.plano==='teste')||(f==='equipe'&&c.equipe)||(f==='cortesia'&&c.plano==='cortesia');
+  const dBR=s=>s?new Date(s).toLocaleDateString('pt-BR'):'—';
+  const badgePlano=p=>p==='equipe'?'<span style="background:#1E397E;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">EQUIPE</span>'
+    :p==='ativo'?'<span style="background:#0A7A4B;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">PAGANTE</span>'
+    :p==='cortesia'?'<span style="background:#8C8880;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">CORTESIA</span>'
+    :'<span style="background:#E8A33D;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">TESTE</span>';
+  const linha=c=>{
+    const uso=`${c.compromissos} compromisso${c.compromissos===1?'':'s'} · ${c.contas} conta${c.contas===1?'':'s'}`;
+    const status=c.ativo?'<b style="color:#0A7A4B">🟢 usando</b>'
+      :(c.parado_ha===null?'<b style="color:#b33">🔴 nunca mandou nada</b>':`<b style="color:#b33">😴 parado há ${c.parado_ha}d</b>`);
+    const pg=c.pagou?`<b style="color:#0A7A4B">✅ R$ ${c.total_pago.toFixed(2).replace('.',',')}</b> <span style="color:var(--soft)">(${c.n_pagamentos}× · últ. ${dBR(c.ultimo_pagamento)})</span>`
+      :'<span style="color:var(--soft)">⚪ nunca pagou</span>';
+    const eq=c.equipe?`<div style="margin-top:4px;font-size:12.5px">👥 <b>Equipe:</b> ${c.numeros_extras.map(n=>`${esc(n.nome||('•••'+String(n.tel).slice(-4)))} <span style="color:var(--soft)">(${n.modo==='individual'?'agenda separada':'agenda junta'})</span>`).join(' · ')}</div>`:'';
+    const alerta=c.inadimplente_desde?'<div style="margin-top:4px;font-size:12.5px;color:#b33">⚠️ <b>Inadimplente</b> desde '+dBR(c.inadimplente_desde)+'</div>'
+      :(c.plano==='teste'&&c.prazo_cartao?`<div style="margin-top:4px;font-size:12.5px;color:var(--soft)">⏳ prazo do cartão: <b>${dBR(c.prazo_cartao)}</b></div>`:'');
+    return `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div><b style="font-size:15px">${esc(c.nome||'—')}</b> ${badgePlano(c.plano)}${c.desconto_pct?` <span style="color:#0A7A4B;font-size:12px;font-weight:700">−${c.desconto_pct}%</span>`:''}
+          <div style="color:var(--soft);font-size:12.5px">${esc(c.cidade||'')} · entrou ${dBR(c.cadastrou)} <span style="opacity:.7">(${c.dias_de_casa}d de casa)</span></div></div>
+        <div style="text-align:right;font-size:13px">${status}<div style="color:var(--soft);font-size:12.5px">${uso}</div></div>
+      </div>
+      <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${eq}${alerta}
+    </div>`;
+  };
+  v.innerHTML=`<div class="ph"><div><h1>👑 Painel do dono</h1><div class="d">A base inteira — visível só pra você</div></div>
+    <div class="act"><button class="bpill" id="dono-recarrega">↻ Atualizar</button></div></div>
+  <div class="kpis">
+    <div class="kpi g"><div class="kt"><div class="l">Clientes</div><div class="n">${R.total}</div><div class="ksub">${R.ativos} usando de verdade</div></div></div>
+    <div class="kpi b"><div class="kt"><div class="l">Pagantes</div><div class="n">${R.pagantes}</div><div class="ksub">${R.em_teste} em teste · ${R.cortesia} cortesia</div></div></div>
+    <div class="kpi g"><div class="kt"><div class="l">Recebido no mês</div><div class="n">${money(R.recebido_mes)}</div></div></div>
+    <div class="kpi b"><div class="kt"><div class="l">Receita recorrente</div><div class="n">${money(R.receita_recorrente)}</div><div class="ksub">por mês, se ninguém sair</div></div></div>
+  </div>
+  ${R.inadimplentes?`<div class="trialbar">⚠️ <b>${R.inadimplentes}</b> cliente(s) inadimplente(s) — veja abaixo.</div>`:''}
+  <div class="filterbar"><div class="chips">${filtros.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}" data-df="${k}">${l} <b>${n}</b></button>`).join('')}</div></div>
+  <div>${CL.filter(passa).map(linha).join('')||'<div style="color:var(--soft);text-align:center;padding:30px">Ninguém nesse filtro.</div>'}</div>
+  <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">🔒 Esta tela existe só na sua conta. Nenhum outro usuário consegue abrir.</div>`;
+  v.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{S.donoFiltro=b.dataset.df;viewPainelDono();});
+  $('dono-recarrega').onclick=async()=>{S.donoDados=null;viewPainelDono();await carregarPainelDono();if(S.tab==='dono')viewPainelDono();};
+}
+
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
+  // 👑 o atalho do painel do dono só entra na lista se o SERVIDOR já tiver liberado (S.dono).
   const links=[['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
+  if(S.dono)links.unshift(['dono','👑','Painel do dono']);
   let h=`<div class="ph"><div><h1>Ajustes</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   ${(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)?'':`<button class="btn" id="mais-instalar" style="margin:4px 0 2px">📲 Instalar o app no celular</button>`}
