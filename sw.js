@@ -1,5 +1,9 @@
 // AlertaAí PWA service worker — network-first p/ o app, fallback offline.
-const C = 'alertaai-v1';
+// ⚠️ TROCAR ESTA VERSÃO A CADA MUDANÇA DO APP (16/08): o `activate` apaga todo cache que não seja
+// esta chave, então bumpar aqui é o que garante que o navegador largue a versão velha. Sem isso o
+// Pages já servia o arquivo novo e o app continuava rodando o antigo — foi o que fez o "Atualizar"
+// do Painel do dono parecer quebrado.
+const C = 'alertaai-v2-2026-08-16';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(C).then((c) => c.addAll(['./', './index.html', './coruja.png', './manifest.json'])).catch(() => {}));
   self.skipWaiting();

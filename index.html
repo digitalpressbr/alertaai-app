@@ -1619,7 +1619,7 @@ async function carregarPainelDono(){
     // ⚠️ `session` NÃO é global neste app (cada chamada pega a sua) — foi o que me derrubou na 1ª tentativa:
     //    a referência solta virava ReferenceError, o catch engolia e o painel simplesmente não aparecia.
     const {data:{session}}=await supa.auth.getSession();
-    const r=await fetch(FN+'?action=admin_painel',{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
+    const r=await fetch(FN+'?action=admin_painel&cb='+Date.now(),{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
     if(r&&r.ok){S.dono=true;S.donoDados=r;return r;}
   }catch(e){/* sem acesso = simplesmente não existe pra essa conta */}
   S.dono=false;return null;
@@ -1648,7 +1648,7 @@ function viewPainelDono(){
       :`<b style="color:#b33">😴 parado há ${c.parado_ha}d</b>`));
     const pg=c.pagou?`<b style="color:#0A7A4B">✅ R$ ${c.total_pago.toFixed(2).replace('.',',')}</b> <span style="color:var(--soft)">(${c.n_pagamentos}× · últ. ${dBR(c.ultimo_pagamento)})</span>`
       :'<span style="color:var(--soft)">⚪ nunca pagou</span>';
-    const eq=c.equipe?`<div style="margin-top:4px;font-size:12.5px">👥 <b>Equipe:</b> ${c.numeros_extras.map(n=>`${esc(n.nome||('•••'+String(n.tel).slice(-4)))} <span style="color:var(--soft)">(${n.modo==='individual'?'agenda separada':'agenda junta'})</span>`).join(' · ')}</div>`:'';
+    const eq=c.equipe?`<div style="margin-top:5px;font-size:12.5px;background:rgba(30,57,126,.06);border-radius:8px;padding:6px 9px">👥 <b>Equipe (${c.numeros_extras.length+1}/3):</b> ${c.numeros_extras.map(n=>`<b>${esc(n.nome||('•••'+String(n.tel).slice(-4)))}</b> <span style="color:var(--soft)">${n.modo==='individual'?'· agenda separada':'· agenda junta'}</span>`).join(' &nbsp;·&nbsp; ')}</div>`:'';
     const alerta=c.inadimplente_desde?'<div style="margin-top:4px;font-size:12.5px;color:#b33">⚠️ <b>Inadimplente</b> desde '+dBR(c.inadimplente_desde)+'</div>'
       :(c.plano==='teste'&&c.prazo_cartao?`<div style="margin-top:4px;font-size:12.5px;color:var(--soft)">⏳ prazo do cartão: <b>${dBR(c.prazo_cartao)}</b></div>`:'');
     return `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
@@ -1673,7 +1673,16 @@ function viewPainelDono(){
   <div>${CL.filter(passa).map(linha).join('')||'<div style="color:var(--soft);text-align:center;padding:30px">Ninguém nesse filtro.</div>'}</div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">🔒 Esta tela existe só na sua conta. Nenhum outro usuário consegue abrir.</div>`;
   v.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{S.donoFiltro=b.dataset.df;viewPainelDono();});
-  $('dono-recarrega').onclick=async()=>{S.donoDados=null;viewPainelDono();await carregarPainelDono();if(S.tab==='dono')viewPainelDono();};
+  /* ↻ ATUALIZAR DE VERDADE (16/08): antes ele repintava com o mesmo dado. Agora limpa o cache local,
+     busca do servidor com cache-buster e só então redesenha — se algo mudou (migração pro Equipe,
+     cliente novo, assinatura), aparece na hora. */
+  $('dono-recarrega').onclick=async(e)=>{
+    const b=e.currentTarget;b.disabled=true;b.textContent='Atualizando…';
+    S.donoDados=null;
+    await carregarPainelDono();
+    if(S.tab==='dono')viewPainelDono();
+    toast('Painel atualizado ✓');
+  };
 }
 
 function viewMais(){
