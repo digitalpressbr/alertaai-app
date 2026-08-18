@@ -907,6 +907,38 @@ body[data-view="relat"] .panel:has(.empty){display:none}
   .pr-bar i{display:block;height:100%;border-radius:2px;background:#065f46}
   .pr-row{display:flex;justify-content:space-between;font-size:9.5px}
 }
+/* ⚖️ POLÍTICA DE PRIVACIDADE E TERMOS — documento legal dentro do app (18/08).
+   Letra pequena e densa de propósito: é documento jurídico, para ser lido por quem quer ler.
+   A leitura confortável fica por conta do resumo em destaque no topo. */
+.legal{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:22px 20px;margin-top:14px;max-width:820px}
+.legal h2{font-size:15px;color:var(--ink);font-weight:800;margin:22px 0 6px;letter-spacing:-.2px}
+.legal h2:first-child{margin-top:0}
+.legal h3{font-size:13px;color:var(--ink);font-weight:700;margin:14px 0 4px}
+.legal p{font-size:12.5px;line-height:1.72;color:var(--muted);margin:6px 0}
+.legal ul{margin:6px 0 6px 2px;padding:0;list-style:none}
+.legal li{font-size:12.5px;line-height:1.68;color:var(--muted);padding:3px 0 3px 15px;position:relative}
+.legal li:before{content:"·";position:absolute;left:4px;font-weight:800;color:var(--soft)}
+.legal b{color:var(--ink)}
+.legal code{background:var(--bg2,rgba(127,127,127,.12));padding:1px 6px;border-radius:5px;font-weight:700;font-size:12px;color:var(--ink)}
+.legal table{width:100%;border-collapse:collapse;margin:9px 0;font-size:12.5px}
+.legal th{text-align:left;font-weight:800;color:var(--ink);padding:6px 6px;border-bottom:1.5px solid var(--line)}
+.legal td{padding:7px 6px;border-bottom:1px solid var(--line);color:var(--muted);line-height:1.5;vertical-align:top}
+.legal .art{color:var(--soft);font-size:11.5px;font-style:italic}
+.legal-top{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:18px 20px;max-width:820px}
+.legal-top .lt-t{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:9px}
+.legal-top p{font-size:13.5px;line-height:1.62;color:var(--muted);margin:7px 0}
+.legal-top b{color:var(--ink)}
+.legal-nav{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.legal-nav a{font-size:12px;font-weight:700;color:var(--green-d);text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:5px 11px}
+.optrow{display:flex;align-items:center;gap:13px;background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:15px 16px;margin-top:12px}
+.optrow .oi{font-size:21px;flex:none}
+.optrow .ob{flex:1;min-width:0}
+.optrow .ot{font-size:14px;font-weight:700;color:var(--ink)}
+.optrow .os{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:2px}
+.sw{flex:none;width:50px;height:29px;border-radius:99px;background:var(--line);border:0;position:relative;cursor:pointer;transition:background .18s}
+.sw i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 1px 4px rgba(0,0,0,.28)}
+.sw.on{background:var(--green-d)} .sw.on i{left:24px}
+
 </style>
 </head>
 <body>
@@ -1052,12 +1084,12 @@ const NAV_GROUPS=[
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono,privacidade:viewPrivacidade};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras,dicas_off').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};S.dicasOff=!!u[0].dicas_off;}
   // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto). Se a resposta chegar
   //    depois da tela "Ajustes" já ter sido desenhada, redesenha — senão o atalho não aparece.
   carregarPainelDono().then(()=>{ if(S.dono&&S.tab==='mais')viewMais(); });
@@ -1694,12 +1726,223 @@ function viewMais(){
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
   ${(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)?'':`<button class="btn" id="mais-instalar" style="margin:4px 0 2px">📲 Instalar o app no celular</button>`}
   <div class="meter"><div class="mt"><span>📦 Armazenamento</span><span>${fmtBytes(S.storageBytes)} de ${LIMITE_MB} MB</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+  <div class="optrow">
+    <span class="oi">💡</span>
+    <div class="ob"><div class="ot">Receber dicas</div><div class="os">Sugestões de uso, de vez em quando. Desligar não afeta seus lembretes e avisos.</div></div>
+    <button class="sw${S.dicasOff?'':' on'}" id="sw-dicas"><i></i></button>
+  </div>
+  <div class="optrow" id="row-privacidade" style="cursor:pointer">
+    <span class="oi">🔒</span>
+    <div class="ob"><div class="ot">Privacidade e Termos de Uso</div><div class="os">O que guardamos, por quanto tempo, com quem compartilhamos e seus direitos pela LGPD.</div></div>
+    <span style="color:var(--soft);font-size:19px">›</span>
+  </div>
   <div class="support">🛟 <b>Suporte AlertaAí</b><br>Deu algum problema ou tem uma sugestão? Fale com a gente — chega na hora pro nosso suporte.<br><button class="btn" onclick="abrirSuporte('Aberto pelo menu Mais')" style="margin:12px auto 0;max-width:280px">🆘 Falar com o suporte</button><br><span style="font-size:12px;color:var(--soft)">ou por e-mail: digitalpressbr@gmail.com</span></div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">AlertaAí · um produto Digital Press 🦉</div>`;
   const v=$('view');v.innerHTML=h;
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
   if($('mais-instalar'))$('mais-instalar').onclick=instalarApp;
+  if($('sw-dicas'))$('sw-dicas').onclick=()=>alternarDicas($('sw-dicas'));
+  if($('row-privacidade'))$('row-privacidade').onclick=()=>irPara('privacidade');
 }
+/* ============================================================================
+   ⚖️ POLÍTICA DE PRIVACIDADE E TERMOS DE USO — dentro do app (18/08/2026)
+   ============================================================================
+   Pedido do Rodrigo: *"essa política deve existir no aplicativo e no site, num
+   canto de ajustes; letra pequena e um monte de texto, ponta a ponta, falando
+   da lei, dos dados, da empresa e de como é armazenado — do jeito técnico e
+   profissional que os aplicativos fazem"*.
+
+   📏 Cada afirmação aqui foi conferida no código antes de ser escrita. Documento
+      legal que promete o que o sistema não faz é pior do que não ter documento:
+      vira prova contra quem assina. Se mudar o comportamento, MUDE AQUI TAMBÉM —
+      principalmente os prazos de retenção, que espelham o `cron-limpeza`.
+   ============================================================================ */
+function viewPrivacidade(){
+  const v=$('view');
+  v.innerHTML=`<div class="ph"><div><h1>Privacidade e Termos</h1><div class="d">Como seus dados são tratados · atualizado em 18/08/2026</div></div></div>
+
+  <div class="legal-top">
+    <div class="lt-t">🔎 O resumo, em 30 segundos</div>
+    <p><b>Guardamos o mínimo para o serviço funcionar</b> — seu cadastro e as coisas que você pede para eu lembrar. Nada além disso.</p>
+    <p><b>Seus áudios não são guardados.</b> São transcritos na hora e o arquivo é descartado. Fica só o texto, igual se você tivesse digitado.</p>
+    <p><b>Seu cartão nunca passa por aqui.</b> O pagamento acontece dentro do Mercado Pago.</p>
+    <p><b>Nada é vendido ou repassado</b> para propaganda de terceiros. O AlertaAí vive da assinatura.</p>
+    <p><b>Você apaga tudo quando quiser</b> — no WhatsApp, escrevendo <code>sair</code>.</p>
+    <div class="legal-nav">
+      <a href="#lg1">1. Quem somos</a><a href="#lg3">3. Dados coletados</a><a href="#lg4">4. Por que tratamos</a>
+      <a href="#lg7">7. Prazos</a><a href="#lg9">9. Seus direitos</a><a href="#lg13">13. Termos de Uso</a>
+    </div>
+  </div>
+
+  <div class="legal">
+    <h2 id="lg1">1. Quem é o responsável pelos seus dados</h2>
+    <p>Esta Política de Privacidade e os Termos de Uso regem o uso do <b>AlertaAí</b>, assistente pessoal de agenda e contas operado por <b>RR Lopes do Nascimento Ltda.</b>, que atende pelo nome fantasia <b>Cerrado Consultoria</b>, pessoa jurídica de direito privado inscrita no CNPJ sob o nº <b>36.877.747/0001-70</b>, com sede em Itumbiara, Estado de Goiás.</p>
+    <p>Para os fins da Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD), a empresa acima qualificada figura como <b>Controladora</b> dos dados pessoais tratados no âmbito do serviço, competindo-lhe as decisões referentes ao tratamento. <span class="art">(LGPD, art. 5º, VI)</span></p>
+    <p><b>Canal de contato para assuntos relativos a dados pessoais:</b><br>
+    E-mail: <b>contato@cerradoconsultoria.agr.br</b><br>
+    WhatsApp: <b>(62) 2398-0362</b></p>
+    <p>As solicitações são respondidas no prazo legal, e sempre que possível de imediato, pelo próprio WhatsApp. <span class="art">(LGPD, art. 18, §§ 3º e 4º)</span></p>
+
+    <h2 id="lg2">2. Definições</h2>
+    <ul>
+      <li><b>Dado pessoal:</b> informação relacionada a pessoa natural identificada ou identificável.</li>
+      <li><b>Titular:</b> você, a quem os dados se referem.</li>
+      <li><b>Tratamento:</b> qualquer operação com dados pessoais — coleta, uso, armazenamento, eliminação e outras.</li>
+      <li><b>Controlador:</b> quem decide sobre o tratamento (a empresa identificada na cláusula 1).</li>
+      <li><b>Operador:</b> quem trata dados em nome do Controlador (os prestadores listados na cláusula 5).</li>
+    </ul>
+
+    <h2 id="lg3">3. Dados que coletamos</h2>
+    <h3>3.1. Dados que você fornece</h3>
+    <ul>
+      <li><b>Dados cadastrais:</b> nome, número de telefone com WhatsApp, cidade e data de nascimento.</li>
+      <li><b>Dados de conta:</b> endereço de e-mail e senha, quando você opta por acessar o aplicativo web (a senha é armazenada de forma cifrada, inacessível ao Controlador).</li>
+      <li><b>Conteúdo que você registra:</b> compromissos, contas a pagar e a receber, listas, fornecedores, clientes, categorias, valores, datas, horários e observações que você informa.</li>
+      <li><b>Arquivos:</b> imagens e documentos que você envia, tais como fotografias de boletos.</li>
+      <li><b>Comunicações:</b> o texto das mensagens trocadas com o assistente, inclusive a transcrição de mensagens de voz.</li>
+    </ul>
+    <h3>3.2. Dados gerados pelo uso</h3>
+    <ul>
+      <li><b>Registros técnicos:</b> data e hora das mensagens, e o resultado da interpretação automática, utilizados exclusivamente para identificar e corrigir falhas de entendimento.</li>
+      <li><b>Situação contratual:</b> plano vigente, período de teste, data do último pagamento e situação da assinatura.</li>
+    </ul>
+    <h3>3.3. Dados que NÃO coletamos</h3>
+    <ul>
+      <li><b>Arquivos de áudio.</b> Mensagens de voz são transcritas no momento do recebimento e o arquivo de áudio é <b>descartado</b>, não sendo armazenado em nenhum sistema do Controlador.</li>
+      <li><b>Dados de cartão de pagamento.</b> Número, validade e código de segurança são coletados e processados integralmente pelo Mercado Pago, em ambiente próprio. O Controlador não tem acesso a esses dados em nenhum momento.</li>
+      <li><b>Dados de geolocalização precisa</b>, contatos da sua agenda telefônica, ou conteúdo de conversas mantidas com terceiros.</li>
+      <li><b>Dados pessoais sensíveis</b> na acepção do art. 5º, II, da LGPD não são solicitados. Caso você opte por registrar tal informação no conteúdo de um lembrete, ela recebe o mesmo tratamento de segurança dos demais dados.</li>
+    </ul>
+
+    <h2 id="lg4">4. Finalidades e bases legais</h2>
+    <p>Todo tratamento realizado possui finalidade específica e base legal definida, nos termos do art. 7º da LGPD:</p>
+    <table>
+      <tr><th>Finalidade</th><th>Base legal</th></tr>
+      <tr><td>Prestar o serviço contratado: registrar seus compromissos e contas e enviar os avisos nos prazos definidos por você</td><td>Execução de contrato <span class="art">(art. 7º, V)</span></td></tr>
+      <tr><td>Manter e identificar sua conta, e permitir o acesso pelo aplicativo web</td><td>Execução de contrato <span class="art">(art. 7º, V)</span></td></tr>
+      <tr><td>Processar a cobrança da assinatura</td><td>Execução de contrato <span class="art">(art. 7º, V)</span></td></tr>
+      <tr><td>Corrigir falhas de interpretação e melhorar a qualidade do serviço</td><td>Legítimo interesse <span class="art">(art. 7º, IX)</span></td></tr>
+      <tr><td>Prevenir fraude e uso abusivo da plataforma</td><td>Legítimo interesse <span class="art">(art. 7º, IX)</span></td></tr>
+      <tr><td>Enviar dicas de uso e comunicações sobre novidades do serviço</td><td>Legítimo interesse, com oposição garantida <span class="art">(art. 7º, IX, e art. 18, § 2º)</span></td></tr>
+      <tr><td>Cumprir obrigação legal ou regulatória, quando aplicável</td><td>Obrigação legal <span class="art">(art. 7º, II)</span></td></tr>
+    </table>
+    <p>O envio de dicas e comunicações promocionais pode ser interrompido a qualquer tempo, sem qualquer prejuízo ao serviço contratado, conforme a cláusula 9.</p>
+
+    <h2 id="lg5">5. Compartilhamento e operadores</h2>
+    <p>Os dados não são vendidos, alugados, cedidos ou comercializados. O compartilhamento ocorre exclusivamente com prestadores de serviço que atuam como <b>Operadores</b>, na estrita medida necessária ao funcionamento do serviço:</p>
+    <table>
+      <tr><th>Operador</th><th>Finalidade</th></tr>
+      <tr><td>Twilio Inc. e WhatsApp (Meta Platforms)</td><td>Transmissão das mensagens entre você e o assistente</td></tr>
+      <tr><td>Supabase Inc.</td><td>Hospedagem do banco de dados e dos arquivos, com acesso restrito</td></tr>
+      <tr><td>OpenAI, L.L.C. e Anthropic, PBC</td><td>Transcrição de mensagens de voz e interpretação do texto. O conteúdo é enviado apenas para essa finalidade e <b>não é utilizado para treinamento de modelos</b>, conforme os termos comerciais de API desses fornecedores</td></tr>
+      <tr><td>Mercado Pago (MercadoLibre)</td><td>Processamento do pagamento da assinatura</td></tr>
+    </table>
+    <p>O Controlador poderá ainda fornecer dados mediante <b>ordem judicial</b> ou requisição de autoridade competente, hipótese em que, sendo legalmente admitido, o titular será informado.</p>
+
+    <h2 id="lg6">6. Transferência internacional</h2>
+    <p>Parte dos Operadores indicados na cláusula 5 realiza processamento em servidores situados fora do território nacional. Tais transferências observam o disposto nos arts. 33 a 36 da LGPD, sendo realizadas com fundamento na necessidade de execução do contrato firmado com o titular e amparadas por cláusulas contratuais de proteção celebradas com os respectivos fornecedores.</p>
+
+    <h2 id="lg7">7. Prazos de retenção e eliminação</h2>
+    <p>Os dados são conservados apenas pelo período necessário ao cumprimento das finalidades declaradas <span class="art">(LGPD, art. 15)</span>. Findo o prazo, a eliminação é <b>automática</b>, independentemente de solicitação:</p>
+    <table>
+      <tr><th>Categoria</th><th>Prazo</th></tr>
+      <tr><td>Compromissos e contas cuja data já tenha transcorrido</td><td>12 meses</td></tr>
+      <tr><td>Registros de avisos já enviados</td><td>12 meses</td></tr>
+      <tr><td>Arquivos anexados (fotografias de boleto)</td><td>eliminados junto com a conta correspondente</td></tr>
+      <tr><td>Registros técnicos de interpretação de mensagens</td><td>90 dias</td></tr>
+      <tr><td>Dados cadastrais e conteúdo vigente</td><td>enquanto durar a conta</td></tr>
+      <tr><td>Registros exigidos por obrigação legal ou para exercício regular de direitos</td><td>pelo prazo legal aplicável</td></tr>
+    </table>
+    <p>O prazo de 12 meses atende a finalidade legítima de consulta a histórico pelo próprio titular. A exclusão da conta acarreta a eliminação imediata de todos os dados, na forma da cláusula 9.</p>
+
+    <h2 id="lg8">8. Segurança da informação</h2>
+    <p>São adotadas medidas técnicas e administrativas aptas a proteger os dados pessoais de acessos não autorizados e de situações acidentais ou ilícitas de destruição, perda, alteração, comunicação ou difusão <span class="art">(LGPD, art. 46)</span>, entre as quais:</p>
+    <ul>
+      <li>Tráfego cifrado em trânsito (TLS) em todas as comunicações.</li>
+      <li>Armazenamento cifrado em repouso, em infraestrutura de provedor com certificações de segurança.</li>
+      <li>Isolamento por titular no banco de dados, de modo que cada conta acesse exclusivamente os próprios registros.</li>
+      <li>Autenticação do aplicativo web por código de uso único enviado ao WhatsApp cadastrado, com senha armazenada sob função de derivação criptográfica.</li>
+      <li>Acesso administrativo restrito, registrado e limitado ao estritamente necessário à operação e ao suporte.</li>
+      <li>Verificação de autenticidade das mensagens recebidas, para impedir requisições forjadas.</li>
+    </ul>
+    <p>Na hipótese de incidente de segurança que possa acarretar risco ou dano relevante ao titular, serão comunicados a Autoridade Nacional de Proteção de Dados e os titulares afetados, em prazo razoável <span class="art">(LGPD, art. 48)</span>.</p>
+
+    <h2 id="lg9">9. Direitos do titular</h2>
+    <p>São assegurados ao titular, mediante requisição, os direitos previstos no art. 18 da LGPD. No AlertaAí, o exercício é imediato e feito pelo próprio WhatsApp:</p>
+    <table>
+      <tr><th>Direito</th><th>Como exercer</th></tr>
+      <tr><td>Confirmação da existência de tratamento e acesso aos dados <span class="art">(incisos I e II)</span></td><td>escreva <code>meus dados</code>, ou consulte diretamente neste aplicativo</td></tr>
+      <tr><td>Correção de dados incompletos, inexatos ou desatualizados <span class="art">(inciso III)</span></td><td>informe a correção ao assistente, ou edite neste aplicativo</td></tr>
+      <tr><td>Eliminação dos dados <span class="art">(inciso VI)</span></td><td>escreva <code>sair</code> e confirme. São eliminados cadastro, compromissos, contas, listas e arquivos</td></tr>
+      <tr><td>Portabilidade e obtenção de cópia <span class="art">(inciso V)</span></td><td>solicite ao suporte; os dados são fornecidos em formato legível por máquina</td></tr>
+      <tr><td>Informação sobre compartilhamento <span class="art">(inciso VII)</span></td><td>consulte a cláusula 5 desta Política</td></tr>
+      <tr><td>Oposição ao tratamento fundado em legítimo interesse <span class="art">(§ 2º)</span></td><td>desative "Receber dicas" na tela de Ajustes, ou escreva <code>parar dicas</code>. <b>O serviço contratado permanece integralmente ativo</b></td></tr>
+      <tr><td>Revisão de decisões automatizadas <span class="art">(art. 20)</span></td><td>fale com o suporte. A interpretação automática de mensagens é sempre passível de correção pelo titular</td></tr>
+    </table>
+    <p>Nenhum desses direitos implica cobrança, e o exercício de qualquer deles não prejudica o acesso ao serviço, ressalvada a eliminação da conta, que por sua natureza o encerra.</p>
+
+    <h2 id="lg10">10. Cookies e tecnologias semelhantes</h2>
+    <p>O aplicativo web utiliza armazenamento local no seu dispositivo com finalidade exclusivamente técnica: manter a sessão autenticada e guardar preferências de exibição. <b>Não são utilizados cookies de publicidade, de rastreamento entre sites ou de perfilamento comportamental</b>, nem há integração com redes de anúncios.</p>
+
+    <h2 id="lg11">11. Crianças e adolescentes</h2>
+    <p>O serviço destina-se a maiores de 18 anos. Não há coleta consciente de dados de crianças. Identificado tratamento de dados de menor de idade sem o consentimento específico e em destaque de ao menos um dos pais ou responsável legal, os dados serão eliminados <span class="art">(LGPD, art. 14)</span>.</p>
+
+    <h2 id="lg12">12. Alterações desta Política</h2>
+    <p>Esta Política poderá ser atualizada para refletir mudanças no serviço ou na legislação. Alterações que afetem materialmente o tratamento dos seus dados serão comunicadas previamente pelo WhatsApp cadastrado. A data da última revisão consta no início deste documento, e o uso continuado do serviço após a comunicação caracteriza ciência dos novos termos.</p>
+
+    <h2 id="lg13">13. Termos de Uso</h2>
+    <h3>13.1. Objeto</h3>
+    <p>O AlertaAí é um serviço de assistência pessoal que registra compromissos e obrigações financeiras informados pelo usuário e emite avisos nos prazos por ele definidos, por meio de mensagens de WhatsApp e do aplicativo web.</p>
+    <p><b>O serviço não realiza pagamentos, não movimenta recursos financeiros, não emite nem quita boletos e não substitui o controle financeiro do usuário.</b> O pagamento de qualquer obrigação permanece integralmente sob responsabilidade do titular.</p>
+
+    <h3>13.2. Cadastro e uso</h3>
+    <p>O usuário declara serem verdadeiras as informações fornecidas e responsabiliza-se pelo conteúdo que registra e pela guarda de suas credenciais de acesso. É vedado o uso do serviço para finalidade ilícita, para envio de mensagens não solicitadas a terceiros, ou de modo a comprometer a segurança e a disponibilidade da plataforma, sob pena de encerramento da conta.</p>
+
+    <h3>13.3. Período de teste, planos e cobrança</h3>
+    <p>O serviço é disponibilizado gratuitamente pelo período de teste informado no cadastro. Contratada a assinatura, é concedido período adicional de <b>30 (trinta) dias sem cobrança</b>, sendo a primeira cobrança realizada apenas ao término desse período. Os planos vigentes são <b>Completo, ao preço de R$ 19,90 mensais</b>, e <b>Equipe, ao preço de R$ 34,90 mensais</b>, este último admitindo até 3 números de WhatsApp na mesma conta. A cobrança é mensal e recorrente, processada pelo Mercado Pago. Reajustes serão comunicados com antecedência mínima de 30 dias.</p>
+
+    <h3>13.4. Cancelamento</h3>
+    <p><b>Não há prazo de fidelidade nem multa por cancelamento.</b> O cancelamento pode ser solicitado a qualquer tempo, pelo WhatsApp ou diretamente no Mercado Pago, e o acesso permanece disponível até o término do período já pago. Os dados são preservados para eventual retorno, salvo se o titular solicitar a eliminação na forma da cláusula 9.</p>
+    <p>Nos termos do art. 49 do Código de Defesa do Consumidor, é assegurado o direito de arrependimento no prazo de 7 (sete) dias contados da contratação, com devolução integral de valores eventualmente pagos.</p>
+
+    <h3>13.5. Disponibilidade e limitação de responsabilidade</h3>
+    <p>O Controlador emprega seus melhores esforços para que os avisos sejam entregues com pontualidade e regularidade. Contudo, a entrega depende de serviços de terceiros — em especial da plataforma WhatsApp, das operadoras de telefonia e da conexão de internet do usuário — cujo funcionamento está fora do controle do Controlador.</p>
+    <p><b>O serviço constitui ferramenta de apoio à memória do usuário e não configura garantia de cumprimento de prazos ou obrigações.</b> Recomenda-se que compromissos e obrigações de natureza crítica sejam objeto de controle próprio e independente por parte do usuário. A responsabilidade do Controlador, em qualquer hipótese, limita-se ao valor efetivamente pago pelo usuário nos 12 meses anteriores ao evento.</p>
+
+    <h3>13.6. Propriedade intelectual</h3>
+    <p>A marca, a identidade visual, o código-fonte e os demais elementos do AlertaAí são de titularidade do Controlador. <b>O conteúdo registrado pelo usuário permanece de sua exclusiva titularidade</b>, não sendo utilizado para qualquer finalidade estranha à prestação do serviço.</p>
+
+    <h3>13.7. Disposições finais</h3>
+    <p>A eventual invalidade de qualquer cláusula não prejudica as demais. Estes Termos são regidos pelas leis brasileiras, elegendo-se o foro da comarca de <b>Itumbiara, Estado de Goiás</b>, para dirimir controvérsias que não puderem ser resolvidas de forma amigável, sem prejuízo da faculdade do consumidor de demandar no foro de seu domicílio.</p>
+
+    <h2 id="lg14">14. Encerramento</h2>
+    <p>Documento atualizado em <b>18 de agosto de 2026</b>.<br>
+    RR Lopes do Nascimento Ltda. (Cerrado Consultoria) — CNPJ 36.877.747/0001-70 — Itumbiara/GO.<br>
+    Dúvidas: <b>contato@cerradoconsultoria.agr.br</b> ou pelo WhatsApp do AlertaAí.</p>
+  </div>
+
+  <div style="text-align:center;margin:18px 0 6px"><button class="btn" id="lg-voltar" style="max-width:260px;margin:0 auto">← Voltar para Ajustes</button></div>`;
+  if($('lg-voltar'))$('lg-voltar').onclick=()=>irPara('mais');
+  v.querySelectorAll('.legal-nav a').forEach(a=>a.onclick=e=>{
+    e.preventDefault();
+    const alvo=document.getElementById(a.getAttribute('href').slice(1));
+    if(alvo)alvo.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+/* 🔕 CHAVE DE DICAS — a oposição ao contato promocional, num toque.
+   Sem isso a única saída era o comando `sair`, que oferece EXCLUIR A CONTA: quem só queria
+   menos mensagem via "essa ação não tem volta" e desistia. Direito de se opor não pode custar
+   o serviço (LGPD, art. 18, § 2º). O servidor é a fonte da verdade — a tela só reflete. */
+async function alternarDicas(btn){
+  const novo=!btn.classList.contains('on');
+  btn.classList.toggle('on',novo);
+  const {error}=await supa.from('usuarios').update({dicas_off:!novo}).eq('id',S.uid);
+  if(error){btn.classList.toggle('on',!novo);toast('Não consegui salvar agora. Tenta de novo.',true);return;}
+  S.dicasOff=!novo;
+  toast(novo?'💡 Voltei com as dicas!':'🔕 Prontinho — não te mando mais dicas. Seus lembretes continuam normais.');
+}
+
 function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="ed" data-ed="${o.id}" data-tipo="${tipo}" title="Editar">✏️</button><button class="rm" data-rm="${o.id}" data-tipo="${tipo}" title="Remover">🗑️</button></div>`;}
 
 /* ---- SELECT helpers p/ modal de conta ---- */
