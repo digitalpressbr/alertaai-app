@@ -939,6 +939,13 @@ body[data-view="relat"] .panel:has(.empty){display:none}
 .sw i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 1px 4px rgba(0,0,0,.28)}
 .sw.on{background:var(--green-d)} .sw.on i{left:24px}
 
+/* 🔁 repetição semanal no formulário de compromisso (19/08) */
+.repbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-top:14px}
+.diaspick{display:flex;gap:6px;flex-wrap:wrap}
+.diaspick .dia{flex:1;min-width:42px;padding:9px 4px;border-radius:9px;border:1.5px solid var(--line);background:transparent;
+  color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;text-transform:capitalize}
+.diaspick .dia.on{background:var(--green-d);border-color:var(--green-d);color:#fff}
+
 </style>
 </head>
 <body>
@@ -2327,9 +2334,64 @@ function modalComp(c){const ed=!!c;c=c||{};const ov=openModal(ed?'Editar comprom
   <div class="row2"><div><label class="lb">Data *</label><input id="f-data" class="fld" type="date" value="${c.data||hojeBRT()}"></div><div><label class="lb">Horário</label><input id="f-hora" class="fld" type="time" value="${c.horario&&c.horario!=='00:00'?c.horario:''}"></div></div>
   <label class="lb">Local</label><input id="f-local" class="fld" placeholder="Opcional" value="${esc(c.local||'')}">
   <label class="lb">Observação</label><textarea id="f-desc" class="fld" placeholder="Opcional">${esc(c.descricao||'')}</textarea>
+  ${ed?'':`<div class="repbox">
+    <label class="checkrow" style="margin-top:0"><input type="checkbox" id="f-repete"> <span><b>Se repete toda semana</b></span></label>
+    <div id="f-repwrap" style="display:none">
+      <label class="lb" style="margin-top:12px">Em quais dias?</label>
+      <div class="diaspick" id="f-dias">${['dom','seg','ter','qua','qui','sex','sáb'].map((d,i)=>`<button type="button" class="dia" data-d="${i}">${d}</button>`).join('')}</div>
+      <label class="lb" style="margin-top:12px">Até quando?</label>
+      <select id="f-ateq" class="fld">
+        <option value="0">Sempre — eu renovo sozinho</option>
+        <option value="1">Por 1 mês</option>
+        <option value="2">Por 2 meses</option>
+        <option value="3">Por 3 meses</option>
+        <option value="6">Por 6 meses</option>
+      </select>
+    </div>
+  </div>`}
   <button class="btn mt18" id="f-save">${ed?'Salvar alterações':'Criar compromisso'}</button>${ed?'<button class="btn sec" id="f-del" style="color:#b00930;background:var(--rose-l)">Cancelar este compromisso</button>':''}<div id="f-msg" class="msg"></div>`);
-  ov.querySelector('#f-save').onclick=()=>salvarComp(ed?c.id:null,ov);if(ed)ov.querySelector('#f-del').onclick=()=>cancelarComp(c.id,ov);}
-async function salvarComp(id,ov){const titulo=$('f-tit').value.trim(),data=$('f-data').value,hora=$('f-hora').value||null;if(!titulo)return setMsg('f-msg','Dá um título.','err');if(!data)return setMsg('f-msg','Escolhe a data.','err');/* 🌙 madrugada (00:01-05:59): o bot do WhatsApp pergunta desde 30/06, o app salvava calado — caso CNH 05:48 do João (08/08). Erro de AM/PM é comum; confirma antes. */if(hora&&hora>'00:00'&&hora<'06:00'&&!confirm('⏰ Você marcou '+hora+' — isso é de MADRUGADA mesmo?\n\nSe era de tarde ou noite, clique em Cancelar e corrija o horário.'))return setMsg('f-msg','Corrige o horário e salva de novo.','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const reg={user_id:S.uid,titulo,data,horario:hora,local:$('f-local').value.trim()||null,descricao:$('f-desc').value.trim()||null};let cid=id;if(id){await supa.from('compromissos').update(reg).eq('id',id);await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');}else{const {data:n,error}=await supa.from('compromissos').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}await criarLembreteComp(cid,titulo,data,hora);ov.remove();toast(id?'Compromisso atualizado ✅':'Compromisso criado ✅');await carregar();irPara(S.tab);}
+  ov.querySelector('#f-save').onclick=()=>salvarComp(ed?c.id:null,ov);if(ed)ov.querySelector('#f-del').onclick=()=>cancelarComp(c.id,ov);
+  // 🔁 REPETIÇÃO SEMANAL NO APP (19/08, pedido do Rodrigo a partir do JOÃO): dava pra criar série só
+  //    pelo WhatsApp; quem usa o app tinha que cadastrar semana a semana. O app é a versão simples —
+  //    então aqui é caixinha e botão de dia, sem escrever nada.
+  const rep=ov.querySelector('#f-repete');
+  if(rep){
+    const wrap=ov.querySelector('#f-repwrap');
+    // marca sozinho o dia da semana da data escolhida: quem repete quase sempre repete NAQUELE dia
+    const marcarDoDia=()=>{
+      const dv=ov.querySelector('#f-data').value; if(!dv)return;
+      const dow=new Date(dv+'T12:00:00Z').getUTCDay();
+      const b=ov.querySelector(`.dia[data-d="${dow}"]`); if(b&&!ov.querySelector('.dia.on'))b.classList.add('on');
+    };
+    rep.onchange=()=>{wrap.style.display=rep.checked?'block':'none';if(rep.checked)marcarDoDia();};
+    ov.querySelectorAll('.dia').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+    ov.querySelector('#f-data').onchange=()=>{if(rep.checked)marcarDoDia();};
+  }
+}
+async function salvarComp(id,ov){const titulo=$('f-tit').value.trim(),data=$('f-data').value,hora=$('f-hora').value||null;if(!titulo)return setMsg('f-msg','Dá um título.','err');if(!data)return setMsg('f-msg','Escolhe a data.','err');/* 🌙 madrugada (00:01-05:59): o bot do WhatsApp pergunta desde 30/06, o app salvava calado — caso CNH 05:48 do João (08/08). Erro de AM/PM é comum; confirma antes. */if(hora&&hora>'00:00'&&hora<'06:00'&&!confirm('⏰ Você marcou '+hora+' — isso é de MADRUGADA mesmo?\n\nSe era de tarde ou noite, clique em Cancelar e corrija o horário.'))return setMsg('f-msg','Corrige o horário e salva de novo.','err');$('f-save').disabled=true;setMsg('f-msg','Salvando...','ok');const reg={user_id:S.uid,titulo,data,horario:hora,local:$('f-local').value.trim()||null,descricao:$('f-desc').value.trim()||null};let cid=id;if(id){await supa.from('compromissos').update(reg).eq('id',id);await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');}else{
+    // 🔁 SÉRIE SEMANAL — mesma regra do WhatsApp, mas por caixinha (19/08, pedido do Rodrigo)
+    const rep=$('f-repete')&&$('f-repete').checked;
+    const dias=rep?[...document.querySelectorAll('.dia.on')].map(b=>Number(b.dataset.d)):[];
+    if(rep&&dias.length){
+      const meses=Number(($('f-ateq')||{}).value||0);
+      // 0 = sempre: cria 120 dias e o cron renova sozinho — igual ao WhatsApp, nada de série órfã
+      const horizonte=meses>0?Math.round(meses*30.44):120;
+      const fim=new Date(data+'T12:00:00Z'); fim.setUTCDate(fim.getUTCDate()+horizonte);
+      const serie=crypto.randomUUID(); const linhas=[]; const d=new Date(data+'T12:00:00Z');
+      let g=0;
+      while(d<=fim&&g<400){
+        if(dias.includes(d.getUTCDay()))linhas.push({...reg,data:d.toISOString().slice(0,10),recorrencia_id:serie,recorrencia_freq:'semanal',serie_ate:meses>0?fim.toISOString().slice(0,10):null});
+        d.setUTCDate(d.getUTCDate()+1); g++;
+      }
+      if(!linhas.length){setMsg('f-msg','Escolhe pelo menos um dia da semana.','err');$('f-save').disabled=false;return;}
+      const {data:novos,error:e2}=await supa.from('compromissos').insert(linhas).select('id,data');
+      if(e2){setMsg('f-msg','Erro ao salvar a série.','err');$('f-save').disabled=false;return;}
+      for(const nv of novos)await criarLembreteComp(nv.id,titulo,nv.data,hora);
+      ov.remove();
+      toast(`Série criada: ${novos.length} ${novos.length===1?'data':'datas'} 🔁`);
+      await carregar(); irPara(S.tab); return;
+    }
+    const {data:n,error}=await supa.from('compromissos').insert(reg).select().single();if(error){setMsg('f-msg','Erro ao salvar.','err');$('f-save').disabled=false;return;}cid=n.id;}await criarLembreteComp(cid,titulo,data,hora);ov.remove();toast(id?'Compromisso atualizado ✅':'Compromisso criado ✅');await carregar();irPara(S.tab);}
 async function criarLembreteComp(cid,titulo,data,hora){const now=Date.now();let rt,label;if(hora&&hora!=='00:00'){rt=Date.parse(brtUtc(data,hora))-10*60000;label='10 minutos antes';}else{rt=Date.parse(brtUtc(data,'08:00'));label='no dia';}if(rt>now-30000)await supa.from('reminders').insert({user_id:S.uid,compromisso_id:cid,label,reminder_time:new Date(rt).toISOString(),titulo,status:'pending'});}
 async function cancelarComp(id,ov){if(!confirm('Cancelar este compromisso?'))return;await supa.from('compromissos').update({cancelado:true}).eq('id',id);await supa.from('reminders').delete().eq('compromisso_id',id).eq('status','pending');ov.remove();toast('Compromisso cancelado');await carregar();irPara(S.tab);}
 function dropZone(id,txt,hasCur,verKey){return `<label class="dropz" data-dz><input type="file" id="${id}" accept=".pdf,image/*" hidden><span class="dz-ic">☁️</span><span class="dz-tx" id="${id}-tx">${txt}<br><small>PDF, JPG, PNG (máx. 5MB)</small></span>${hasCur?`<span class="dz-cur" data-ver="${verKey}">ver atual</span>`:''}</label>`;}
