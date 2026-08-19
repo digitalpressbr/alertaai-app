@@ -1088,8 +1088,8 @@ const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras,dicas_off').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};S.dicasOff=!!u[0].dicas_off;}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras,dicas_off,retencao_meses').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};S.dicasOff=!!u[0].dicas_off;S.retencao=u[0].retencao_meses==null?12:Number(u[0].retencao_meses);}
   // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto). Se a resposta chegar
   //    depois da tela "Ajustes" já ter sido desenhada, redesenha — senão o atalho não aparece.
   carregarPainelDono().then(()=>{ if(S.dono&&S.tab==='mais')viewMais(); });
@@ -1731,6 +1731,16 @@ function viewMais(){
     <div class="ob"><div class="ot">Receber dicas</div><div class="os">Sugestões de uso, de vez em quando. Desligar não afeta seus lembretes e avisos.</div></div>
     <button class="sw${S.dicasOff?'':' on'}" id="sw-dicas"><i></i></button>
   </div>
+  <div class="optrow">
+    <span class="oi">🗂️</span>
+    <div class="ob"><div class="ot">Guardar meu histórico por</div><div class="os">Compromissos e contas que já passaram. O que ainda está por vir nunca é apagado.</div></div>
+    <select class="fld" id="sel-retencao" style="flex:none;width:132px">
+      <option value="6"${S.retencao===6?' selected':''}>6 meses</option>
+      <option value="12"${S.retencao===12?' selected':''}>12 meses</option>
+      <option value="24"${S.retencao===24?' selected':''}>24 meses</option>
+      <option value="0"${S.retencao===0?' selected':''}>Para sempre</option>
+    </select>
+  </div>
   <div class="optrow" id="row-privacidade" style="cursor:pointer">
     <span class="oi">🔒</span>
     <div class="ob"><div class="ot">Privacidade e Termos de Uso</div><div class="os">O que guardamos, por quanto tempo, com quem compartilhamos e seus direitos pela LGPD.</div></div>
@@ -1743,6 +1753,7 @@ function viewMais(){
   if($('mais-instalar'))$('mais-instalar').onclick=instalarApp;
   if($('sw-dicas'))$('sw-dicas').onclick=()=>alternarDicas($('sw-dicas'));
   if($('row-privacidade'))$('row-privacidade').onclick=()=>irPara('privacidade');
+  if($('sel-retencao'))$('sel-retencao').onchange=e=>salvarRetencao(Number(e.target.value));
 }
 /* ============================================================================
    ⚖️ POLÍTICA DE PRIVACIDADE E TERMOS DE USO — dentro do app (18/08/2026)
@@ -1846,14 +1857,16 @@ function viewPrivacidade(){
     <p>Os dados são conservados apenas pelo período necessário ao cumprimento das finalidades declaradas <span class="art">(LGPD, art. 15)</span>. Findo o prazo, a eliminação é <b>automática</b>, independentemente de solicitação:</p>
     <table>
       <tr><th>Categoria</th><th>Prazo</th></tr>
-      <tr><td>Compromissos e contas cuja data já tenha transcorrido</td><td>12 meses</td></tr>
-      <tr><td>Registros de avisos já enviados</td><td>12 meses</td></tr>
+      <tr><td>Compromissos e contas cuja data já tenha transcorrido</td><td>prazo escolhido pelo titular<br><span style="font-weight:400">(padrão 12 meses)</span></td></tr>
+      <tr><td>Registros de avisos já enviados</td><td>prazo escolhido pelo titular<br><span style="font-weight:400">(padrão 12 meses)</span></td></tr>
       <tr><td>Arquivos anexados (fotografias de boleto)</td><td>eliminados junto com a conta correspondente</td></tr>
       <tr><td>Registros técnicos de interpretação de mensagens</td><td>90 dias</td></tr>
       <tr><td>Dados cadastrais e conteúdo vigente</td><td>enquanto durar a conta</td></tr>
       <tr><td>Registros exigidos por obrigação legal ou para exercício regular de direitos</td><td>pelo prazo legal aplicável</td></tr>
     </table>
-    <p>O prazo de 12 meses atende a finalidade legítima de consulta a histórico pelo próprio titular. A exclusão da conta acarreta a eliminação imediata de todos os dados, na forma da cláusula 9.</p>
+    <p><b>O prazo de conservação do seu histórico é definido por você.</b> Na tela de Ajustes deste aplicativo é possível escolher entre 6, 12 ou 24 meses, ou optar pela conservação por prazo indeterminado. O padrão é de 12 meses, por atender à finalidade legítima de consulta a histórico pelo próprio titular. Registros com data futura jamais são eliminados por decurso de prazo.</p>
+    <p>O prazo de 90 dias aplicável aos registros técnicos de interpretação não é configurável, por não constituir histórico do titular e por não haver finalidade que justifique conservação superior.</p>
+    <p>A exclusão da conta acarreta a eliminação imediata de todos os dados, na forma da cláusula 9.</p>
 
     <h2 id="lg8">8. Segurança da informação</h2>
     <p>São adotadas medidas técnicas e administrativas aptas a proteger os dados pessoais de acessos não autorizados e de situações acidentais ou ilícitas de destruição, perda, alteração, comunicação ou difusão <span class="art">(LGPD, art. 46)</span>, entre as quais:</p>
@@ -1877,6 +1890,7 @@ function viewPrivacidade(){
       <tr><td>Portabilidade e obtenção de cópia <span class="art">(inciso V)</span></td><td>solicite ao suporte; os dados são fornecidos em formato legível por máquina</td></tr>
       <tr><td>Informação sobre compartilhamento <span class="art">(inciso VII)</span></td><td>consulte a cláusula 5 desta Política</td></tr>
       <tr><td>Oposição ao tratamento fundado em legítimo interesse <span class="art">(§ 2º)</span></td><td>desative "Receber dicas" na tela de Ajustes, ou escreva <code>parar dicas</code>. <b>O serviço contratado permanece integralmente ativo</b></td></tr>
+      <tr><td>Definição do prazo de conservação do próprio histórico</td><td>em Ajustes, no campo "Guardar meu histórico por"</td></tr>
       <tr><td>Revisão de decisões automatizadas <span class="art">(art. 20)</span></td><td>fale com o suporte. A interpretação automática de mensagens é sempre passível de correção pelo titular</td></tr>
     </table>
     <p>Nenhum desses direitos implica cobrança, e o exercício de qualquer deles não prejudica o acesso ao serviço, ressalvada a eliminação da conta, que por sua natureza o encerra.</p>
@@ -1928,6 +1942,17 @@ function viewPrivacidade(){
     const alvo=document.getElementById(a.getAttribute('href').slice(1));
     if(alvo)alvo.scrollIntoView({behavior:'smooth',block:'start'});
   });
+}
+
+/* 🗂️ POR QUANTO TEMPO GUARDAR — escolha de cada usuário (pedido do Rodrigo, 18/08).
+   O prazo de retenção é padrão 12 meses, mas quem quiser mantém 6, 24 ou para sempre. O que está
+   POR VIR nunca é apagado — o prazo só alcança o que já passou. Lido pelo `cron-limpeza`. */
+async function salvarRetencao(meses){
+  const {error}=await supa.from('usuarios').update({retencao_meses:meses}).eq('id',S.uid);
+  if(error){toast('Não consegui salvar agora. Tenta de novo.',true);return;}
+  S.retencao=meses;
+  toast(meses===0?'🗂️ Beleza — guardo seu histórico para sempre.'
+        :`🗂️ Pronto! Guardo seu histórico por ${meses} meses.`);
 }
 
 /* 🔕 CHAVE DE DICAS — a oposição ao contato promocional, num toque.
