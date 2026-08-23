@@ -1669,10 +1669,13 @@ function viewPainelDono(){
     carregarPainelDono().then(()=>{if(S.tab==='dono')viewPainelDono();});return;}
   const {resumo:R,clientes:CL}=S.donoDados;
   const f=S.donoFiltro||'todos';
-  const filtros=[['todos','Todos',CL.length],['ativos','🟢 Ativos',R.ativos],['parados','😴 Parados',CL.filter(c=>!c.ativo).length],
+  const filtros=[['todos','Todos',CL.length],['ativos','🟢 Em uso',R.ativos],['novos','🆕 Novos 7d',CL.filter(c=>c.dias_de_casa!==null&&c.dias_de_casa<=7).length],
+    ['parados','😴 Parados',CL.filter(c=>!c.ativo).length],['adormecidos','🌙 Adormecidos',CL.filter(c=>c.adormecido).length],
+    ['semcontato','🔕 Sem contato',CL.filter(c=>c.excluido||c.dicas_off).length],
     ['pagantes','💚 Pagantes',R.pagantes],['teste','🎁 Em teste',R.em_teste],['equipe','👥 Equipe',R.equipes],['cortesia','🤝 Cortesia',R.cortesia]];
   const passa=c=>f==='todos'||(f==='ativos'&&c.ativo)||(f==='parados'&&!c.ativo)||(f==='pagantes'&&['ativo','equipe'].includes(c.plano))
-    ||(f==='teste'&&c.plano==='teste')||(f==='equipe'&&c.equipe)||(f==='cortesia'&&c.plano==='cortesia');
+    ||(f==='teste'&&c.plano==='teste')||(f==='equipe'&&c.equipe)||(f==='cortesia'&&c.plano==='cortesia')
+    ||(f==='novos'&&c.dias_de_casa!==null&&c.dias_de_casa<=7)||(f==='adormecidos'&&c.adormecido)||(f==='semcontato'&&(c.excluido||c.dicas_off));
   const dBR=s=>s?new Date(s).toLocaleDateString('pt-BR'):'—';
   const badgePlano=p=>p==='equipe'?'<span style="background:#1E397E;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">EQUIPE</span>'
     :p==='ativo'?'<span style="background:#0A7A4B;color:#fff;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700">PAGANTE</span>'
@@ -1688,6 +1691,8 @@ function viewPainelDono(){
     const pg=c.pagou?`<b style="color:#0A7A4B">✅ R$ ${c.total_pago.toFixed(2).replace('.',',')}</b> <span style="color:var(--soft)">(${c.n_pagamentos}× · últ. ${dBR(c.ultimo_pagamento)})</span>`
       :'<span style="color:var(--soft)">⚪ nunca pagou</span>';
     const eq=c.equipe?`<div style="margin-top:5px;font-size:12.5px;background:rgba(30,57,126,.06);border-radius:8px;padding:6px 9px">👥 <b>Equipe (${c.numeros_extras.length+1}/3):</b> ${c.numeros_extras.map(n=>`<b>${esc(n.nome||('•••'+String(n.tel).slice(-4)))}</b> <span style="color:var(--soft)">${n.modo==='individual'?'· agenda separada':'· agenda junta'}</span>`).join(' &nbsp;·&nbsp; ')}</div>`:'';
+    const marcas=[c.excluido?'🔕 <b>contato desligado</b> (não recebe dica/campanha)':'',(!c.excluido&&c.dicas_off)?'🔕 <b>dicas desligadas</b>':'',c.bloqueio_suave?'⏸️ <b>novos agendamentos em espera</b> (aguardando assinatura)':'',(!c.excluido&&c.adormecido)?'🌙 <b>adormecido</b> — sem contato automático':''].filter(Boolean);
+    const marcasHtml=marcas.length?`<div style="margin-top:4px;font-size:12.5px;color:#8a6d1a">${marcas.join(' · ')}</div>`:'';
     const alerta=c.inadimplente_desde?'<div style="margin-top:4px;font-size:12.5px;color:#b33">⚠️ <b>Inadimplente</b> desde '+dBR(c.inadimplente_desde)+'</div>'
       :(c.plano==='teste'&&c.prazo_cartao?`<div style="margin-top:4px;font-size:12.5px;color:var(--soft)">⏳ prazo do cartão: <b>${dBR(c.prazo_cartao)}</b></div>`:'');
     return `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
@@ -1696,7 +1701,7 @@ function viewPainelDono(){
           <div style="color:var(--soft);font-size:12.5px">${esc(c.cidade||'')} · entrou ${dBR(c.cadastrou)} <span style="opacity:.7">(${c.dias_de_casa}d de casa)</span></div></div>
         <div style="text-align:right;font-size:13px">${status}<div style="color:var(--soft);font-size:12.5px">${uso}</div></div>
       </div>
-      <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${eq}${alerta}
+      <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${eq}${marcasHtml}${alerta}
     </div>`;
   };
   v.innerHTML=`<div class="ph"><div><h1>👑 Painel do dono</h1><div class="d">A base inteira — visível só pra você</div></div>
@@ -1711,7 +1716,7 @@ function viewPainelDono(){
   <div class="filterbar"><div class="chips">${filtros.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}" data-df="${k}">${l} <b>${n}</b></button>`).join('')}</div></div>
   <div>${CL.filter(passa).map(linha).join('')||'<div style="color:var(--soft);text-align:center;padding:30px">Ninguém nesse filtro.</div>'}</div>
   <div style="text-align:center;color:var(--soft);font-size:12px;margin:18px 0 4px">🔒 Esta tela existe só na sua conta. Nenhum outro usuário consegue abrir.</div>`;
-  v.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{S.donoFiltro=b.dataset.df;viewPainelDono();});
+  v.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{S.donoFiltro=(S.donoFiltro===b.dataset.df?'todos':b.dataset.df);viewPainelDono();});
   /* ↻ ATUALIZAR DE VERDADE (16/08): antes ele repintava com o mesmo dado. Agora limpa o cache local,
      busca do servidor com cache-buster e só então redesenha — se algo mudou (migração pro Equipe,
      cliente novo, assinatura), aparece na hora. */
