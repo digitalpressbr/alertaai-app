@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b6b3a">
+<meta name="color-scheme" content="light only"><!-- 30/08: trava o auto-dark do Chrome — o app abre SEMPRE claro, igual instalado -->
+
 <title>AlertaAí</title>
 <link rel="icon" href="coruja.png">
 <link rel="manifest" href="manifest.json">
@@ -18,6 +20,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
+  color-scheme:light only; /* 30/08: sem inversão automática de tema — modo claro sempre */
   --bg:#f3f1ea; --card:#fff; --ink:#15231b; --muted:#717f78; --soft:#9aa39c;
   --green:#0b6b3a; --green-d:#084e29; --green-l:#e7f3ec; --blue:#2563eb; --blue-l:#e8effe;
   --rose:#e11d48; --rose-l:#fdeaef; --amber:#e0922a; --amber-l:#fbf0dd;
@@ -1085,13 +1088,13 @@ $('ac-b-senha').onclick=async()=>{const s=$('ac-senha').value,s2=$('ac-senha2').
 
 /* APP */
 const NAV_GROUPS=[
- ['Visão geral',[['inicio','🏠','Início'],['agenda','📅','Agenda']]],
+ ['Visão geral',[['inicio','🏠','Início'],['agenda','📅','Agenda'],['servicos','🔧','Serviços']]],
  ['Contas',[['pagar','💸','A pagar'],['receber','💰','A receber'],['fluxo','📊','Movimentações']]],
  ['Contatos',[['cli','👥','Clientes'],['forn','🏢','Fornecedores']]],
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono,privacidade:viewPrivacidade};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,servicos:viewServicos,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono,privacidade:viewPrivacidade};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
@@ -1729,10 +1732,44 @@ function viewPainelDono(){
   };
 }
 
+/* ---- 🔧 SERVIÇOS PENDENTES (30/08, pedido Rodrigo: a mesma função do WhatsApp, fácil de ver no app) ---- */
+const _srvN=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+async function viewServicos(){
+  const v=$('view');v.innerHTML='<div class="spin"></div>';
+  const [r1,r2]=await Promise.all([
+    supa.from('listas').select('*').eq('tipo','servicos').order('updated_at',{ascending:false}),
+    supa.from('servicos_feitos').select('texto,feito_em').order('feito_em',{ascending:false}).limit(10)
+  ]);
+  const listas=r1.data||[];
+  const abertos=[];listas.forEach(l=>{const meta=(l.itens_meta&&typeof l.itens_meta==='object')?l.itens_meta:{};(Array.isArray(l.itens)?l.itens:[]).forEach(t=>abertos.push({l,t,d:meta[_srvN(t)]||null}));});
+  const feitos=r2.data||[];
+  const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+  let h=`<div class="ph"><div><h1>🔧 Serviços pendentes</h1><div class="d">${abertos.length} em aberto — sem data marcada; o AlertaAí te lembra de tempos em tempos</div></div></div>
+  <style>.srvrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}.srvn{width:34px;height:34px;border-radius:50%;border:2px solid #d9a94e;color:#8a5a00;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}.srvt{flex:1;font-weight:600;min-width:0}.srvd{font-size:12px;color:var(--muted);font-weight:400}.srvb{font-size:10.5px;font-weight:700;letter-spacing:.6px;background:#fbf0dd;color:#8a5a00;border-radius:999px;padding:5px 10px;flex:none}.srvok{border:1px solid var(--line);border-radius:10px;padding:7px 12px;background:#e7f3ec;color:#0b6b3a;font-weight:700;flex:none}.srvft{color:var(--muted);text-decoration:line-through}.srvadd{display:flex;gap:8px;margin:2px 0 14px}.srvadd input{flex:1;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--card);font:inherit}</style>
+  <div class="srvadd"><input id="srv-novo" placeholder='Novo serviço... ex: "arrumar a cerca"'><button class="bpill dr" id="srv-add">＋ Anotar</button></div>`;
+  if(!abertos.length)h+=`<div class="srvrow"><div class="srvt" style="font-weight:500;color:var(--muted)">Nenhum serviço em aberto — tudo em dia! 🎉</div></div>`;
+  abertos.forEach((a,i)=>{h+=`<div class="srvrow"><span class="srvn">${i+1}</span><div class="srvt">${esc(cap(a.t))}${a.d?`<div class="srvd">solicitado em ${dBRc(a.d)}</div>`:''}</div><span class="srvb">EM ABERTO</span><button class="srvok" data-i="${i}">✓ Feito</button></div>`;});
+  if(feitos.length){h+=`<div class="ph" style="margin-top:18px"><div><h1 style="font-size:17px">✅ Feitos recentes</h1></div></div>`;feitos.forEach(f=>{h+=`<div class="srvrow"><div class="srvt srvft">${esc(cap(f.texto))}</div><div class="srvd">${dBRc((f.feito_em||'').slice(0,10))}</div></div>`;});}
+  v.innerHTML=h;
+  $('srv-add').onclick=async()=>{const t=$('srv-novo').value.trim();if(!t)return;
+    let alvo=listas[0];
+    if(!alvo){const {data:n}=await supa.from('listas').insert({user_id:S.uid,nome:'Serviços pendentes',tipo:'servicos',itens:[],itens_meta:{}}).select().single();alvo=n;}
+    if(!alvo)return toast('Não consegui salvar',true);
+    const itens=(Array.isArray(alvo.itens)?alvo.itens:[]).concat([t]);
+    const meta={...(alvo.itens_meta||{})};meta[_srvN(t)]=hojeBRT();
+    await supa.from('listas').update({itens,itens_meta:meta,updated_at:new Date().toISOString()}).eq('id',alvo.id);
+    toast('Serviço anotado ✓');viewServicos();};
+  v.querySelectorAll('.srvok').forEach(b=>b.onclick=async()=>{const a=abertos[+b.dataset.i];if(!a)return;
+    const itens=(Array.isArray(a.l.itens)?a.l.itens:[]).filter(x=>x!==a.t);
+    const meta={...(a.l.itens_meta||{})};delete meta[_srvN(a.t)];
+    await supa.from('listas').update({itens,itens_meta:meta,updated_at:new Date().toISOString()}).eq('id',a.l.id);
+    await supa.from('servicos_feitos').insert({user_id:S.uid,texto:a.t});
+    toast('Feito! Menos um ✓');viewServicos();});
+}
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
   // 👑 o atalho do painel do dono só entra na lista se o SERVIDOR já tiver liberado (S.dono).
-  const links=[['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
+  const links=[['servicos','🔧','Serviços pendentes'],['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
   if(S.dono)links.unshift(['dono','👑','Painel do dono']);
   let h=`<div class="ph"><div><h1>Ajustes</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
