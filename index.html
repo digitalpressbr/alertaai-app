@@ -1662,7 +1662,7 @@ async function carregarPainelDono(){
     //    a referência solta virava ReferenceError, o catch engolia e o painel simplesmente não aparecia.
     const {data:{session}}=await supa.auth.getSession();
     const r=await fetch(FN+'?action=admin_painel&cb='+Date.now(),{method:'POST',headers:{'Content-Type':'application/json','apikey':ANON,'Authorization':'Bearer '+((session&&session.access_token)||ANON)},body:'{}'}).then(x=>x.json());
-    if(r&&r.ok){S.dono=true;S.donoDados=r;return r;}
+    if(r&&r.ok){S.dono=true;S.donoDados=r;S.donoEm=new Date();return r;}
   }catch(e){/* sem acesso = simplesmente não existe pra essa conta */}
   S.dono=false;return null;
 }
@@ -1670,7 +1670,9 @@ function viewPainelDono(){
   const v=$('view');
   if(!S.donoDados){v.innerHTML='<div class="ph"><div><h1>Painel</h1><div class="d">Carregando…</div></div></div>';
     carregarPainelDono().then(()=>{if(S.tab==='dono')viewPainelDono();});return;}
-  const {resumo:R,clientes:CL}=S.donoDados;
+  const R=S.donoDados.resumo;
+  // 🔤 10/09: sempre em ORDEM ALFABÉTICA (o servidor já manda assim; aqui garante mesmo com cache antigo)
+  const CL=(S.donoDados.clientes||[]).slice().sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR',{sensitivity:'base'}));
   const f=S.donoFiltro||'todos';
   const filtros=[['todos','Todos',CL.length],['ativos','🟢 Em uso',R.ativos],['novos','🆕 Novos 7d',CL.filter(c=>c.dias_de_casa!==null&&c.dias_de_casa<=7).length],
     ['parados','😴 Parados',CL.filter(c=>!c.ativo).length],['adormecidos','🌙 Adormecidos',CL.filter(c=>c.adormecido).length],
@@ -1707,7 +1709,7 @@ function viewPainelDono(){
       <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${eq}${marcasHtml}${alerta}
     </div>`;
   };
-  v.innerHTML=`<div class="ph"><div><h1>👑 Painel do dono</h1><div class="d">A base inteira — visível só pra você</div></div>
+  v.innerHTML=`<div class="ph"><div><h1>👑 Painel do dono</h1><div class="d">A base inteira — visível só pra você · <span id="dono-atual">🔄 atualizado às ${(S.donoEm||new Date()).toLocaleTimeString('pt-BR')}</span></div></div>
     <div class="act"><button class="bpill" id="dono-recarrega">↻ Atualizar</button></div></div>
   <div class="kpis">
     <div class="kpi g"><div class="kt"><div class="l">Clientes</div><div class="n">${R.total}</div><div class="ksub">${R.ativos} usando de verdade</div></div></div>
@@ -1730,6 +1732,21 @@ function viewPainelDono(){
     if(S.tab==='dono')viewPainelDono();
     toast('Painel atualizado ✓');
   };
+  /* 🔄 TEMPO REAL (10/09, ordem do Rodrigo: "atualizado todo dia, automaticamente, em tempo real"): com o painel aberto
+     e a tela visível, busca de novo a cada 30 s; e ao VOLTAR pro app (foco ou aba visível) atualiza na hora. Redesenha
+     mantendo o filtro e a posição da rolagem — não pula pro topo enquanto ele lê. Só roda na conta dele (S.dono). */
+  if(!S.donoAuto){
+    S.donoAuto=true;
+    const atualizarDono=async()=>{
+      if(S.tab!=='dono'||document.hidden||!S.dono||S.donoOcupado)return;
+      S.donoOcupado=true;
+      try{const y=window.scrollY;const ok=await carregarPainelDono();if(ok&&S.tab==='dono'){viewPainelDono();window.scrollTo(0,y);}}
+      finally{S.donoOcupado=false;}
+    };
+    setInterval(atualizarDono,30000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)atualizarDono();});
+    window.addEventListener('focus',atualizarDono);
+  }
 }
 
 /* ---- 🔧 SERVIÇOS PENDENTES (30/08, pedido Rodrigo: a mesma função do WhatsApp, fácil de ver no app) ---- */
