@@ -1122,7 +1122,7 @@ async function abrirApp(){
   })();}
   const pn=S.nome?S.nome.split(' ')[0]:S.email;
   $('hd-nome').textContent=pn; $('un-d').textContent=pn; $('av-d').textContent=(pn[0]||'A').toUpperCase();
-  renderNav();await carregar();irPara((_vIni&&ROUTES[_vIni])?_vIni:'inicio');_vIni='';
+  renderNav();await carregar();irPara((_vIni&&ROUTES[_vIni])?_vIni:'inicio');_vIni='';try{ligarTempoReal();}catch(_e){}
   try{setTimeout(()=>bannerInstalar(/iphone|ipad|ipod/i.test(navigator.userAgent)),1400);}catch(_e){}
   if(new URLSearchParams(location.search).get('pago')){toast('Pagamento recebido! Estamos confirmando — seu acesso é liberado em instantes. 💚');history.replaceState({},'',location.pathname);}
 }
@@ -1154,7 +1154,7 @@ function diasTrial(){
   return Math.ceil((new Date(S.assinAte+'T23:59:59')-new Date())/86400000);
 }
 function bloqueado(){const d=diasTrial();return d!==null&&d<=0;}
-function irPara(k){
+function irPara(k,op){
   if(bloqueado()&&k!=='assinatura')k='assinatura';
   if(S.tab!==k&&S.lote){S.lote=false;S.loteIds=new Set();const lb=$('lotebar');if(lb)lb.remove();} // trocar de tela sai do modo lote
   S.tab=k;document.body.dataset.view=k;document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
@@ -1165,7 +1165,7 @@ function irPara(k){
     b.querySelector('button').onclick=()=>irPara('assinatura');
     const v=$('view');v.insertBefore(b,v.firstChild);
   }
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(!(op&&op.manterRolagem))window.scrollTo({top:0,behavior:'smooth'});
 }
 
 /* 👥 AGENDAS DA CONTA (08/08): o principal é a âncora; cada extra é "junta" (sincronizado)
@@ -1198,6 +1198,49 @@ async function carregar(){
   S.porDia={};
   S.comp.forEach(c=>{const d=(c.data||'').slice(8,10);(S.porDia[d]=S.porDia[d]||{b:[],r:[],e:[]}).b.push(c);});
   S.contas.forEach(c=>{const d=(c.data_vencimento||'').slice(8,10);const s=(S.porDia[d]=S.porDia[d]||{b:[],r:[],e:[]});(c.tipo==='receita'?s.e:s.r).push(c);});
+}
+
+/* ⚡ APP E WHATSAPP EM TEMPO REAL (17/09, ordem do Rodrigo: "o aplicativo não pode perder em nada… os dois devem andar junto…
+   tem gente que utiliza praticamente só o aplicativo"). Antes o app só buscava os dados ao abrir ou trocar de tela: o que a pessoa
+   mandava pelo WhatsApp só aparecia recarregando a página. Agora o app escuta o banco (Supabase Realtime, só as linhas DESTA conta,
+   com a mesma regra de acesso do resto do app) e redesenha a tela sozinho, sem pular a rolagem. Nunca redesenha com formulário aberto,
+   em seleção em lote ou com a pessoa digitando: guarda e aplica quando ela terminar. Ao voltar pro app (foco ou aba visível) confere
+   de novo, porque o celular dorme e a conexão cai. */
+const RT_TABELAS=['compromissos','contas','listas','servicos_feitos'];
+let _rtCanal=null,_rtTimer=null,_rtPendente=false,_rtUltimo=Date.now(),_rtRodando=false;
+function _rtOcupado(){
+  if(($('modal-root')&&$('modal-root').children.length)||$('sheet')||S.lote)return true;
+  const a=document.activeElement,v=$('view');
+  return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&v&&v.contains(a));
+}
+async function _rtAtualizar(){
+  if(document.hidden||_rtOcupado()||_rtRodando){_rtPendente=true;return;}
+  _rtPendente=false;_rtRodando=true;_rtUltimo=Date.now();
+  try{
+    const y=window.scrollY;
+    await carregar();
+    if(_rtOcupado()){_rtPendente=true;return;}          // abriu um formulário enquanto buscava: aplica depois
+    if(!S.tab||S.tab==='dono'||S.tab==='assinatura')return;  // painel do dono tem atualização própria; assinatura não depende disso
+    irPara(S.tab,{manterRolagem:true});
+    window.scrollTo(0,y);
+  }catch(_e){_rtPendente=true;}
+  finally{_rtRodando=false;}
+}
+function _rtAgendar(){clearTimeout(_rtTimer);_rtTimer=setTimeout(_rtAtualizar,800);}
+function ligarTempoReal(){
+  if(_rtCanal||!S.uid)return;
+  const idsNaTela=()=>new Set([...(S.comp||[]),...(S.contas||[]),...(S.abertas||[]),...(S.aberRec||[])].map(x=>x.id));
+  _rtCanal=supa.channel('app-'+S.uid);
+  RT_TABELAS.forEach(t=>{
+    ['INSERT','UPDATE'].forEach(ev=>_rtCanal.on('postgres_changes',{event:ev,schema:'public',table:t,filter:'user_id=eq.'+S.uid},_rtAgendar));
+  });
+  // exclusão não aceita filtro no Supabase e chega só com o id: só redesenha se o item apagado está na tela desta conta
+  ['compromissos','contas'].forEach(t=>_rtCanal.on('postgres_changes',{event:'DELETE',schema:'public',table:t},p=>{const id=p&&p.old&&p.old.id;if(id&&idsNaTela().has(id))_rtAgendar();}));
+  _rtCanal.subscribe();
+  const aoVoltar=()=>{if(!document.hidden&&(_rtPendente||Date.now()-_rtUltimo>60000))_rtAgendar();};
+  document.addEventListener('visibilitychange',aoVoltar);
+  window.addEventListener('focus',aoVoltar);
+  setInterval(()=>{if(_rtPendente&&!document.hidden&&!_rtOcupado())_rtAgendar();},3000);   // formulário fechou: aplica o que ficou guardado
 }
 
 /* ---- INÍCIO (dashboard) ---- */
