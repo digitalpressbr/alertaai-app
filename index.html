@@ -1094,13 +1094,13 @@ $('ac-b-senha').onclick=async()=>{const s=$('ac-senha').value,s2=$('ac-senha2').
 
 /* APP */
 const NAV_GROUPS=[
- ['Visão geral',[['inicio','🏠','Início'],['agenda','📅','Agenda'],['servicos','🔧','Serviços']]],
+ ['Visão geral',[['inicio','🏠','Início'],['agenda','📅','Agenda'],['listas','🛒','Listas'],['servicos','🔧','Serviços']]],
  ['Contas',[['pagar','💸','A pagar'],['receber','💰','A receber'],['fluxo','📊','Movimentações']]],
  ['Contatos',[['cli','👥','Clientes'],['forn','🏢','Fornecedores']]],
  ['Relatórios',[['relat','📈','Relatórios'],['mais','⚙️','Ajustes']]],
 ];
 const MOBILE_TABS=[['inicio','🏠','Início'],['agenda','📅','Agenda'],['__fab__','',''],['financeiro','💰','Contas'],['mais','⚙️','Ajustes']];
-const ROUTES={inicio:viewInicio,agenda:viewAgenda,servicos:viewServicos,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono,privacidade:viewPrivacidade};
+const ROUTES={inicio:viewInicio,agenda:viewAgenda,listas:viewListas,servicos:viewServicos,pagar:viewContasPagar,receber:viewContasReceber,fluxo:viewFluxo,forn:viewFornecedores,cli:viewClientes,cat:viewCategorias,relat:viewRelatorios,assinatura:viewAssinatura,mais:viewMais,financeiro:viewContasPagar,rec:viewRecorrentes,dono:viewPainelDono,privacidade:viewPrivacidade};
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
@@ -1130,6 +1130,7 @@ const _ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const ICONS={
   inicio:_ic('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M9.5 20v-5.3h5V20"/>'),
   agenda:_ic('<rect x="3" y="4.5" width="18" height="16.5" rx="2.4"/><path d="M3 9.6h18M8 2.6v3.8M16 2.6v3.8"/>'),
+  listas:_ic('<circle cx="9" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/><path d="M2.8 3.8h2.4l2.3 11.4h10.6l2.1-7.9H6.3"/>'),
   pagar:_ic('<rect x="2.5" y="5.5" width="19" height="13" rx="2.4"/><path d="M2.5 9.7h19"/>'),
   receber:_ic('<circle cx="12" cy="12" r="8.6"/><path d="M12 7v10M14.6 9.2c-.5-.9-1.5-1.4-2.7-1.4-1.6 0-2.6.8-2.6 1.9 0 2.6 5.5 1.4 5.5 4 0 1.2-1.1 2-2.8 2-1.3 0-2.4-.5-2.9-1.4"/>'),
   fluxo:_ic('<path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="9" rx=".6"/><rect x="10.5" y="5.5" width="3" height="14.5" rx=".6"/><rect x="15.5" y="13.5" width="3" height="6.5" rx=".6"/>'),
@@ -1235,7 +1236,7 @@ function ligarTempoReal(){
     ['INSERT','UPDATE'].forEach(ev=>_rtCanal.on('postgres_changes',{event:ev,schema:'public',table:t,filter:'user_id=eq.'+S.uid},_rtAgendar));
   });
   // exclusão não aceita filtro no Supabase e chega só com o id: só redesenha se o item apagado está na tela desta conta
-  ['compromissos','contas'].forEach(t=>_rtCanal.on('postgres_changes',{event:'DELETE',schema:'public',table:t},p=>{const id=p&&p.old&&p.old.id;if(id&&idsNaTela().has(id))_rtAgendar();}));
+  ['compromissos','contas','listas'].forEach(t=>_rtCanal.on('postgres_changes',{event:'DELETE',schema:'public',table:t},p=>{const id=p&&p.old&&p.old.id;if(id&&(idsNaTela().has(id)||(S.listasIds&&S.listasIds.has(id))))_rtAgendar();}));
   _rtCanal.subscribe();
   const aoVoltar=()=>{if(!document.hidden&&(_rtPendente||Date.now()-_rtUltimo>60000))_rtAgendar();};
   document.addEventListener('visibilitychange',aoVoltar);
@@ -1820,6 +1821,56 @@ function viewPainelDono(){
 
 /* ---- 🔧 SERVIÇOS PENDENTES (30/08, pedido Rodrigo: a mesma função do WhatsApp, fácil de ver no app) ---- */
 const _srvN=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+/* ---- 🛒 LISTAS (17/09, ordem do Rodrigo: "o aplicativo não pode perder em nada… tem gente que utiliza praticamente só o
+   aplicativo"). As listas de compras e de pedido existiam só no WhatsApp: o app mostrava apenas a de serviços. Mesmo modelo do
+   WhatsApp: `itens` é a lista de textos; item repetido (sem acento/maiúscula) não entra de novo; "Comprei" tira da lista. Lista
+   programada (o pedido de toda semana) não se apaga pelo app, só os itens. ---- */
+async function viewListas(){
+  const v=$('view');v.innerHTML='<div class="spin"></div>';
+  const {data,error}=await supa.from('listas').select('*').or('tipo.is.null,tipo.neq.servicos').order('updated_at',{ascending:false});
+  if(error){v.innerHTML='<div class="ph"><div><h1>🛒 Listas</h1><div class="d">Não consegui carregar agora. Tenta de novo em instantes.</div></div></div>';return;}
+  const listas=(data||[]).filter(l=>l.tipo!=='servicos');
+  S.listasIds=new Set(listas.map(l=>l.id));
+  const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+  const total=listas.reduce((s,l)=>s+(Array.isArray(l.itens)?l.itens.length:0),0);
+  const nIt=n=>n+(n===1?' item':' itens');
+  let h=`<div class="ph"><div><h1>🛒 Listas</h1><div class="d">${listas.length} lista${listas.length===1?'':'s'} · ${nIt(total)} — o que você manda pelo WhatsApp aparece aqui na hora</div></div></div>
+  <style>.lscard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}.lsh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}.lsn{font-weight:800;font-size:16px;flex:1;min-width:0;overflow-wrap:anywhere}.lsb{font-size:10.5px;font-weight:700;letter-spacing:.5px;border-radius:999px;padding:4px 9px;background:#e3eeff;color:#1d4ed8;flex:none}.lsrow{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:9px 2px}.lst{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}.lsok{border:1px solid var(--line);border-radius:10px;padding:6px 11px;background:#e7f3ec;color:#0b6b3a;font-weight:700;cursor:pointer;flex:none;font:inherit;font-size:13px}.lsadd{display:flex;gap:8px;margin-top:10px}.lsadd input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;background:var(--card);color:inherit}.lsacts{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}.lslink{border:none;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:4px 0}</style>
+  <div class="lsadd" style="margin:0 0 16px"><input id="ls-nova" placeholder='Nova lista... ex: "Mercado", "Farmácia"'><button class="bpill dr" id="ls-criar">＋ Criar lista</button></div>`;
+  if(!listas.length)h+=`<div class="lscard"><div class="lst" style="font-weight:500;color:var(--muted)">Nenhuma lista ainda. Crie aqui ou mande no WhatsApp: <i>"lista de compras: arroz, feijão e café"</i>.</div></div>`;
+  listas.forEach((l,li)=>{
+    const itens=Array.isArray(l.itens)?l.itens:[];
+    h+=`<div class="lscard"><div class="lsh"><div class="lsn">${esc(l.nome||'Compras')}</div>${l.recorrencia_id?'<span class="lsb">🔁 PROGRAMADA</span>':''}${l.tipo==='pedido'?'<span class="lsb">📦 PEDIDO</span>':''}<span class="lsb" style="background:#f1f5f9;color:#475569">${nIt(itens.length)}</span></div>`;
+    if(!itens.length)h+=`<div class="lsrow"><div class="lst" style="font-weight:500;color:var(--muted)">Lista vazia.</div></div>`;
+    itens.forEach((t,ii)=>{h+=`<div class="lsrow"><div class="lst">${esc(cap(String(t)))}</div><button class="lsok" data-l="${li}" data-i="${ii}">✓ Comprei</button></div>`;});
+    h+=`<div class="lsadd"><input id="ls-in-${li}" placeholder='Acrescentar... ex: "arroz, feijão e café"'><button class="bpill dr" data-add="${li}">＋ Pôr</button></div>
+    <div class="lsacts">${itens.length?`<button class="lslink" data-limpar="${li}">🧹 Limpar lista</button>`:''}${l.recorrencia_id?'':`<button class="lslink" data-apagar="${li}">🗑️ Apagar lista</button>`}</div></div>`;
+  });
+  v.innerHTML=h;
+  const salvar=async(l,itens,meta)=>{const {error:e}=await supa.from('listas').update({itens,itens_meta:meta,updated_at:new Date().toISOString()}).eq('id',l.id);if(e){toast('Não consegui salvar',true);return false;}return true;};
+  // mesmo corte do WhatsApp: vírgula, ponto e vírgula, quebra de linha e " e "
+  const separar=s=>String(s||'').split(/[,;\n]|\s+e\s+/i).map(x=>x.replace(/^[\s\-•*]+|[.!?\s]+$/g,'').trim()).filter(x=>x.length>=2&&x.length<=90).slice(0,30);
+  $('ls-criar').onclick=async()=>{const nome=$('ls-nova').value.trim();if(!nome)return;
+    if(listas.some(l=>_srvN(l.nome)===_srvN(nome)))return toast('Já existe uma lista com esse nome',true);
+    const {error:e}=await supa.from('listas').insert({user_id:S.uid,nome:cap(nome),itens:[],itens_meta:{}});
+    if(e)return toast('Não consegui criar',true);toast('Lista criada ✓');viewListas();};
+  v.querySelectorAll('[data-add]').forEach(b=>{const li=+b.dataset.add;const inp=$('ls-in-'+li);
+    const add=async()=>{const l=listas[li];const novos=separar(inp.value);if(!l||!novos.length)return;
+      const itens=(Array.isArray(l.itens)?l.itens:[]).slice();const ja=new Set(itens.map(x=>_srvN(x)));let n=0;
+      for(const t of novos){if(!ja.has(_srvN(t))){itens.push(t);ja.add(_srvN(t));n++;}}
+      if(!n)return toast('Esses já estão na lista');
+      if(await salvar(l,itens,{...(l.itens_meta||{})})){inp.blur();toast(n===1?'Item anotado ✓':n+' itens anotados ✓');viewListas();}};
+    b.onclick=add;inp.onkeydown=e=>{if(e.key==='Enter')add();};});
+  v.querySelectorAll('.lsok').forEach(b=>b.onclick=async()=>{const l=listas[+b.dataset.l];if(!l)return;const t=(l.itens||[])[+b.dataset.i];if(t==null)return;
+    const itens=(l.itens||[]).filter(x=>x!==t);const meta={...(l.itens_meta||{})};delete meta[_srvN(t)];
+    if(await salvar(l,itens,meta)){toast('Tirei da lista ✓');viewListas();}});
+  v.querySelectorAll('[data-limpar]').forEach(b=>b.onclick=async()=>{const l=listas[+b.dataset.limpar];if(!l||!confirm(`Limpar a lista "${l.nome}"? Todos os itens saem.`))return;
+    if(await salvar(l,[],{})){toast('Lista limpa ✓');viewListas();}});
+  v.querySelectorAll('[data-apagar]').forEach(b=>b.onclick=async()=>{const l=listas[+b.dataset.apagar];if(!l)return;const n=(l.itens||[]).length;
+    if(!confirm(`Apagar a lista "${l.nome}"${n?' e '+(n===1?'o item':'os '+n+' itens')+' dela':''}?`))return;
+    const {error:e}=await supa.from('listas').delete().eq('id',l.id);if(e)return toast('Não consegui apagar',true);toast('Lista apagada');viewListas();});
+}
+
 async function viewServicos(){
   const v=$('view');v.innerHTML='<div class="spin"></div>';
   const [r1,r2]=await Promise.all([
@@ -1861,7 +1912,7 @@ async function viewServicos(){
 function viewMais(){
   const pct=Math.min(100,(S.storageBytes/(LIMITE_MB*1048576))*100).toFixed(1);
   // 👑 o atalho do painel do dono só entra na lista se o SERVIDOR já tiver liberado (S.dono).
-  const links=[['servicos','🔧','Serviços pendentes'],['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
+  const links=[['listas','🛒','Listas de compras'],['servicos','🔧','Serviços pendentes'],['rec','🔁','O que se repete'],['receber','💰','Contas a receber'],['fluxo','📊','Fluxo de caixa'],['forn','🏢','Fornecedores'],['cli','👥','Clientes'],['cat','🏷️','Categorias'],['relat','📈','Relatórios'],['assinatura','💎','Assinatura']];
   if(S.dono)links.unshift(['dono','👑','Painel do dono']);
   let h=`<div class="ph"><div><h1>Ajustes</h1><div class="d">Atalhos, cadastros e suporte</div></div></div>
   <div class="hubgrid">${links.map(([k,ic,l])=>`<button class="hubcard" data-go="${k}"><span class="hi">${ic}</span><span class="hl">${l}</span></button>`).join('')}</div>
