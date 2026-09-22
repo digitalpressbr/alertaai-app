@@ -1003,7 +1003,7 @@ body[data-view="relat"] .panel:has(.empty){display:none}
 <div id="modal-root"></div><div id="toast"></div>
 
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.116.0';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/+esm';
 const SUPA_URL='https://pjrolsaelcvnslbyxnfx.supabase.co';
 const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqcm9sc2FlbGN2bnNsYnl4bmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODYzMzgsImV4cCI6MjA5NjA2MjMzOH0.swKDiNXYsXIAK4WtmmDAQxffmNZo3kqayWg7_MHGHvQ';
 const FN=SUPA_URL+'/functions/v1/web-auth';
@@ -1759,7 +1759,10 @@ function viewPainelDono(){
   const linha=c=>{
     const uso=`${c.compromissos} compromisso${c.compromissos===1?'':'s'} · ${c.contas} conta${c.contas===1?'':'s'}`;
     // 🏷️ "parado há 0d" confundia quem entrou ontem e não usou. Quem tem ZERO item nunca "parou" — nunca começou.
-    const status=c.ativo?'<b style="color:#0A7A4B">🟢 usando</b>'
+    /* 22/09: "usando" = mexeu na semana (qualquer número da conta, texto, áudio ou botão); quem só recebe os lembretes aparece como
+       "recebendo avisos" — também é uso, e nunca mais "parado" (Rodrigo: "o painel tem que ser dinâmico") */
+    const status=c.ativo?((c.parado_ha!==null&&c.parado_ha<=7)?'<b style="color:#0A7A4B">🟢 usando</b>'
+        :`<b style="color:#0A7A4B">🔔 recebendo avisos</b> <span style="color:var(--soft);font-size:12px">(${c.avisos_7d||0} na semana)</span>`)
       :(c.parado_ha===null?'<b style="color:#b33">🔴 nunca mandou nada</b>'
       :(c.compromissos+c.contas===0?'<b style="color:#b33">🔴 ainda não usou</b>'
       :`<b style="color:#b33">😴 parado há ${c.parado_ha}d</b>`));
