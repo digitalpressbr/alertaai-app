@@ -1768,6 +1768,10 @@ function viewPainelDono(){
     const eq=c.equipe?`<div style="margin-top:5px;font-size:12.5px;background:rgba(30,57,126,.06);border-radius:8px;padding:6px 9px">👥 <b>Equipe (${c.numeros_extras.length+1}/3):</b> ${c.numeros_extras.map(n=>`<b>${esc(n.nome||('•••'+String(n.tel).slice(-4)))}</b> <span style="color:var(--soft)">${n.modo==='individual'?'· agenda separada':'· agenda junta'}</span>`).join(' &nbsp;·&nbsp; ')}</div>`:'';
     const marcas=[c.excluido?'🔕 <b>contato desligado</b> (não recebe dica/campanha)':'',(!c.excluido&&c.dicas_off)?'🔕 <b>dicas desligadas</b>':'',c.bloqueio_suave?'⏸️ <b>novos agendamentos em espera</b> (aguardando assinatura)':'',(!c.excluido&&c.adormecido)?'🌙 <b>adormecido</b> — sem contato automático':''].filter(Boolean);
     const marcasHtml=marcas.length?`<div style="margin-top:4px;font-size:12.5px;color:#8a6d1a">${marcas.join(' · ')}</div>`:'';
+    /* 🔁 22/09 (Rodrigo: "manter as informações de pagamento atualizadas… as cobranças recorrentes"): próxima cobrança de quem paga.
+       Cartão = cai sozinha no dia (data do Mercado Pago); Pix = a pessoa paga pelo QR que o app manda antes de vencer. */
+    const dData=s=>s?new Date(String(s).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+    const recor=c.proxima_cobranca?`<div style="margin-top:4px;font-size:12.5px">🔁 ${c.primeira_cobranca?'<b>1ª cobrança</b>':'Próxima cobrança'}: <b>${dData(c.proxima_cobranca)}</b> · ${money(c.valor_mensal||0)} · ${c.forma==='pix'?'💠 Pix <span style="color:var(--soft)">(a pessoa paga pelo QR do app)</span>':'💳 cartão <span style="color:var(--soft)">(automática)</span>'}</div>`:'';
     const alerta=c.inadimplente_desde?'<div style="margin-top:4px;font-size:12.5px;color:#b33">⚠️ <b>Inadimplente</b> desde '+dBR(c.inadimplente_desde)+'</div>'
       :(c.plano==='teste'&&c.prazo_cartao?`<div style="margin-top:4px;font-size:12.5px;color:var(--soft)">⏳ prazo do cartão: <b>${dBR(c.prazo_cartao)}</b></div>`:'');
     return `<div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
@@ -1776,7 +1780,7 @@ function viewPainelDono(){
           <div style="color:var(--soft);font-size:12.5px">${esc(c.cidade||'')} · entrou ${dBR(c.cadastrou)} <span style="opacity:.7">(${c.dias_de_casa}d de casa)</span></div></div>
         <div style="text-align:right;font-size:13px">${status}<div style="color:var(--soft);font-size:12.5px">${uso}</div></div>
       </div>
-      <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${eq}${marcasHtml}${alerta}
+      <div style="margin-top:6px;font-size:13px">💳 ${pg}</div>${recor}${eq}${marcasHtml}${alerta}
     </div>`;
   };
   v.innerHTML=`<div class="ph"><div><h1>👑 Painel do dono</h1><div class="d">A base inteira — visível só pra você · <span id="dono-atual">🔄 atualizado às ${(S.donoEm||new Date()).toLocaleTimeString('pt-BR')}</span></div></div>
@@ -1787,6 +1791,10 @@ function viewPainelDono(){
     <div class="kpi g"><div class="kt"><div class="l">Recebido no mês</div><div class="n">${money(R.recebido_mes)}</div></div></div>
     <div class="kpi b"><div class="kt"><div class="l">Receita recorrente</div><div class="n">${money(R.receita_recorrente)}</div><div class="ksub">por mês, se ninguém sair</div></div></div>
   </div>
+  ${(R.proximas_cobrancas||[]).length?`<div id="dono-cobrancas" style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin:12px 0;box-shadow:var(--shadow-sm)">
+    <div style="font-weight:800;margin-bottom:6px">🔁 Cobranças recorrentes <span style="color:var(--soft);font-weight:400;font-size:12.5px">· próximos 30 dias: <b>${money(R.a_receber_30d||0)}</b></span></div>
+    ${R.proximas_cobrancas.map(p=>`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;padding:5px 0;border-top:1px solid var(--line)"><span><b>${new Date(String(p.data).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR')}</b> · ${esc(p.nome||'—')}${p.primeira?' <span style="color:var(--soft)">(1ª cobrança)</span>':''}</span><span>${money(p.valor||0)} · ${p.forma==='pix'?'💠 Pix':'💳 cartão, automática'}</span></div>`).join('')}
+  </div>`:''}
   ${R.inadimplentes?`<div class="trialbar">⚠️ <b>${R.inadimplentes}</b> cliente(s) inadimplente(s) — veja abaixo.</div>`:''}
   <div class="filterbar"><div class="chips">${filtros.map(([k,l,n])=>`<button class="fchip${f===k?' on':''}" data-df="${k}">${l} <b>${n}</b></button>`).join('')}</div></div>
   <div>${CL.filter(passa).map(linha).join('')||'<div style="color:var(--soft);text-align:center;padding:30px">Ninguém nesse filtro.</div>'}</div>
