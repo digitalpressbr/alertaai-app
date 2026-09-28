@@ -1104,8 +1104,8 @@ const ROUTES={inicio:viewInicio,agenda:viewAgenda,listas:viewListas,servicos:vie
 async function abrirApp(){
   show('screen-main');
   const hoje=new Date(Date.now()-3*3600e3);S.ano=hoje.getUTCFullYear();S.mes=hoje.getUTCMonth();
-  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras,dicas_off,retencao_meses').limit(1);
-  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};S.dicasOff=!!u[0].dicas_off;S.retencao=u[0].retencao_meses==null?12:Number(u[0].retencao_meses);}
+  const {data:u}=await supa.from('usuarios').select('id,nome,email,storage_bytes,plano,assinatura_ate,desconto_pct,telefone_whatsapp,telefones_extras,dicas_off,resumo_off,retencao_meses').limit(1);
+  if(u&&u[0]){S.uid=u[0].id;S.nome=u[0].nome||'';S.email=u[0].email||'';S.storageBytes=Number(u[0].storage_bytes||0);S.plano=u[0].plano||'teste';S.assinAte=u[0].assinatura_ate||null;S.desconto=Number(u[0].desconto_pct||0);S.telPrincipal=u[0].telefone_whatsapp||'';S.telExtras=(u[0].telefones_extras||[]).filter(Boolean);S.numMeta=u[0].numeros_meta||{};S.dicasOff=!!u[0].dicas_off;S.resumoOff=!!u[0].resumo_off;S.retencao=u[0].retencao_meses==null?12:Number(u[0].retencao_meses);}
   // 👑 pergunta ao servidor se ESTA conta é a do dono (403 pra todo o resto). Se a resposta chegar
   //    depois da tela "Ajustes" já ter sido desenhada, redesenha — senão o atalho não aparece.
   carregarPainelDono().then(()=>{ if(S.dono&&S.tab==='mais')viewMais(); });
@@ -1935,6 +1935,11 @@ function viewMais(){
     <button class="sw${S.dicasOff?'':' on'}" id="sw-dicas"><i></i></button>
   </div>
   <div class="optrow">
+    <span class="oi">☀️</span>
+    <div class="ob"><div class="ot">Bom dia no WhatsApp</div><div class="os">Resumo do dia às 6h com o que você tem para hoje. Desligar não afeta seus lembretes e avisos de vencimento.</div></div>
+    <button class="sw${S.resumoOff?'':' on'}" id="sw-resumo"><i></i></button>
+  </div>
+  <div class="optrow">
     <span class="oi">🗂️</span>
     <div class="ob"><div class="ot">Guardar meu histórico por</div><div class="os">Compromissos e contas que já passaram. O que ainda está por vir nunca é apagado.</div></div>
     <select class="fld" id="sel-retencao" style="flex:none;width:132px">
@@ -1955,6 +1960,7 @@ function viewMais(){
   v.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>irPara(e.dataset.go));
   if($('mais-instalar'))$('mais-instalar').onclick=instalarApp;
   if($('sw-dicas'))$('sw-dicas').onclick=()=>alternarDicas($('sw-dicas'));
+  if($('sw-resumo'))$('sw-resumo').onclick=()=>alternarResumo($('sw-resumo'));
   if($('row-privacidade'))$('row-privacidade').onclick=()=>irPara('privacidade');
   if($('sel-retencao'))$('sel-retencao').onchange=e=>salvarRetencao(Number(e.target.value));
 }
@@ -2169,6 +2175,18 @@ async function alternarDicas(btn){
   if(error){btn.classList.toggle('on',!novo);toast('Não consegui salvar agora. Tenta de novo.',true);return;}
   S.dicasOff=!novo;
   toast(novo?'💡 Voltei com as dicas!':'🔕 Prontinho — não te mando mais dicas. Seus lembretes continuam normais.');
+}
+
+/* ☀️ CHAVE DO "BOM DIA": desliga o resumo diário das 06:00 sem mexer nos avisos. Mesmo padrão da chave
+   de dicas: o servidor é a fonte da verdade e a tela só reflete. Lido pelo cron-resumo-diario
+   (usuarios.resumo_off); lembretes e vencimentos seguem pelo cron-lembretes. */
+async function alternarResumo(btn){
+  const novo=!btn.classList.contains('on');
+  btn.classList.toggle('on',novo);
+  const {error}=await supa.from('usuarios').update({resumo_off:!novo}).eq('id',S.uid);
+  if(error){btn.classList.toggle('on',!novo);toast('Não consegui salvar agora. Tenta de novo.',true);return;}
+  S.resumoOff=!novo;
+  toast(novo?'☀️ Voltei a te mandar o Bom dia!':'🔕 Prontinho, sem Bom dia. Seus lembretes e avisos de vencimento continuam normais.');
 }
 
 function mngRow(o,tipo){return `<div class="mng"><span class="di">${tipo==='forn'?'🏢':'🏷️'}</span><span class="nm">${esc(o.nome)}</span><button class="ed" data-ed="${o.id}" data-tipo="${tipo}" title="Editar">✏️</button><button class="rm" data-rm="${o.id}" data-tipo="${tipo}" title="Remover">🗑️</button></div>`;}
